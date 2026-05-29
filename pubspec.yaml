@@ -1,0 +1,47 @@
+name: amor_app
+description: Notre histoire ❤️
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # <<--- Firebase --->
+  firebase_core: ^3.0.0
+  cloud_firestore: ^5.0.0
+
+  # <<--- State Management --->
+  provider: ^6.1.2
+
+  # <<--- Navigation --->
+  go_router: ^14.0.0
+
+  # <<--- UI --->
+  cached_network_image: ^3.3.1
+  google_fonts: ^6.2.1
+
+  # <<--- Stockage local --->
+  shared_preferences: ^2.2.3
+
+  # <<--- Capteurs (shake) --->
+  sensors_plus: ^5.0.0
+
+  # <<--- Réseau --->
+  http: ^1.2.1
+
+  # <<--- Icônes --->
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
