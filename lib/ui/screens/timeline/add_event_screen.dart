@@ -1,80 +1,74 @@
 // <<===========================================================================>>
 // <<====================== ÉCRAN AJOUT / ÉDITION ÉVÉNEMENT ====================>>
 // <<===========================================================================>>
-// Équivalent de AddEvent.kt — formulaire d'ajout et de modification
+// <<--- L'upload des images se fait UNIQUEMENT au moment de "Enregistrer" --->
+// <<--- Les images sont stockées dans : amor_events/{titre_event}/ --->
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/timeline_event.dart';
-import '../../../data/services/place_service.dart';
+import '../../../data/services/photo_service.dart';
 import '../../../navigation/screen.dart';
 import '../../../ui/viewmodels/timeline_viewmodel.dart';
-
-// <<--- Modèle interne pour les images --->
-class ImageItem {
-  final int id;
-  String url;
-  ImageItem({required this.id, required this.url});
-}
+import '../../../widgets/random_gif.dart';
+import '../../components/common/place_autocomplete_field.dart';
+import '../../components/timeline/image_list_editor.dart';
+import '../../components/timeline/image_picker_bar.dart';
 
 class AddEventScreen extends StatefulWidget {
-  // <<--- Paramètres --->
   final TimelineEvent? eventToEdit;
 
-  const AddEventScreen({
-    super.key,
-    this.eventToEdit,
-  });
+  const AddEventScreen({super.key, this.eventToEdit});
 
   @override
   State<AddEventScreen> createState() => _AddEventScreenState();
 }
 
 class _AddEventScreenState extends State<AddEventScreen> {
-  // <<--- Contrôleurs de texte --->
+  // <<--- Contrôleurs --->
   late final TextEditingController _titleController;
-  late final TextEditingController _placeController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _imageUrlController;
 
-  // <<--- États du formulaire --->
+  // <<--- Service photo --->
+  final PhotoService _photoService = PhotoService();
+
+  // <<--- États formulaire --->
   late DateTime _selectedDate;
   late String _selectedWho;
+  late String _currentPlace;
   late List<ImageItem> _imageItems;
 
   // <<--- États techniques --->
   bool _isLoading = false;
-  bool _isUserTyping = false;
-  List<PlacePrediction> _predictions = [];
   int _nextImageId = 1;
-  int _editingImageIndex = -1;
 
-  // <<--- Couleurs --->
-  static const Color _backgroundColor = amorCream;
-  static const Color _cardBackground = amorCreamTransparent;
+  static const Color _cardBackground = amorCream;
 
   @override
   void initState() {
     super.initState();
-
     final event = widget.eventToEdit;
 
-    // <<--- Initialisation avec les données de l'événement à éditer --->
     _titleController = TextEditingController(text: event?.title ?? '');
-    _placeController = TextEditingController(text: event?.place ?? '');
-    _descriptionController = TextEditingController(text: event?.description ?? '');
-    _imageUrlController = TextEditingController();
+    _descriptionController =
+        TextEditingController(text: event?.description ?? '');
     _selectedDate = event?.date ?? DateTime.now();
     _selectedWho = event?.who ?? 'Lulu';
+    _currentPlace = event?.place ?? '';
 
-    // <<--- Initialisation des images --->
+    // <<--- Initialisation images existantes (déjà uploadées, on garde leur URL) --->
     _imageItems = [];
     if (event != null && event.imageUrl.isNotEmpty) {
       final urls = event.imageUrl.split('|');
       for (var i = 0; i < urls.length; i++) {
-        _imageItems.add(ImageItem(id: i + 1, url: urls[i].trim()));
+        _imageItems.add(ImageItem(
+          id: i + 1,
+          url: urls[i].trim(),
+          // <<--- localFile est null : déjà sur Storage, pas à ré-uploader --->
+        ));
         _nextImageId = i + 2;
       }
     }
@@ -83,9 +77,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   @override
   void dispose() {
     _titleController.dispose();
-    _placeController.dispose();
     _descriptionController.dispose();
-    _imageUrlController.dispose();
     super.dispose();
   }
 
@@ -94,17 +86,11 @@ class _AddEventScreenState extends State<AddEventScreen> {
     final isEditing = widget.eventToEdit != null;
 
     return Scaffold(
-      backgroundColor: _backgroundColor,
-
-      // <<--- Barre du haut --->
+      backgroundColor: Colors.transparent,
       appBar: _buildAppBar(context, isEditing),
-
       body: Stack(
         children: [
-          // <<--- Formulaire --->
           _buildForm(context),
-
-          // <<--- Overlay de chargement --->
           if (_isLoading) _buildLoadingOverlay(),
         ],
       ),
@@ -114,7 +100,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
   // <<--- AppBar --->
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isEditing) {
     return AppBar(
-      backgroundColor: _backgroundColor,
+      backgroundColor: amorCreamTransparent,
       title: Text(
         isEditing ? 'Modifier le souvenir' : 'Ajouter un souvenir',
         style: const TextStyle(
@@ -128,7 +114,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
         icon: const Icon(Icons.arrow_back),
       ),
       actions: [
-        // <<--- Bouton Enregistrer --->
         TextButton(
           onPressed: _isLoading ? null : () => _handleSave(context),
           child: Text(
@@ -143,17 +128,24 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
   }
 
-  // <<--- Formulaire principal --->
+  // <<--- Formulaire --->
   Widget _buildForm(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
       children: [
+        // <<--- GIF hérisson --->
+        const Center(
+          child: RandomGif(searchTerm: 'hedgehog cute', height: 100),
+        ),
+
+        const SizedBox(height: 12),
+
         // <<--- Titre --->
         _buildTitleField(),
 
         const SizedBox(height: 12),
 
-        // <<--- Date et Lieu --->
+        // <<--- Date + Lieu --->
         _buildDatePlaceCard(context),
 
         const SizedBox(height: 12),
@@ -174,16 +166,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
   }
 
-  // <<--- Champ Titre --->
+  // <<--- Titre --->
   Widget _buildTitleField() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: _titleController,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         decoration: const InputDecoration(
           hintText: 'Titre...',
           hintStyle: TextStyle(color: Colors.grey),
@@ -193,7 +182,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
   }
 
-  // <<--- Carte Date + Lieu --->
+  // <<--- Date + Lieu --->
   Widget _buildDatePlaceCard(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -204,7 +193,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // <<--- Sélecteur de date --->
           GestureDetector(
             onTap: () => _pickDate(context),
             child: Row(
@@ -212,52 +200,27 @@ class _AddEventScreenState extends State<AddEventScreen> {
                 const Icon(Icons.calendar_month, color: Colors.grey, size: 18),
                 const SizedBox(width: 8),
                 Text(
-                  '${_selectedDate.day.toString().padLeft(2, '0')}/${_selectedDate.month.toString().padLeft(2, '0')}/${_selectedDate.year}',
+                  '${_selectedDate.day.toString().padLeft(2, '0')}/'
+                  '${_selectedDate.month.toString().padLeft(2, '0')}/'
+                  '${_selectedDate.year}',
                   style: const TextStyle(color: Color(0xFF616161)),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 8),
-
-          // <<--- Champ Lieu --->
-          TextField(
-            controller: _placeController,
-            onChanged: (value) {
-              setState(() => _isUserTyping = true);
-              _fetchPredictions(value);
+          const Divider(height: 16),
+          PlaceAutocompleteField(
+            initialValue: _currentPlace,
+            onPlaceSelected: (place) {
+              setState(() => _currentPlace = place);
             },
-            decoration: const InputDecoration(
-              hintText: 'Lieu...',
-              hintStyle: TextStyle(color: Colors.grey),
-              border: InputBorder.none,
-              isDense: true,
-            ),
           ),
-
-          // <<--- Prédictions de lieux --->
-          if (_predictions.isNotEmpty && _isUserTyping)
-            ..._predictions.map(
-              (p) => ListTile(
-                dense: true,
-                title: Text(p.description, style: const TextStyle(fontSize: 14)),
-                onTap: () {
-                  setState(() {
-                    _placeController.text = p.description;
-                    _predictions = [];
-                    _isUserTyping = false;
-                  });
-                  FocusScope.of(context).unfocus();
-                },
-              ),
-            ),
         ],
       ),
     );
   }
 
-  // <<--- Sélecteur Créé par --->
+  // <<--- Créé par --->
   Widget _buildWhoSelector() {
     return Container(
       decoration: BoxDecoration(
@@ -288,7 +251,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
   }
 
-  // <<--- Champ Description --->
+  // <<--- Description --->
   Widget _buildDescriptionField() {
     return Container(
       decoration: BoxDecoration(
@@ -311,155 +274,106 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
   // <<--- Section Images --->
   Widget _buildImagesSection() {
+    // <<--- Compte les images en attente d'upload --->
+    final pendingCount = _imageItems.where((i) => i.isPendingUpload).length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Images', style: TextStyle(fontWeight: FontWeight.bold)),
-
-        const SizedBox(height: 8),
-
-        // <<--- Champ ajout URL --->
         Row(
           children: [
-            Expanded(
-              child: Container(
+            const Text(
+              'Images',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            // <<--- Badge indiquant les images en attente --->
+            if (pendingCount > 0) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _cardBackground,
+                  color: Colors.orange.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: _imageUrlController,
-                  decoration: const InputDecoration(
-                    hintText: 'URL de l\'image...',
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none,
-                    isDense: true,
+                child: Text(
+                  '$pendingCount en attente',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.orange.shade800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-            ),
-            IconButton(
-              onPressed: _addImage,
-              icon: const Icon(Icons.add),
-            ),
+            ],
           ],
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
-        // <<--- Liste des images --->
-        ..._imageItems.asMap().entries.map(
-          (entry) => _buildImageItem(entry.key, entry.value),
+        // <<--- Boutons Galerie / Caméra — ne font QUE sélectionner --->
+        ImagePickerBar(
+          isLoading: _isLoading,
+          onImagesPicked: _handleImagesPicked,
+        ),
+
+        const SizedBox(height: 12),
+
+        // <<--- Éditeur visuel des images --->
+        ImageListEditor(
+          images: _imageItems,
+          onImagesChanged: (updated) {
+            setState(() => _imageItems = updated);
+          },
         ),
       ],
     );
   }
 
-  // <<--- Item individuel de la liste d'images --->
-  Widget _buildImageItem(int index, ImageItem item) {
-    final isEditing = _editingImageIndex == index;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        // <<--- Correction : withOpacity -> withValues --->
-        color: isEditing
-            ? Colors.white.withValues(alpha: 0.5)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-        border: isEditing
-            ? Border.all(color: amorDarkRose, width: 1.5)
-            : null,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          // <<--- Icône drag --->
-          const Icon(Icons.menu, color: amorDarkRose, size: 20),
-
-          // <<--- Numéro --->
-          SizedBox(
-            width: 28,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Text(
-                '${item.id}.',
-                // <<--- Correction : fontWeight dans TextStyle --->
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-
-          // <<--- URL (éditable ou non) --->
-          Expanded(
-            child: isEditing
-                ? TextField(
-                    autofocus: true,
-                    controller: TextEditingController(text: item.url),
-                    style: const TextStyle(fontSize: 12),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                    onChanged: (value) {
-                      setState(() => _imageItems[index].url = value);
-                    },
-                  )
-                : Text(
-                    item.url,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-          ),
-
-          // <<--- Bouton édition --->
-          IconButton(
-            onPressed: () => setState(() {
-              _editingImageIndex = isEditing ? -1 : index;
-            }),
-            icon: Icon(
-              isEditing ? Icons.check : Icons.edit,
-              color: isEditing ? const Color(0xFF1EBA14) : Colors.black,
-              size: 16,
-            ),
-          ),
-
-          // <<--- Bouton suppression --->
-          IconButton(
-            onPressed: () => setState(() => _imageItems.removeAt(index)),
-            icon: const Icon(Icons.close, color: Colors.red, size: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
   // <<--- Overlay chargement --->
   Widget _buildLoadingOverlay() {
+    // <<--- Compte les images locales à uploader pour afficher la progression --->
+    final pendingCount = _imageItems.where((i) => i.isPendingUpload).length;
+
     return Container(
-      // <<--- Correction : withOpacity -> withValues --->
       color: Colors.black.withValues(alpha: 0.4),
-      child: const Center(
+      child: Center(
         child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(color: amorDarkRose),
-                SizedBox(height: 16),
-                Text('Synchronisation...', style: TextStyle(fontWeight: FontWeight.w500)),
+                const CircularProgressIndicator(color: amorDarkRose),
+                const SizedBox(height: 16),
+                Text(
+                  pendingCount > 0
+                      ? 'Upload de $pendingCount image(s)...'
+                      : 'Synchronisation...',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  // <<--- Ajout à la liste locale SANS upload --->
+  void _handleImagesPicked(List<File> files) {
+    setState(() {
+      for (final file in files) {
+        _imageItems.add(ImageItem(
+          id: _nextImageId++,
+          localFile: file,
+          // <<--- url reste vide : sera rempli au moment de l'enregistrement --->
+        ));
+      }
+    });
   }
 
   // <<--- Sélecteur de date --->
@@ -473,37 +387,50 @@ class _AddEventScreenState extends State<AddEventScreen> {
     if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  // <<--- Récupération des prédictions de lieux --->
-  Future<void> _fetchPredictions(String query) async {
-    final results = await PlaceService.fetchPredictions(query);
-    if (mounted) setState(() => _predictions = results);
-  }
-
-  // <<--- Ajout d'une image --->
-  void _addImage() {
-    final url = _imageUrlController.text.trim();
-    if (url.isEmpty) return;
-
-    setState(() {
-      _imageItems.add(ImageItem(id: _nextImageId++, url: url));
-      _imageUrlController.clear();
-    });
-  }
-
-  // <<--- Sauvegarde de l'événement --->
+  // <<--- Sauvegarde : upload d'abord, puis save --->
   Future<void> _handleSave(BuildContext context) async {
     if (_titleController.text.trim().isEmpty) return;
 
     setState(() => _isLoading = true);
 
+    // <<--- Nom du dossier Storage : amor_events/{titre_nettoyé}/ --->
+    // <<--- On nettoie le titre pour éviter les caractères spéciaux dans le path --->
+    final folderName = _titleController.text
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9àâäéèêëîïôùûüç\s]'), '')
+        .replaceAll(RegExp(r'\s+'), '_');
+    final storageFolder = 'amor_events/$folderName';
+
+    // <<--- Upload des images en attente (localFile != null) --->
+    final updatedItems = <ImageItem>[];
+    for (final item in _imageItems) {
+      if (item.isPendingUpload) {
+        // <<--- Upload vers amor_events/{titre}/{timestamp}.jpg --->
+        final url = await _photoService.uploadPhoto(
+          item.localFile!,
+          dossier: storageFolder,
+        );
+        if (url != null) {
+          // <<--- On remplace le fichier local par l'URL obtenue --->
+          updatedItems.add(ImageItem(id: item.id, url: url));
+        }
+        // <<--- Si l'upload échoue, on ignore silencieusement ce fichier --->
+      } else {
+        // <<--- Image déjà uploadée : on garde l'URL telle quelle --->
+        updatedItems.add(item);
+      }
+    }
+
+    final finalImageUrls = updatedItems.map((i) => i.url).join('|');
+
     final viewModel = context.read<TimelineViewModel>();
-    final finalImageUrls = _imageItems.map((i) => i.url).join('|');
 
     final newEvent = TimelineEvent(
       id: widget.eventToEdit?.id ?? '',
       title: _titleController.text.trim(),
       date: _selectedDate,
-      place: _placeController.text.trim(),
+      place: _currentPlace,
       who: _selectedWho,
       imageUrl: finalImageUrls,
       description: _descriptionController.text.trim(),
@@ -512,18 +439,15 @@ class _AddEventScreenState extends State<AddEventScreen> {
     String? savedId;
 
     if (widget.eventToEdit != null) {
-      // <<--- Modification --->
       final success = await viewModel.updateEvent(newEvent);
       if (success) savedId = newEvent.id;
     } else {
-      // <<--- Ajout --->
       savedId = await viewModel.addEvent(newEvent);
     }
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // <<--- Correction : context utilisé après vérification mounted --->
     if (savedId != null && mounted) {
       context.pushReplacement(AppRoutes.timelineDetailPath(savedId));
     }

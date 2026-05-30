@@ -53,7 +53,8 @@ class _AnswerReviewState extends State<AnswerReview> {
     final modifyScale = _modifyClickCount > 0
         ? (1.0 - _modifyClickCount * 0.2).clamp(0.4, 1.0)
         : 1.0;
-    final confirmScale = (1.0 + _modifyClickCount * 0.25).clamp(1.0, 1.5);
+    final confirmScale =
+        (1.0 + _modifyClickCount * 0.25).clamp(1.0, 1.5);
     final modifyOffsetX = -(_modifyClickCount * 50.0);
     final modifyOffsetY = _modifyClickCount * 60.0;
 
@@ -65,12 +66,14 @@ class _AnswerReviewState extends State<AnswerReview> {
           colors: [amorBackground, amorBackgroundEnd],
         ),
       ),
-      child: Center(
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SizedBox(height: 40),
+
               // <<--- Cœurs animés --->
               SizedBox(
                 height: 40,
@@ -78,7 +81,9 @@ class _AnswerReviewState extends State<AnswerReview> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (index) {
                     return AnimatedOpacity(
-                      opacity: (_visibleHearts > index && _phase < 2) ? 1.0 : 0.0,
+                      opacity: (_visibleHearts > index && _phase < 2)
+                          ? 1.0
+                          : 0.0,
                       duration: const Duration(milliseconds: 500),
                       child: const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 4),
@@ -102,93 +107,108 @@ class _AnswerReviewState extends State<AnswerReview> {
                 ),
               ),
 
-              // <<--- Nom et boutons --->
+              const SizedBox(height: 8),
+
+              // <<--- Nom --->
               AnimatedOpacity(
                 opacity: _phase >= 2 ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 800),
-                child: Column(
-                  children: [
-                    // <<--- Nom --->
-                    Text(
-                      widget.answer,
-                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: amorPink,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // <<--- Image mascotte --->
-                    Image.asset(
-                      'assets/images/lulu_amor.png',
-                      width: 250,
-                      height: 250,
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // <<--- Boutons Modifier / Confirmer --->
-                    SizedBox(
-                      height: 250,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // <<--- Bouton Modifier (qui fuit) --->
-                          Transform.translate(
-                            offset: Offset(modifyOffsetX, modifyOffsetY),
-                            child: Transform.scale(
-                              scale: modifyScale,
-                              child: ElevatedButton(
-                                onPressed: () => setState(() => _modifyClickCount++),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[300],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Modifier',
-                                  style: TextStyle(color: Colors.black54),
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // <<--- Bouton Confirmer (qui grossit) --->
-                          Transform.scale(
-                            scale: confirmScale,
-                            child: ElevatedButton(
-                              onPressed: widget.onConfirm,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: amorPink,
-                                elevation: 8,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                child: Text(
-                                  'Confirmer',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  widget.answer,
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: amorPink,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
+
+              const SizedBox(height: 10),
+
+              // <<--- Image mascotte --->
+              AnimatedOpacity(
+                opacity: _phase >= 2 ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 800),
+                child: Image.asset(
+                  'assets/images/lulu_amor.png',
+                  width: 220,
+                  height: 220,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // <<--- Boutons dans un SizedBox avec overflow autorisé --->
+              AnimatedOpacity(
+                opacity: _phase >= 2 ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 800),
+                child: SizedBox(
+                  height: 300,
+                  width: double.infinity,
+                  child: Stack(
+                    // <<--- clipBehavior none pour laisser le bouton sortir --->
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      // <<--- Bouton Modifier (qui fuit) --->
+                      Positioned(
+                        left: 0,
+                        top: 120,
+                        child: Transform.translate(
+                          offset: Offset(modifyOffsetX, modifyOffsetY),
+                          child: Transform.scale(
+                            scale: modifyScale,
+                            child: ElevatedButton(
+                              onPressed: () =>
+                                  setState(() => _modifyClickCount++),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[300],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'Modifier',
+                                style: TextStyle(color: Colors.black54),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // <<--- Bouton Confirmer (qui grossit, toujours au centre) --->
+                      Transform.scale(
+                        scale: confirmScale,
+                        child: ElevatedButton(
+                          onPressed: widget.onConfirm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: amorPink,
+                            elevation: 8,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              'Confirmer',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
             ],
           ),
         ),

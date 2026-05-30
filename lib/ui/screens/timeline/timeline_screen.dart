@@ -34,7 +34,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       );
 
     return Container(
-      color: amorCream,
+      color: Colors.transparent,
       child: Column(
         children: [
           // <<--- Barre du haut --->
@@ -55,19 +55,28 @@ class _TimelineScreenState extends State<TimelineScreen> {
       padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
       child: Row(
         children: [
-          // <<--- Bouton tri --->
-          IconButton(
-            onPressed: () => setState(() => _isDescending = !_isDescending),
-            icon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.access_time,
-                    color: Color(0xFF904B3C), size: 18),
-                Icon(
-                  _isDescending ? Icons.arrow_upward : Icons.arrow_downward,
-                  size: 18,
-                ),
-              ],
+          // <<--- Bouton tri avec fond amorCream --->
+          GestureDetector(
+            onTap: () => setState(() => _isDescending = !_isDescending),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: amorCream,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.access_time,
+                      color: Color(0xFF904B3C), size: 18),
+                  const SizedBox(width: 4),
+                  Icon(
+                    _isDescending ? Icons.arrow_upward : Icons.arrow_downward,
+                    size: 18,
+                    color: Color(0xFF904B3C),
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -79,8 +88,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
                 'Notre histoire',
                 textAlign: TextAlign.center,
                 style: TextStyle(
+                  color: Color(0xFF703348),
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.bold,  
+                  decoration: TextDecoration.none,
+                  decorationColor: Colors.transparent,
                 ),
               ),
             ),

@@ -1,7 +1,6 @@
 // <<===========================================================================>>
 // <<========================= DÉTAIL ÉVÉNEMENT ================================>>
 // <<===========================================================================>>
-// Équivalent de Detail.kt — contenu scrollable du détail d'un événement
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +9,6 @@ import '../../../data/models/timeline_event.dart';
 import 'image_grid.dart';
 
 class TimelineDetail extends StatelessWidget {
-  // <<--- Paramètres --->
   final TimelineEvent event;
 
   const TimelineDetail({
@@ -25,31 +23,21 @@ class TimelineDetail extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // <<--- Section fixe : Titre --->
+        // <<--- Titre fixe --->
         _buildTitle(),
 
-        // <<--- Section scrollable --->
+        // <<--- Contenu scrollable --->
         Expanded(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // <<--- Date et lieu --->
                 _buildDatePlace(formatter),
-
                 const SizedBox(height: 8),
-
-                // <<--- Description --->
                 _buildDescription(),
-
                 const SizedBox(height: 8),
-
-                // <<--- Créé par --->
                 _buildCreatedBy(),
-
                 const SizedBox(height: 16),
-
-                // <<--- Grille d'images --->
                 ImageGrid(event: event),
               ],
             ),
@@ -59,7 +47,6 @@ class TimelineDetail extends StatelessWidget {
     );
   }
 
-  // <<--- Titre de l'événement --->
   Widget _buildTitle() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -68,12 +55,15 @@ class TimelineDetail extends StatelessWidget {
         style: const TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
+          // <<--- Couleur neutre, pas de rouge Material ni de soulignage --->
+          color: Colors.black87,
+          decoration: TextDecoration.none,
+          decorationColor: Colors.transparent,
         ),
       ),
     );
   }
 
-  // <<--- Date et lieu --->
   Widget _buildDatePlace(DateFormat formatter) {
     return _buildInfoBox(
       '${formatter.format(event.date)} • ${event.place}',
@@ -81,14 +71,13 @@ class TimelineDetail extends StatelessWidget {
     );
   }
 
-  // <<--- Description --->
   Widget _buildDescription() {
     return _buildInfoBox(
       event.description.replaceAll(r'\n', '\n'),
+      color: Colors.black87,
     );
   }
 
-  // <<--- Créé par --->
   Widget _buildCreatedBy() {
     return _buildInfoBox(
       'Créé par ${event.who}',
@@ -96,10 +85,11 @@ class TimelineDetail extends StatelessWidget {
     );
   }
 
-  // <<--- Box d'information générique --->
+  // <<--- Box générique avec fond crème --->
   Widget _buildInfoBox(String text, {Color? color}) {
     return Container(
       width: double.infinity,
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: amorCreamTransparent,
         borderRadius: BorderRadius.circular(12),
@@ -110,7 +100,10 @@ class TimelineDetail extends StatelessWidget {
         style: TextStyle(
           fontSize: 16,
           height: 1.5,
-          color: color,
+          color: color ?? Colors.black87,
+          // <<--- Désactive le soulignage jaune du correcteur --->
+          decoration: TextDecoration.none,
+          decorationColor: Colors.transparent,
         ),
       ),
     );

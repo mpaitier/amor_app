@@ -1,7 +1,6 @@
 // <<===========================================================================>>
 // <<============================== APP PRINCIPALE =============================>>
 // <<===========================================================================>>
-// Équivalent de AmorApp dans MainActivity.kt — racine de l'application
 
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
@@ -24,6 +23,26 @@ class AmorApp extends StatelessWidget {
 
       // <<--- Navigation --->
       routerConfig: appRouter,
+
+      // <<--- Builder : fond global + SafeArea --->
+      builder: (context, child) {
+        return Stack(
+          children: [
+            // <<--- Image de fond globale (amor_background) --->
+            Positioned.fill(
+              child: Image.asset(
+                'assets/images/amor_background.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            // <<--- Contenu de l'app par-dessus --->
+            SafeArea(
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

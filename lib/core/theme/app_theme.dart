@@ -10,34 +10,36 @@ import 'app_typography.dart';
 final ThemeData amorLightTheme = ThemeData(
   useMaterial3: true,
   textTheme: amorTextTheme,
+  // <<--- Désactive globalement les décorations de texte héritées du système --->
+  // <<--- Règle le soulignage jaune et la police rouge de Google Fonts / Lora --->
+  textSelectionTheme: const TextSelectionThemeData(
+    selectionColor: Color(0x44703348),
+    cursorColor: amorDarkRose,
+    selectionHandleColor: amorDarkRose,
+  ),
   colorScheme: const ColorScheme(
     brightness: Brightness.light,
 
-    // <<--- Primaires --->
     primary: primaryLightMediumContrast,
     onPrimary: onPrimaryLightMediumContrast,
     primaryContainer: primaryContainerLightMediumContrast,
     onPrimaryContainer: onPrimaryContainerLightMediumContrast,
 
-    // <<--- Secondaires --->
     secondary: secondaryLightMediumContrast,
     onSecondary: onSecondaryLightMediumContrast,
     secondaryContainer: secondaryContainerLightMediumContrast,
     onSecondaryContainer: onSecondaryContainerLightMediumContrast,
 
-    // <<--- Tertiaires --->
     tertiary: tertiaryLightMediumContrast,
     onTertiary: onTertiaryLightMediumContrast,
     tertiaryContainer: tertiaryContainerLightMediumContrast,
     onTertiaryContainer: onTertiaryContainerLightMediumContrast,
 
-    // <<--- Erreurs --->
     error: errorLight,
     onError: onErrorLight,
     errorContainer: errorContainerLight,
     onErrorContainer: onErrorContainerLight,
 
-    // <<--- Surfaces --->
     surface: surfaceLightMediumContrast,
     onSurface: onSurfaceLightMediumContrast,
     surfaceContainerHighest: surfaceContainerHighestLightMediumContrast,
@@ -55,6 +57,11 @@ final ThemeData amorLightTheme = ThemeData(
 final ThemeData amorDarkTheme = ThemeData(
   useMaterial3: true,
   textTheme: amorTextTheme,
+  textSelectionTheme: const TextSelectionThemeData(
+    selectionColor: Color(0x44FFB1C8),
+    cursorColor: primaryDark,
+    selectionHandleColor: primaryDark,
+  ),
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: primaryDark,

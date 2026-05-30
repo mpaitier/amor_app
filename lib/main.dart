@@ -10,12 +10,15 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'ui/viewmodels/timeline_viewmodel.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   
-  await initializeDateFormatting('fr_FR', null);
   // <<--- Initialisation Flutter --->
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: '.env');
+  await initializeDateFormatting('fr_FR', null);
 
   // <<--- Initialisation Firebase --->
   await Firebase.initializeApp(

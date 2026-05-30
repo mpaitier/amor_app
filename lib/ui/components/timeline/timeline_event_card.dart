@@ -1,14 +1,12 @@
 // <<===========================================================================>>
 // <<========================= CARTE ÉVÉNEMENT TIMELINE ========================>>
 // <<===========================================================================>>
-// Équivalent de Event.kt — carte affichée dans la liste timeline
 
 import 'package:flutter/material.dart';
 import '../../../data/models/timeline_event.dart';
 import '../../../widgets/cropped_image.dart';
 
 class TimelineEventCard extends StatelessWidget {
-  // <<--- Paramètres --->
   final TimelineEvent event;
 
   const TimelineEventCard({
@@ -28,7 +26,6 @@ class TimelineEventCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            // <<--- Correction : withOpacity -> withValues --->
             color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
@@ -58,7 +55,6 @@ class TimelineEventCard extends StatelessWidget {
     );
   }
 
-  // <<--- Titre de l'événement --->
   Widget _buildTitle() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -68,18 +64,26 @@ class TimelineEventCard extends StatelessWidget {
           fontSize: 17,
           fontWeight: FontWeight.bold,
           color: Color(0xFF703348),
+          // <<--- Désactive toute décoration (soulignage, rouge correcteur) --->
+          decoration: TextDecoration.none,
+          decorationColor: Colors.transparent,
         ),
       ),
     );
   }
 
-  // <<--- Description courte --->
   Widget _buildDescription() {
     return Padding(
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
       child: Text(
         event.description.replaceAll(r'\n', '\n'),
-        style: const TextStyle(fontSize: 14),
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+          // <<--- Idem : désactive le soulignage --->
+          decoration: TextDecoration.none,
+          decorationColor: Colors.transparent,
+        ),
         maxLines: 3,
         overflow: TextOverflow.ellipsis,
       ),
