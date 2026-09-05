@@ -387,11 +387,24 @@ class _AddEventScreenState extends State<AddEventScreen> {
     if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  // <<--- Sauvegarde : upload d'abord, puis save --->
+  // <<===================================================================>>
+  // <<========================== SAUVEGARDE ================================>>
+  // <<===================================================================>>
+  // <<--- Upload d'abord, puis save. Tout ce qui dépend du BuildContext   --->
+  // <<--- est capturé AVANT le premier "await" pour éviter d'utiliser un --->
+  // <<--- BuildContext après un "gap" asynchrone (use_build_context_     --->
+  // <<--- synchronously). Un seul "context.mounted" check est fait juste --->
+  // <<--- avant la dernière utilisation du context, sans autre await     --->
+  // <<--- entre les deux.                                                --->
+  // <<===================================================================>>
   Future<void> _handleSave(BuildContext context) async {
     if (_titleController.text.trim().isEmpty) return;
 
     setState(() => _isLoading = true);
+
+    // <<--- On capture tout ce dont on a besoin du context AVANT les await --->
+    final viewModel = context.read<TimelineViewModel>();
+    final bool isEditing = widget.eventToEdit != null;
 
     // <<--- Nom du dossier Storage : amor_events/{titre_nettoyé}/ --->
     // <<--- On nettoie le titre pour éviter les caractères spéciaux dans le path --->
@@ -424,8 +437,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
     final finalImageUrls = updatedItems.map((i) => i.url).join('|');
 
-    final viewModel = context.read<TimelineViewModel>();
-
     final newEvent = TimelineEvent(
       id: widget.eventToEdit?.id ?? '',
       title: _titleController.text.trim(),
@@ -437,18 +448,42 @@ class _AddEventScreenState extends State<AddEventScreen> {
     );
 
     String? savedId;
+    bool success = false;
 
-    if (widget.eventToEdit != null) {
-      final success = await viewModel.updateEvent(newEvent);
+    if (isEditing) {
+      success = await viewModel.updateEvent(newEvent);
       if (success) savedId = newEvent.id;
     } else {
       savedId = await viewModel.addEvent(newEvent);
+      success = savedId != null;
     }
 
-    if (!mounted) return;
+    // <<--- Seul check "mounted" : rien d'asynchrone après, donc il couvre --->
+    // <<--- toutes les utilisations du context ci-dessous.                 --->
+    if (!context.mounted) return;
+
     setState(() => _isLoading = false);
 
-    if (savedId != null && mounted) {
+    if (!success || savedId == null) return;
+
+    // <<===================================================================>>
+    // <<===================== NAVIGATION DE RETOUR ==========================>>
+    // <<===================================================================>>
+    // <<--- ÉDITION : l'écran EventDetail existe déjà dans la pile         --->
+    // <<--- (Timeline -> EventDetail -> AddEvent). Il est déjà connecté    --->
+    // <<--- au TimelineViewModel via context.watch, donc il se mettra à   --->
+    // <<--- jour automatiquement dès que Firestore renvoie les nouvelles  --->
+    // <<--- données. Un simple pop() suffit : on évite d'empiler une      --->
+    // <<--- deuxième couche d'EventDetail (ce qui obligeait à revenir en  --->
+    // <<--- arrière deux fois).                                           --->
+    //
+    // <<--- CRÉATION : il n'y a pas encore d'écran détail dans la pile    --->
+    // <<--- (Timeline -> AddEvent). On remplace donc AddEvent par le      --->
+    // <<--- nouvel écran détail avec pushReplacement.                     --->
+    // <<===================================================================>>
+    if (isEditing) {
+      context.pop();
+    } else {
       context.pushReplacement(AppRoutes.timelineDetailPath(savedId));
     }
   }

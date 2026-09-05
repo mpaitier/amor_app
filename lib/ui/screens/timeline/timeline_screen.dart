@@ -73,7 +73,9 @@ class _TimelineScreenState extends State<TimelineScreen> {
                   Icon(
                     _isDescending ? Icons.arrow_upward : Icons.arrow_downward,
                     size: 18,
-                    color: Color(0xFF904B3C),
+                    // <<--- const ajouté : améliore les perfs (widget non --->
+                    // <<--- recréé), la couleur ne dépendant pas de l'état --->
+                    color: const Color(0xFF904B3C),
                   ),
                 ],
               ),

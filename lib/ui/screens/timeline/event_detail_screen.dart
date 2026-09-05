@@ -11,7 +11,9 @@ import '../../../navigation/screen.dart';
 import '../../../ui/components/timeline/timeline_detail.dart';
 import '../../../ui/viewmodels/timeline_viewmodel.dart';
 
-class EventDetailScreen extends StatefulWidget {
+enum _EventMenuAction { edit, delete }
+
+class EventDetailScreen extends StatelessWidget {
   // <<--- Paramètres --->
   final String eventId;
 
@@ -21,24 +23,16 @@ class EventDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<EventDetailScreen> createState() => _EventDetailScreenState();
-}
-
-class _EventDetailScreenState extends State<EventDetailScreen> {
-  // <<--- État du menu --->
-  bool _showMenu = false;
-
-  @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<TimelineViewModel>();
     final event = viewModel.events
-        .where((e) => e.id == widget.eventId)
+        .where((e) => e.id == eventId)
         .firstOrNull;
 
     if (event == null) {
       return Scaffold(
         body: Center(
-          child: Text('Événement ${widget.eventId} introuvable'),
+          child: Text('Événement $eventId introuvable'),
         ),
       );
     }
@@ -75,15 +69,40 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             icon: const Icon(Icons.arrow_back_ios_new),
           ),
 
-          // <<--- Menu options --->
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                onPressed: () => setState(() => _showMenu = true),
-                icon: const Icon(Icons.more_vert, color: amorDarkRose),
+          // <<--- Menu options : PopupMenuButton natif --->
+          // <<--- Rendu via l'Overlay de l'app -> toujours au-dessus du --->
+          // <<--- reste de l'écran, aucun souci de z-index possible.   --->
+          PopupMenuButton<_EventMenuAction>(
+            icon: const Icon(Icons.more_vert, color: amorDarkRose),
+            color: amorCream,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            onSelected: (action) => _handleMenuAction(
+              context,
+              action,
+              viewModel,
+              event,
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _EventMenuAction.edit,
+                child: _buildMenuOptionContent(
+                  label: 'Modifier',
+                  icon: Icons.edit,
+                  labelColor: Colors.black,
+                  iconColor: amorDarkRose,
+                ),
               ),
-              if (_showMenu) _buildDropdownMenu(context, viewModel, event),
+              PopupMenuItem(
+                value: _EventMenuAction.delete,
+                child: _buildMenuOptionContent(
+                  label: 'Supprimer',
+                  icon: Icons.delete,
+                  labelColor: Colors.red,
+                  iconColor: Colors.red,
+                ),
+              ),
             ],
           ),
         ],
@@ -91,76 +110,41 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     );
   }
 
-  // <<--- Menu déroulant Modifier / Supprimer --->
-  Widget _buildDropdownMenu(
-    BuildContext context,
-    TimelineViewModel viewModel,
-    event,
-  ) {
-    return Positioned(
-      top: 40,
-      right: 0,
-      child: Material(
-        color: amorCream,
-        borderRadius: BorderRadius.circular(8),
-        elevation: 4,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // <<--- Option Modifier --->
-            _buildMenuOption(
-              label: 'Modifier',
-              icon: Icons.edit,
-              color: Colors.black,
-              iconColor: amorDarkRose,
-              onTap: () {
-                setState(() => _showMenu = false);
-                viewModel.setSelectedEventForEdit(event);
-                context.push(
-                  AppRoutes.addTimeline,
-                  extra: {'eventToEdit': event},
-                );
-              },
-            ),
-
-            // <<--- Option Supprimer --->
-            _buildMenuOption(
-              label: 'Supprimer',
-              icon: Icons.delete,
-              color: Colors.red,
-              iconColor: Colors.red,
-              onTap: () {
-                setState(() => _showMenu = false);
-                _confirmDelete(context, viewModel, event);
-              },
-            ),
-          ],
-        ),
-      ),
+  // <<--- Contenu visuel d'une option du menu --->
+  Widget _buildMenuOptionContent({
+    required String label,
+    required IconData icon,
+    required Color labelColor,
+    required Color iconColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(color: labelColor)),
+      ],
     );
   }
 
-  // <<--- Option individuelle du menu --->
-  Widget _buildMenuOption({
-    required String label,
-    required IconData icon,
-    required Color color,
-    required Color iconColor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
-            Icon(icon, color: iconColor, size: 20),
-            const SizedBox(width: 8),
-            Text(label, style: TextStyle(color: color)),
-          ],
-        ),
-      ),
-    );
+  // <<--- Dispatch de l'action choisie dans le menu --->
+  void _handleMenuAction(
+    BuildContext context,
+    _EventMenuAction action,
+    TimelineViewModel viewModel,
+    event,
+  ) {
+    switch (action) {
+      case _EventMenuAction.edit:
+        viewModel.setSelectedEventForEdit(event);
+        context.push(
+          AppRoutes.addTimeline,
+          extra: {'eventToEdit': event},
+        );
+        break;
+      case _EventMenuAction.delete:
+        _confirmDelete(context, viewModel, event);
+        break;
+    }
   }
 
   // <<--- Dialog de confirmation de suppression --->
@@ -176,7 +160,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         content: Text(
           'Es-tu sûr(e) de vouloir supprimer "${event.title}" ? Cette action est définitive.',
         ),
-        // <<--- Correction : confirmTextColor n'existe pas, on passe par actions --->
         actions: [
           // <<--- Annuler --->
           TextButton(
