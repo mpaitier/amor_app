@@ -1,6 +1,8 @@
 // <<===========================================================================>>
 // <<=================== WIDGET AUTOCOMPLÉTION LIEU ============================>>
 // <<===========================================================================>>
+// <<--- Debounce 400ms : Geoapify (3000 req/jour gratuits) n'impose pas la --->
+// <<--- limite stricte de 1 req/s de Nominatim, on peut rester réactif.    --->
 
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -25,6 +27,9 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
   late final TextEditingController _controller;
   List<PlacePrediction> _predictions = [];
   Timer? _debounce;
+  bool _isSearching = false;
+
+  static const Duration _debounceDelay = Duration(milliseconds: 400);
 
   @override
   void initState() {
@@ -42,15 +47,40 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
   void _onTextChanged(String value) {
     _debounce?.cancel();
 
-    if (value.length < 3) {
-      if (_predictions.isNotEmpty) setState(() => _predictions = []);
+    // <<--- On informe aussi le parent en direct (saisie libre possible) --->
+    widget.onPlaceSelected(value);
+
+    if (value.trim().length < 3) {
+      if (_predictions.isNotEmpty || _isSearching) {
+        setState(() {
+          _predictions = [];
+          _isSearching = false;
+        });
+      }
       return;
     }
 
-    _debounce = Timer(const Duration(milliseconds: 500), () async {
+    setState(() => _isSearching = true);
+
+    _debounce = Timer(_debounceDelay, () async {
       final results = await PlaceService.fetchPredictions(value);
-      if (mounted) setState(() => _predictions = results);
+      if (mounted) {
+        setState(() {
+          _predictions = results;
+          _isSearching = false;
+        });
+      }
     });
+  }
+
+  void _selectPrediction(PlacePrediction prediction) {
+    _controller.text = prediction.description;
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: _controller.text.length),
+    );
+    widget.onPlaceSelected(prediction.description);
+    setState(() => _predictions = []);
+    FocusScope.of(context).unfocus();
   }
 
   @override
@@ -76,6 +106,12 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
                 ),
               ),
             ),
+            if (_isSearching)
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
           ],
         ),
 
@@ -97,12 +133,7 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
             child: Column(
               children: _predictions.map((p) {
                 return InkWell(
-                  onTap: () {
-                    _controller.text = p.description;
-                    widget.onPlaceSelected(p.description);
-                    setState(() => _predictions = []);
-                    FocusScope.of(context).unfocus();
-                  },
+                  onTap: () => _selectPrediction(p),
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
