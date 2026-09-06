@@ -1,6 +1,6 @@
-// <<===========================================================================>>
-// <<============================== APP PRINCIPALE =============================>>
-// <<===========================================================================>>
+// ============================================================================
+// ROOT APP WIDGET
+// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
@@ -12,23 +12,23 @@ class AmorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      // <<--- Configuration de base --->
+      // --- Base configuration ---
       title: 'Amor',
       debugShowCheckedModeBanner: false,
 
-      // <<--- Thèmes --->
+      // --- Themes ---
       theme: amorLightTheme,
       darkTheme: amorDarkTheme,
       themeMode: ThemeMode.light,
 
-      // <<--- Navigation --->
+      // --- Navigation ---
       routerConfig: appRouter,
 
-      // <<--- Builder : fond global + SafeArea --->
+      // --- Builder: global background + SafeArea ---
       builder: (context, child) {
         return Stack(
           children: [
-            // <<--- Image de fond globale (amor_background) --->
+            // --- Global background image ---
             Positioned.fill(
               child: Image.asset(
                 'assets/images/amor_background.png',
@@ -36,7 +36,7 @@ class AmorApp extends StatelessWidget {
               ),
             ),
 
-            // <<--- Contenu de l'app par-dessus --->
+            // --- App content on top ---
             SafeArea(
               child: child ?? const SizedBox.shrink(),
             ),

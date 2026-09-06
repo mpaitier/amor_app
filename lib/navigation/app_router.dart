@@ -1,41 +1,35 @@
-// <<===========================================================================>>
-// <<=========================== ROUTEUR DE L'APP ==============================>>
-// <<===========================================================================>>
-// Équivalent de AppNavigation.kt — configuration de toutes les routes
+// ============================================================================
+// APP ROUTER
+// ============================================================================
+// GoRouter configuration for all app routes.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../ui/screens/questionnaire/questionnaire_screen.dart';
-import '../ui/screens/questionnaire/year_screen.dart';
-import '../ui/screens/questionnaire/gift_screen.dart';
-import '../ui/screens/timeline/timeline_screen.dart';
-import '../ui/screens/timeline/event_detail_screen.dart';
-import '../ui/screens/timeline/add_event_screen.dart';
-import 'screen.dart';
+import '../features/onboarding/presentation/screens/questionnaire_screen.dart';
+import '../features/onboarding/presentation/screens/year_screen.dart';
+import '../features/onboarding/presentation/screens/gift_screen.dart';
+import '../features/timeline/presentation/screens/timeline_screen.dart';
+import '../features/timeline/presentation/screens/event_detail_screen.dart';
+import '../features/timeline/presentation/screens/add_event_screen.dart';
+import '../injection_container.dart';
+import 'app_routes.dart';
 
-// <<--- Fonction pour déterminer la route de départ --->
-Future<String> _getStartRoute() async {
-  final prefs = await SharedPreferences.getInstance();
-  final isFirstRun = prefs.getBool('is_first_run') ?? true;
-  return isFirstRun ? AppRoutes.nameQuestion : AppRoutes.mainMenu;
-}
-
-// <<--- Configuration du routeur GoRouter --->
+// --- GoRouter configuration ---
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.mainMenu,
 
-  // <<--- Redirection au démarrage selon premier lancement --->
+  // --- Redirect on startup depending on first launch ---
   redirect: (context, state) async {
     if (state.matchedLocation == AppRoutes.mainMenu) {
-      return await _getStartRoute();
+      final isFirstRun = await sl.checkFirstRun();
+      return isFirstRun ? AppRoutes.nameQuestion : null;
     }
     return null;
   },
 
   routes: [
-    // <<--- Route principale : Timeline --->
+    // --- Main route: Timeline ---
     GoRoute(
       path: AppRoutes.mainMenu,
       pageBuilder: (context, state) => const NoTransitionPage(
@@ -43,7 +37,7 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
 
-    // <<--- Route questionnaire : Nom --->
+    // --- Questionnaire route: Name ---
     GoRoute(
       path: AppRoutes.nameQuestion,
       pageBuilder: (context, state) => const NoTransitionPage(
@@ -51,7 +45,7 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
 
-    // <<--- Route questionnaire : Année --->
+    // --- Questionnaire route: Year ---
     GoRoute(
       path: AppRoutes.yearQuestion,
       pageBuilder: (context, state) => const NoTransitionPage(
@@ -59,7 +53,7 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
 
-    // <<--- Route cadeau --->
+    // --- Gift route ---
     GoRoute(
       path: AppRoutes.gift,
       pageBuilder: (context, state) => const NoTransitionPage(
@@ -67,7 +61,7 @@ final GoRouter appRouter = GoRouter(
       ),
     ),
 
-    // <<--- Route ajout/édition d'un événement --->
+    // --- Add/edit event route ---
     GoRoute(
       path: AppRoutes.addTimeline,
       pageBuilder: (context, state) {
@@ -80,14 +74,14 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // <<--- Route détail d'un événement --->
+    // --- Event detail route ---
     GoRoute(
       path: AppRoutes.timelineDetail,
       pageBuilder: (context, state) {
         final eventId = state.pathParameters['id']!;
         return CustomTransitionPage(
           child: EventDetailScreen(eventId: eventId),
-          // <<--- Animation slide depuis la droite --->
+          // --- Slide-in animation from the right ---
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(

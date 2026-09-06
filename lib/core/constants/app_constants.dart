@@ -8,7 +8,7 @@ const int relationStartMonth = 12;
 const int relationStartDay = 12;
 
 // <<--- Calcul dynamique des années écoulées --->
-int get anneesEcoulees {
+int get elapsedYears {
   final debut = DateTime(relationStartYear, relationStartMonth, relationStartDay);
   final now = DateTime.now();
 

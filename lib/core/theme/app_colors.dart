@@ -1,34 +1,34 @@
-// <<===========================================================================>>
-// <<========================== COULEURS DE L'APP ==============================>>
-// <<===========================================================================>>
+// ============================================================================
+// APP COLORS
+// ============================================================================
 
 import 'package:flutter/material.dart';
 
-// <<--- Couleurs primaires Light --->
+// --- Light primary colors ---
 const Color primaryLight = Color(0xFF8C4A60);
 const Color onPrimaryLight = Color(0xFFFFFFFF);
 const Color primaryContainerLight = Color(0xFFFFD9E2);
 const Color onPrimaryContainerLight = Color(0xFF703348);
 
-// <<--- Couleurs secondaires Light --->
+// --- Light secondary colors ---
 const Color secondaryLight = Color(0xFF74565F);
 const Color onSecondaryLight = Color(0xFFFFFFFF);
 const Color secondaryContainerLight = Color(0xFFFFD9E2);
 const Color onSecondaryContainerLight = Color(0xFF5B3F47);
 
-// <<--- Couleurs tertiaires Light --->
+// --- Light tertiary colors ---
 const Color tertiaryLight = Color(0xFF904B3C);
 const Color onTertiaryLight = Color(0xFFFFFFFF);
 const Color tertiaryContainerLight = Color(0xFFFFDAD3);
 const Color onTertiaryContainerLight = Color(0xFF733426);
 
-// <<--- Couleurs d'erreur Light --->
+// --- Light error colors ---
 const Color errorLight = Color(0xFFBA1A1A);
 const Color onErrorLight = Color(0xFFFFFFFF);
 const Color errorContainerLight = Color(0xFFFFDAD6);
 const Color onErrorContainerLight = Color(0xFF93000A);
 
-// <<--- Surfaces et fonds Light --->
+// --- Light surfaces and backgrounds ---
 const Color backgroundLight = Color(0xFFFFF8F8);
 const Color onBackgroundLight = Color(0xFF22191B);
 const Color surfaceLight = Color(0xFFFFF8F8);
@@ -49,7 +49,7 @@ const Color surfaceContainerLight = Color(0xFFFBEAED);
 const Color surfaceContainerHighLight = Color(0xFFF5E4E7);
 const Color surfaceContainerHighestLight = Color(0xFFEFDFE1);
 
-// <<--- Medium Contrast Light --->
+// --- Medium contrast light ---
 const Color primaryLightMediumContrast = Color(0xFF5B2238);
 const Color onPrimaryLightMediumContrast = Color(0xFFFFFFFF);
 const Color primaryContainerLightMediumContrast = Color(0xFF9D586E);
@@ -75,7 +75,7 @@ const Color surfaceContainerLightMediumContrast = Color(0xFFF5E4E7);
 const Color surfaceContainerHighLightMediumContrast = Color(0xFFE9D9DC);
 const Color surfaceContainerHighestLightMediumContrast = Color(0xFFDECED0);
 
-// <<--- Couleurs Dark --->
+// --- Dark colors ---
 const Color primaryDark = Color(0xFFFFB1C8);
 const Color onPrimaryDark = Color(0xFF541D32);
 const Color primaryContainerDark = Color(0xFF703348);
@@ -107,7 +107,7 @@ const Color surfaceContainerDark = Color(0xFF261D1F);
 const Color surfaceContainerHighDark = Color(0xFF31282A);
 const Color surfaceContainerHighestDark = Color(0xFF3C3235);
 
-// <<--- Couleurs personnalisées Amor (usage direct dans l'UI) --->
+// --- Custom Amor colors (used directly across the UI) ---
 const Color amorPink = Color(0xFFE91E63);
 const Color amorDarkRose = Color(0xFF703348);
 const Color amorCream = Color(0xFFF1EBDF);

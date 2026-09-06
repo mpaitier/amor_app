@@ -1,17 +1,16 @@
-// <<===========================================================================>>
-// <<============================ THÈME DE L'APP ===============================>>
-// <<===========================================================================>>
+// ============================================================================
+// APP THEME
+// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 
-// <<--- Thème Light (Medium Contrast) --->
+// --- Light theme (medium contrast) ---
 final ThemeData amorLightTheme = ThemeData(
   useMaterial3: true,
   textTheme: amorTextTheme,
-  // <<--- Désactive globalement les décorations de texte héritées du système --->
-  // <<--- Règle le soulignage jaune et la police rouge de Google Fonts / Lora --->
+  // --- Disable inherited system text decorations globally ---
   textSelectionTheme: const TextSelectionThemeData(
     selectionColor: Color(0x44703348),
     cursorColor: amorDarkRose,
@@ -53,7 +52,7 @@ final ThemeData amorLightTheme = ThemeData(
   ),
 );
 
-// <<--- Thème Dark --->
+// --- Dark theme ---
 final ThemeData amorDarkTheme = ThemeData(
   useMaterial3: true,
   textTheme: amorTextTheme,
