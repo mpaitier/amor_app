@@ -1,55 +1,37 @@
 // ============================================================================
-// IMAGE REPOSITORY (IMPLEMENTATION)
+// TIMELINE REPOSITORY (IMPLEMENTATION)
 // ============================================================================
-// Combines the local (pick) and remote (upload) data sources behind
-// the single ImageRepository contract expected by the domain layer.
+// Implements the domain contract on top of the Firestore data source.
 
-import 'dart:io';
-import '../../domain/repositories/image_repository.dart';
-import '../datasources/image_local_datasource.dart';
-import '../datasources/image_remote_datasource.dart';
+import '../../domain/entities/timeline_event_entity.dart';
+import '../../domain/repositories/timeline_repository.dart';
+import '../datasources/timeline_remote_datasource.dart';
+import '../models/timeline_event_model.dart';
 
-class ImageRepositoryImpl implements ImageRepository {
-  final ImageLocalDataSource _localDataSource;
-  final ImageRemoteDataSource _remoteDataSource;
+class TimelineRepositoryImpl implements TimelineRepository {
+  final TimelineRemoteDataSource _remoteDataSource;
 
-  const ImageRepositoryImpl({
-    required ImageLocalDataSource localDataSource,
-    required ImageRemoteDataSource remoteDataSource,
-  })  : _localDataSource = localDataSource,
-        _remoteDataSource = remoteDataSource;
+  const TimelineRepositoryImpl({
+    required TimelineRemoteDataSource remoteDataSource,
+  }) : _remoteDataSource = remoteDataSource;
 
   @override
-  Future<List<File>> pickMultipleFromGallery() {
-    return _localDataSource.pickMultipleFromGallery();
+  Stream<List<TimelineEventEntity>> watchEvents() {
+    return _remoteDataSource.watchEvents();
   }
 
   @override
-  Future<File?> takePhoto() {
-    return _localDataSource.takePhoto();
+  Future<String> addEvent(TimelineEventEntity event) {
+    return _remoteDataSource.addEvent(TimelineEventModel.fromEntity(event));
   }
 
   @override
-  Future<String?> uploadImage({
-    required File imageFile,
-    required String folder,
-  }) {
-    return _remoteDataSource.uploadImage(imageFile: imageFile, folder: folder);
+  Future<void> updateEvent(TimelineEventEntity event) {
+    return _remoteDataSource.updateEvent(TimelineEventModel.fromEntity(event));
   }
 
   @override
-  Future<List<String>> uploadImages({
-    required List<File> imageFiles,
-    required String folder,
-  }) {
-    return _remoteDataSource.uploadImages(
-      imageFiles: imageFiles,
-      folder: folder,
-    );
-  }
-
-  @override
-  Future<void> deleteImage(String imageUrl) {
-    return _remoteDataSource.deleteImage(imageUrl);
+  Future<void> deleteEvent(String eventId) {
+    return _remoteDataSource.deleteEvent(eventId);
   }
 }
