@@ -26,6 +26,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // --- Permission + token FCM + enregistrement dans Firestore ---
+  await sl.initializeNotifications();
+
   runApp(
     // --- Global ViewModel injection ---
     // --- TimelineViewModel lives at the app root so both the timeline

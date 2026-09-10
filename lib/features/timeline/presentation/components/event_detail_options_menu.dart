@@ -19,8 +19,8 @@ class EventDetailOptionsMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 40,
-      right: 0,
+      top: 56,
+      right: 8,
       child: Material(
         color: amorCream,
         borderRadius: BorderRadius.circular(8),

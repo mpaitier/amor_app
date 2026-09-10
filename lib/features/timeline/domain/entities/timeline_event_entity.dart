@@ -11,6 +11,7 @@ class TimelineEventEntity {
   final String who;
   final String imageUrl;
   final String description;
+  final String creatorDeviceId;
 
   const TimelineEventEntity({
     required this.id,
@@ -20,6 +21,7 @@ class TimelineEventEntity {
     required this.who,
     required this.imageUrl,
     required this.description,
+    this.creatorDeviceId = '',
   });
 
   // --- Copy with modifications ---
@@ -31,6 +33,7 @@ class TimelineEventEntity {
     String? who,
     String? imageUrl,
     String? description,
+    String? creatorDeviceId,
   }) {
     return TimelineEventEntity(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class TimelineEventEntity {
       who: who ?? this.who,
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
+      creatorDeviceId: creatorDeviceId ?? this.creatorDeviceId,
     );
   }
 

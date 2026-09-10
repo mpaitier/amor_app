@@ -13,6 +13,7 @@ import '../../domain/entities/timeline_event_entity.dart';
 import '../viewmodels/timeline_viewmodel.dart';
 import '../components/timeline_detail_view.dart';
 import '../components/event_detail_top_bar.dart';
+import '../components/event_detail_options_menu.dart';
 import '../components/delete_event_dialog.dart';
 
 class EventDetailScreen extends StatefulWidget {
@@ -43,32 +44,43 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
     return Container(
       color: amorCream,
-      child: Column(
+      // --- Stack au niveau de l'écran entier : le menu, peint en dernier,
+      // --- passe systématiquement au-dessus du contenu scrollable ---
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // --- Top bar with back button and options menu ---
-          EventDetailTopBar(
-            showMenu: _showMenu,
-            onToggleMenu: () => setState(() => _showMenu = !_showMenu),
-            onEdit: () {
-              setState(() => _showMenu = false);
-              context.push(
-                AppRoutes.addTimeline,
-                extra: {'eventToEdit': event},
-              );
-            },
-            onDelete: () {
-              setState(() => _showMenu = false);
-              _confirmDelete(context, viewModel, event);
-            },
+          Column(
+            children: [
+              // --- Top bar with back button and menu trigger ---
+              EventDetailTopBar(
+                onToggleMenu: () => setState(() => _showMenu = !_showMenu),
+              ),
+
+              // --- Detail content ---
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: TimelineDetailView(event: event),
+                ),
+              ),
+            ],
           ),
 
-          // --- Detail content ---
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: TimelineDetailView(event: event),
+          // --- Options menu, positioned over everything else ---
+          if (_showMenu)
+            EventDetailOptionsMenu(
+              onEdit: () {
+                setState(() => _showMenu = false);
+                context.push(
+                  AppRoutes.addTimeline,
+                  extra: {'eventToEdit': event},
+                );
+              },
+              onDelete: () {
+                setState(() => _showMenu = false);
+                _confirmDelete(context, viewModel, event);
+              },
             ),
-          ),
         ],
       ),
     );

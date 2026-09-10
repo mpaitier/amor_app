@@ -13,6 +13,7 @@ import '../../domain/usecases/pick_images_from_gallery.dart';
 import '../../domain/usecases/take_photo.dart';
 import '../../domain/usecases/upload_images.dart';
 import '../models/image_item.dart';
+import '../../../notifications/domain/usecases/get_device_id.dart';
 
 class AddEditEventViewModel extends ChangeNotifier {
   final AddTimelineEvent _addTimelineEvent;
@@ -42,18 +43,22 @@ class AddEditEventViewModel extends ChangeNotifier {
   int get pendingUploadCount =>
       imageItems.where((i) => i.isPendingUpload).length;
 
+  final GetDeviceId _getDeviceId;
+
   AddEditEventViewModel({
     required AddTimelineEvent addTimelineEvent,
     required UpdateTimelineEvent updateTimelineEvent,
     required PickImagesFromGallery pickImagesFromGallery,
     required TakePhoto takePhoto,
     required UploadImages uploadImages,
+    required GetDeviceId getDeviceId,
     this.eventToEdit,
   })  : _addTimelineEvent = addTimelineEvent,
         _updateTimelineEvent = updateTimelineEvent,
         _pickImagesFromGallery = pickImagesFromGallery,
         _takePhoto = takePhoto,
-        _uploadImages = uploadImages {
+        _uploadImages = uploadImages,
+        _getDeviceId = getDeviceId {
     _initFromEvent();
   }
 
@@ -147,6 +152,8 @@ class AddEditEventViewModel extends ChangeNotifier {
 
       final finalImageUrls = updatedItems.map((i) => i.url).join('|');
 
+      final deviceId = await _getDeviceId();
+
       final event = TimelineEventEntity(
         id: eventToEdit?.id ?? '',
         title: titleController.text.trim(),
@@ -155,6 +162,7 @@ class AddEditEventViewModel extends ChangeNotifier {
         who: selectedWho,
         imageUrl: finalImageUrls,
         description: descriptionController.text.trim(),
+        creatorDeviceId: deviceId,
       );
 
       String savedId;
