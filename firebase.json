@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"amor-app-9ee55","appId":"1:246484590448:android:c87854390b07916d8f79b5","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"amor-app-9ee55","configurations":{"android":"1:246484590448:android:c87854390b07916d8f79b5","ios":"1:246484590448:ios:dd67c87e25e9f2b98f79b5"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "amor-app-9ee55",
+          "appId": "1:246484590448:android:c87854390b07916d8f79b5",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "amor-app-9ee55",
+          "configurations": {
+            "android": "1:246484590448:android:c87854390b07916d8f79b5",
+            "ios": "1:246484590448:ios:dd67c87e25e9f2b98f79b5"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

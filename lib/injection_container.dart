@@ -54,6 +54,7 @@ import 'features/notifications/data/datasources/push_notification_datasource.dar
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
+import 'features/notifications/domain/usecases/get_device_id.dart';
 
 // --- Service locator singleton ---
 class ServiceLocator {
@@ -147,6 +148,8 @@ class ServiceLocator {
 
   late final InitializeNotifications initializeNotifications =
       InitializeNotifications(notificationRepository);
+  
+  late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();

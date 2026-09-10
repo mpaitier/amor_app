@@ -39,6 +39,7 @@ class AddEventScreen extends StatelessWidget {
         takePhoto: sl.takePhoto,
         uploadImages: sl.uploadImages,
         eventToEdit: eventToEdit,
+        getDeviceId: sl.getDeviceId,
       ),
       child: const _AddEventView(),
     );

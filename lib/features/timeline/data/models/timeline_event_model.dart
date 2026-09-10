@@ -15,6 +15,7 @@ class TimelineEventModel extends TimelineEventEntity {
     required super.who,
     required super.imageUrl,
     required super.description,
+    super.creatorDeviceId,
   });
 
   // --- Build from a Firestore document snapshot ---
@@ -28,6 +29,7 @@ class TimelineEventModel extends TimelineEventEntity {
       who: data['who'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
       description: data['description'] ?? '',
+      creatorDeviceId: data['creatorDeviceId'] ?? '',
     );
   }
 
@@ -41,6 +43,7 @@ class TimelineEventModel extends TimelineEventEntity {
       who: entity.who,
       imageUrl: entity.imageUrl,
       description: entity.description,
+      creatorDeviceId: entity.creatorDeviceId,
     );
   }
 
@@ -53,6 +56,7 @@ class TimelineEventModel extends TimelineEventEntity {
       'who': who,
       'imageUrl': imageUrl,
       'description': description,
+      'creatorDeviceId': creatorDeviceId,
     };
   }
 }
