@@ -10,4 +10,6 @@ class PushNotificationDataSource {
 
   // Get the FCM token for the device
   Future<String?> getToken() => _messaging.getToken();
+  // Listen for foreground messages
+  Stream<RemoteMessage> onForegroundMessage() => FirebaseMessaging.onMessage;
 }

@@ -1,26 +1,43 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/device_identity_datasource.dart';
+import '../datasources/local_notification_datasource.dart';
 import '../datasources/push_notification_datasource.dart';
 
 class NotificationRepositoryImpl implements NotificationRepository {
   final PushNotificationDataSource _pushDataSource;
+  final LocalNotificationDataSource _localDataSource;
   final DeviceIdentityDataSource _deviceIdentityDataSource;
   final FirebaseFirestore _firestore;
 
   NotificationRepositoryImpl({
     required PushNotificationDataSource pushDataSource,
+    required LocalNotificationDataSource localDataSource,
     required DeviceIdentityDataSource deviceIdentityDataSource,
     required FirebaseFirestore firestore,
   })  : _pushDataSource = pushDataSource,
+        _localDataSource = localDataSource,
         _deviceIdentityDataSource = deviceIdentityDataSource,
         _firestore = firestore;
-  
+
   @override
   Future<void> initialize() async {
+    await _localDataSource.initialize();
+
     final granted = await _pushDataSource.requestPermission();
     if (!granted) return;
+
     await registerDeviceToken();
+
+    // --- Affichage manuel quand l'app est ouverte (FCM ne le fait pas seul) ---
+    _pushDataSource.onForegroundMessage().listen((message) {
+      final notification = message.notification;
+      if (notification == null) return;
+      _localDataSource.show(
+        title: notification.title ?? 'Amor',
+        body: notification.body ?? '',
+      );
+    });
   }
 
   @override

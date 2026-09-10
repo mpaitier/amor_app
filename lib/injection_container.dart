@@ -53,6 +53,7 @@ import 'features/notifications/data/datasources/device_identity_datasource.dart'
 import 'features/notifications/data/datasources/push_notification_datasource.dart';
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
+import 'features/notifications/data/datasources/local_notification_datasource.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
 
@@ -134,22 +135,25 @@ class ServiceLocator {
   late final GetRandomGif getRandomGif = GetRandomGif(gifRepository);
 
   // --- Notifications: data sources, repository, use case ---
-  late final DeviceIdentityDataSource deviceIdentityDataSource =
-    DeviceIdentityDataSource();
-  late final PushNotificationDataSource pushNotificationDataSource =
-      PushNotificationDataSource();
+late final DeviceIdentityDataSource deviceIdentityDataSource =
+  DeviceIdentityDataSource();
+late final PushNotificationDataSource pushNotificationDataSource =
+    PushNotificationDataSource();
+late final LocalNotificationDataSource localNotificationDataSource =
+    LocalNotificationDataSource();
 
-  late final NotificationRepository notificationRepository =
-      NotificationRepositoryImpl(
-    pushDataSource: pushNotificationDataSource,
-    deviceIdentityDataSource: deviceIdentityDataSource,
-    firestore: _firestore,
-  );
+late final NotificationRepository notificationRepository =
+    NotificationRepositoryImpl(
+  pushDataSource: pushNotificationDataSource,
+  localDataSource: localNotificationDataSource,
+  deviceIdentityDataSource: deviceIdentityDataSource,
+  firestore: _firestore,
+);
 
-  late final InitializeNotifications initializeNotifications =
-      InitializeNotifications(notificationRepository);
-  
-  late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
+late final InitializeNotifications initializeNotifications =
+    InitializeNotifications(notificationRepository);
+
+late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();
