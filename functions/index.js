@@ -11,12 +11,14 @@ exports.notifyOnNewMemory = onDocumentCreated(
     const eventData = event.data.data();
     const title = eventData.title || "Nouveau souvenir";
     const who = eventData.who || "";
+    const creatorDeviceId = eventData.creatorDeviceId || null;
 
     const db = getFirestore();
     const tokensSnapshot = await db.collection("device_tokens").get();
 
-    // --- Version simple : on prend TOUS les tokens, sans filtre ---
+    // --- On exclut le token de l'appareil qui vient de créer le souvenir ---
     const tokens = tokensSnapshot.docs
+      .filter((doc) => doc.id !== creatorDeviceId)
       .map((doc) => doc.data().token)
       .filter((token) => !!token);
 
