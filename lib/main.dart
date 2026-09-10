@@ -14,6 +14,8 @@ import 'app.dart';
 import 'injection_container.dart';
 import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
 import 'features/notifications/data/datasources/push_notification_datasource.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'features/notifications/data/datasources/device_identity_datasource.dart';
 
 void main() async {
   // --- Flutter bootstrap ---
@@ -31,6 +33,18 @@ void main() async {
   final granted = await push.requestPermission();
   print('Permission accordée : $granted');
 
+  final token = await push.getToken();
+  print('Token FCM : $token');
+
+  final deviceIdentity = DeviceIdentityDataSource();
+  final deviceId = await deviceIdentity.getOrCreateDeviceId();
+
+  await FirebaseFirestore.instance.collection('device_tokens').doc(deviceId).set({
+    'token': token,
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+
+  print('Token enregistré pour l\'appareil : $deviceId');
   runApp(
     // --- Global ViewModel injection ---
     // --- TimelineViewModel lives at the app root so both the timeline

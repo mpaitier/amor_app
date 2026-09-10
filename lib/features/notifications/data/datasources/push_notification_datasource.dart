@@ -7,4 +7,7 @@ class PushNotificationDataSource {
     final settings = await _messaging.requestPermission();
     return settings.authorizationStatus == AuthorizationStatus.authorized;
   }
+
+  // Get the FCM token for the device
+  Future<String?> getToken() => _messaging.getToken();
 }
