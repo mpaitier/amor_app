@@ -48,6 +48,13 @@ import 'features/gif/data/repositories/gif_repository_impl.dart';
 import 'features/gif/domain/repositories/gif_repository.dart';
 import 'features/gif/domain/usecases/get_random_gif.dart';
 
+// --- Notifications feature ---
+import 'features/notifications/data/datasources/device_identity_datasource.dart';
+import 'features/notifications/data/datasources/push_notification_datasource.dart';
+import 'features/notifications/data/repositories/notification_repository_impl.dart';
+import 'features/notifications/domain/repositories/notification_repository.dart';
+import 'features/notifications/domain/usecases/initialize_notifications.dart';
+
 // --- Service locator singleton ---
 class ServiceLocator {
   ServiceLocator._internal();
@@ -124,6 +131,22 @@ class ServiceLocator {
     remoteDataSource: gifRemoteDataSource,
   );
   late final GetRandomGif getRandomGif = GetRandomGif(gifRepository);
+
+  // --- Notifications: data sources, repository, use case ---
+  late final DeviceIdentityDataSource deviceIdentityDataSource =
+    DeviceIdentityDataSource();
+  late final PushNotificationDataSource pushNotificationDataSource =
+      PushNotificationDataSource();
+
+  late final NotificationRepository notificationRepository =
+      NotificationRepositoryImpl(
+    pushDataSource: pushNotificationDataSource,
+    deviceIdentityDataSource: deviceIdentityDataSource,
+    firestore: _firestore,
+  );
+
+  late final InitializeNotifications initializeNotifications =
+      InitializeNotifications(notificationRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();
