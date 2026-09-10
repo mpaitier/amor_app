@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
 import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
+import 'features/notifications/data/datasources/push_notification_datasource.dart';
 
 void main() async {
   // --- Flutter bootstrap ---
@@ -25,6 +26,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final push = PushNotificationDataSource();
+  final granted = await push.requestPermission();
+  print('Permission accordée : $granted');
 
   runApp(
     // --- Global ViewModel injection ---
