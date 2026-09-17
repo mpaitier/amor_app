@@ -13,7 +13,7 @@ const List<NavDestination> navDestinations = [
   NavDestination(
     id: 'timeline',
     label: 'Notre histoire',
-    icon: Icons.timeline,
+    icon: Icons.favorite,
     routePath: AppRoutes.mainMenu,
   ),
   // --- Le calendrier sera ajouté ici dans une prochaine étape ---
