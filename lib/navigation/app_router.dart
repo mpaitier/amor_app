@@ -12,6 +12,7 @@ import '../features/onboarding/presentation/screens/gift_screen.dart';
 import '../features/timeline/presentation/screens/timeline_screen.dart';
 import '../features/timeline/presentation/screens/event_detail_screen.dart';
 import '../features/timeline/presentation/screens/add_event_screen.dart';
+import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../injection_container.dart';
 import 'app_routes.dart';
 
@@ -96,6 +97,14 @@ final GoRouter appRouter = GoRouter(
           },
         );
       },
+    ),
+
+    // --- Calendar route ---
+    GoRoute(
+      path: AppRoutes.calendar,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: CalendarScreen(),
+      ),
     ),
   ],
 );
