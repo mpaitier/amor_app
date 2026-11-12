@@ -18,9 +18,22 @@ class QuestionnaireScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => QuestionnaireViewModel(),
-      child: Scaffold(
-        body: SafeArea(child: _buildStep(context)),
-      ),
+      child: const _QuestionnaireView(),
+    );
+  }
+}
+
+// --- Separate widget so its BuildContext sits below the provider ---
+// --- (same pattern as GiftScreen / AddEventScreen). Reading the ViewModel
+// --- from QuestionnaireScreen's own context throws ProviderNotFoundException,
+// --- because that context is the provider's parent.
+class _QuestionnaireView extends StatelessWidget {
+  const _QuestionnaireView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: _buildStep(context)),
     );
   }
 
