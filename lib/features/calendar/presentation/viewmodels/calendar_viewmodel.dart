@@ -1,45 +1,105 @@
 // ============================================================================
 // CALENDAR VIEWMODEL
 // ============================================================================
-// Détient uniquement l'état d'affichage du calendrier (mois ciblé, jour
-// sélectionné, format). Pas encore de données d'événements : elles seront
-// branchées ici une fois les couches domain/data créées.
+// Détient l'état du calendrier : la plage de mois affichable, les souvenirs
+// rangés par jour (temps réel) et le mois montré dans l'en-tête fixe.
+// Ne connaît ni les pixels ni le défilement : la vue lui indique seulement
+// quel mois se trouve en haut de l'écran.
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:table_calendar/table_calendar.dart';
+import '../../../timeline/domain/entities/timeline_event_entity.dart';
+import '../../../timeline/domain/usecases/watch_timeline_events.dart';
+import '../../domain/entities/calendar_month.dart';
+import '../../domain/usecases/group_events_by_day.dart';
 
 class CalendarViewModel extends ChangeNotifier {
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  // --- Profondeur de l'historique que l'on peut remonter en défilant ---
+  static const int historyYears = 100;
 
-  DateTime get focusedDay => _focusedDay;
-  DateTime? get selectedDay => _selectedDay;
-  CalendarFormat get calendarFormat => _calendarFormat;
+  final WatchTimelineEvents _watchTimelineEvents;
+  final GroupEventsByDay _groupEventsByDay;
 
-  bool isSelected(DateTime day) {
-    return _selectedDay != null && isSameDay(_selectedDay, day);
+  StreamSubscription<List<TimelineEventEntity>>? _subscription;
+
+  // --- Bornes fixes, calculées à l'ouverture de l'écran ---
+  final DateTime today;
+  final CalendarMonth lastMonth;
+  final CalendarMonth firstMonth;
+
+  // --- State ---
+  Map<DateTime, List<TimelineEventEntity>> _eventsByDay = const {};
+  CalendarMonth _visibleMonth;
+  String? _errorMessage;
+
+  CalendarViewModel({
+    required WatchTimelineEvents watchTimelineEvents,
+    required GroupEventsByDay groupEventsByDay,
+    DateTime? now,
+  }) : this._(watchTimelineEvents, groupEventsByDay, now ?? DateTime.now());
+
+  CalendarViewModel._(
+    this._watchTimelineEvents,
+    this._groupEventsByDay,
+    DateTime now,
+  )   : today = DateTime(now.year, now.month, now.day),
+        lastMonth = CalendarMonth.fromDate(now),
+        firstMonth = CalendarMonth(now.year - historyYears, 1),
+        _visibleMonth = CalendarMonth.fromDate(now) {
+    _listenToEvents();
   }
 
-  // --- L'utilisateur tape sur un jour ---
-  void selectDay(DateTime selected, DateTime focused) {
-    if (isSameDay(_selectedDay, selected)) return;
-    _selectedDay = selected;
-    _focusedDay = focused;
+  // --- Getters ---
+  CalendarMonth get visibleMonth => _visibleMonth;
+  String? get errorMessage => _errorMessage;
+
+  // --- Nombre de mois entre le plus ancien et le mois en cours, inclus ---
+  int get monthCount => firstMonth.monthsUntil(lastMonth) + 1;
+
+  // --- Mois à un index donné : 0 est le mois en cours, puis on remonte ---
+  CalendarMonth monthAt(int index) {
+    return lastMonth.addMonths(-_clampIndex(index));
+  }
+
+  // --- Index d'un mois, ramené dans la plage affichable ---
+  int indexOf(CalendarMonth month) {
+    return _clampIndex(month.monthsUntil(lastMonth));
+  }
+
+  // --- Souvenirs d'un jour donné, du plus ancien au plus récent ---
+  List<TimelineEventEntity> eventsOn(DateTime day) {
+    return _eventsByDay[DateTime(day.year, day.month, day.day)] ?? const [];
+  }
+
+  // --- La vue signale quel mois touche le haut de l'écran ---
+  void showMonthAt(int index) {
+    final month = monthAt(index);
+    if (month == _visibleMonth) return;
+    _visibleMonth = month;
     notifyListeners();
   }
 
-  // --- L'utilisateur swipe vers un autre mois/semaine ---
-  void changePage(DateTime focused) {
-    // --- Pas de notifyListeners ici : table_calendar recommande de ne
-    // --- mettre à jour la valeur que pour le prochain rebuild ---
-    _focusedDay = focused;
+  // --- Abonnement au flux temps réel des souvenirs ---
+  void _listenToEvents() {
+    _subscription = _watchTimelineEvents().listen((events) {
+      _eventsByDay = _groupEventsByDay(events);
+      _errorMessage = null;
+      notifyListeners();
+    }, onError: (Object error) {
+      _errorMessage = 'Impossible de charger les souvenirs : $error';
+      notifyListeners();
+    });
   }
 
-  // --- L'utilisateur change le format d'affichage (mois/2 semaines/semaine) ---
-  void changeFormat(CalendarFormat format) {
-    if (_calendarFormat == format) return;
-    _calendarFormat = format;
-    notifyListeners();
+  int _clampIndex(int index) {
+    if (index < 0) return 0;
+    if (index >= monthCount) return monthCount - 1;
+    return index;
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

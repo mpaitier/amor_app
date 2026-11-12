@@ -57,6 +57,9 @@ import 'features/notifications/data/datasources/local_notification_datasource.da
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
 
+// --- Calendar feature ---
+import 'features/calendar/domain/usecases/group_events_by_day.dart';
+
 // --- Service locator singleton ---
 class ServiceLocator {
   ServiceLocator._internal();
@@ -154,6 +157,9 @@ late final InitializeNotifications initializeNotifications =
     InitializeNotifications(notificationRepository);
 
 late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
+
+  // --- Calendar: use case (les souvenirs viennent de la feature timeline) ---
+  late final GroupEventsByDay groupEventsByDay = const GroupEventsByDay();
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();
