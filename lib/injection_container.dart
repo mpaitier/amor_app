@@ -83,6 +83,7 @@ import 'features/color_history/data/repositories/color_history_repository_impl.d
 import 'features/color_history/domain/repositories/color_history_repository.dart';
 import 'features/color_history/domain/usecases/get_recent_colors.dart';
 import 'features/color_history/domain/usecases/add_recent_color.dart';
+import 'features/color_history/domain/usecases/remove_recent_color.dart';
 
 // --- Service locator singleton ---
 class ServiceLocator {
@@ -223,6 +224,8 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       GetRecentColors(colorHistoryRepository);
   late final AddRecentColor addRecentColor =
       AddRecentColor(colorHistoryRepository);
+  late final RemoveRecentColor removeRecentColor =
+      RemoveRecentColor(colorHistoryRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();

@@ -68,6 +68,29 @@ void main() {
     expect(await dataSource.getRecentColors(background), [4278190335]);
   });
 
+  test('doit retirer une couleur de la seule liste concernée', () async {
+    await dataSource.addRecentColor(border, 0xFF111111);
+    await dataSource.addRecentColor(border, 0xFF222222);
+    await dataSource.addRecentColor(background, 0xFF111111);
+
+    final colors = await dataSource.removeRecentColor(border, 0xFF111111);
+
+    expect(colors, [0xFF222222]);
+    expect(await dataSource.getRecentColors(background), [0xFF111111]);
+  });
+
+  test('ne doit pas faire revenir l\'ancienne liste après une suppression',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      'recent_custom_colors': ['4278190335'],
+    });
+
+    await dataSource.removeRecentColor(border, 4278190335);
+
+    expect(await dataSource.getRecentColors(border), isEmpty);
+    expect(await dataSource.getRecentColors(background), [4278190335]);
+  });
+
   test('doit ignorer une valeur stockée illisible', () async {
     SharedPreferences.setMockInitialValues({
       'recent_border_colors': ['4278190335', 'pas une couleur'],

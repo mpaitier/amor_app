@@ -42,10 +42,21 @@ class ColorHistoryLocalDataSource {
     final colors = await getRecentColors(kind);
     colors.remove(color);
     colors.insert(0, color);
-    final kept = colors.take(maxColors).toList();
+    return _save(kind, colors.take(maxColors).toList());
+  }
 
+  // --- Retire la couleur, puis enregistre ---
+  Future<List<int>> removeRecentColor(ColorHistoryKind kind, int color) async {
+    final colors = await getRecentColors(kind);
+    colors.remove(color);
+    return _save(kind, colors);
+  }
+
+  // --- Écrit la liste de l'usage. Même vide, elle remplace l'ancienne
+  // --- liste unique, qui ne revient donc pas après une suppression ---
+  Future<List<int>> _save(ColorHistoryKind kind, List<int> colors) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_keyFor(kind), [for (final c in kept) '$c']);
-    return kept;
+    await prefs.setStringList(_keyFor(kind), [for (final c in colors) '$c']);
+    return colors;
   }
 }

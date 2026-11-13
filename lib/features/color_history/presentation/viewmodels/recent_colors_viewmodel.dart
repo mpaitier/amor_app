@@ -9,10 +9,12 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/color_history_kind.dart';
 import '../../domain/usecases/add_recent_color.dart';
 import '../../domain/usecases/get_recent_colors.dart';
+import '../../domain/usecases/remove_recent_color.dart';
 
 class RecentColorsViewModel extends ChangeNotifier {
   final GetRecentColors _getRecentColors;
   final AddRecentColor _addRecentColor;
+  final RemoveRecentColor _removeRecentColor;
 
   // --- State ---
   final Map<ColorHistoryKind, List<int>> _colors = {
@@ -23,8 +25,10 @@ class RecentColorsViewModel extends ChangeNotifier {
   RecentColorsViewModel({
     required GetRecentColors getRecentColors,
     required AddRecentColor addRecentColor,
+    required RemoveRecentColor removeRecentColor,
   })  : _getRecentColors = getRecentColors,
-        _addRecentColor = addRecentColor {
+        _addRecentColor = addRecentColor,
+        _removeRecentColor = removeRecentColor {
     _load();
   }
 
@@ -40,6 +44,18 @@ class RecentColorsViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (_) {
       // --- L'historique n'est qu'un confort ---
+    }
+  }
+
+  // --- Retire une couleur de l'historique ---
+  Future<void> removeColor(ColorHistoryKind kind, int color) async {
+    try {
+      final updated = await _removeRecentColor(kind, color);
+      if (_isDisposed) return;
+      _colors[kind] = updated;
+      notifyListeners();
+    } catch (_) {
+      // --- La couleur reste affichée si la suppression échoue ---
     }
   }
 

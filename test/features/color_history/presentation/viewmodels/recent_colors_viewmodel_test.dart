@@ -8,6 +8,7 @@ import 'package:amor_app/features/color_history/domain/entities/color_history_ki
 import 'package:amor_app/features/color_history/domain/repositories/color_history_repository.dart';
 import 'package:amor_app/features/color_history/domain/usecases/add_recent_color.dart';
 import 'package:amor_app/features/color_history/domain/usecases/get_recent_colors.dart';
+import 'package:amor_app/features/color_history/domain/usecases/remove_recent_color.dart';
 import 'package:amor_app/features/color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
 
 class MockColorHistoryRepository extends Mock
@@ -22,6 +23,7 @@ void main() {
     final viewModel = RecentColorsViewModel(
       getRecentColors: GetRecentColors(mockRepository),
       addRecentColor: AddRecentColor(mockRepository),
+      removeRecentColor: RemoveRecentColor(mockRepository),
     );
     addTearDown(viewModel.dispose);
     return viewModel;
@@ -56,6 +58,29 @@ void main() {
       0xFF2F6FDE,
     ]);
     expect(viewModel.colorsFor(ColorHistoryKind.background), [0xFFD9EAFF]);
+  });
+
+  test('doit retirer une couleur de la seule liste concernée', () async {
+    when(() => mockRepository.removeRecentColor(ColorHistoryKind.border, 0xFF2F6FDE))
+        .thenAnswer((_) async => []);
+    final viewModel = buildViewModel();
+    await flush();
+
+    await viewModel.removeColor(ColorHistoryKind.border, 0xFF2F6FDE);
+
+    expect(viewModel.colorsFor(ColorHistoryKind.border), isEmpty);
+    expect(viewModel.colorsFor(ColorHistoryKind.background), [0xFFD9EAFF]);
+  });
+
+  test('doit garder la couleur si la suppression échoue', () async {
+    when(() => mockRepository.removeRecentColor(ColorHistoryKind.border, 0xFF2F6FDE))
+        .thenThrow(Exception('stockage illisible'));
+    final viewModel = buildViewModel();
+    await flush();
+
+    await viewModel.removeColor(ColorHistoryKind.border, 0xFF2F6FDE);
+
+    expect(viewModel.colorsFor(ColorHistoryKind.border), [0xFF2F6FDE]);
   });
 
   test('doit rester utilisable si l\'historique ne se charge pas', () async {

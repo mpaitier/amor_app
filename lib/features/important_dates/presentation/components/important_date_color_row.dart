@@ -3,7 +3,8 @@
 // ============================================================================
 // Un intitulé, puis une rangée de pastilles qui défile à l'horizontale :
 // les couleurs proposées, puis les couleurs libres récentes de ce téléphone
-// pour cet usage, et enfin la pastille qui ouvre le sélecteur de couleur.
+// pour cet usage (un appui long en retire une), et enfin la pastille qui
+// ouvre le sélecteur de couleur.
 // Sert aussi bien à la bordure qu'au fond, selon la liste, l'usage et le
 // callback reçus. Lit l'historique dans le RecentColorsViewModel fourni
 // par l'écran.
@@ -14,6 +15,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../color_history/domain/entities/color_history_kind.dart';
 import '../../../color_history/presentation/screens/custom_color_picker.dart';
 import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
+import 'delete_recent_color_dialog.dart';
 import 'important_date_color_swatch.dart';
 
 class ImportantDateColorRow extends StatelessWidget {
@@ -40,15 +42,20 @@ class ImportantDateColorRow extends StatelessWidget {
         if (!colors.contains(color)) color,
     ];
 
-    // --- Une couleur retenue absente des deux listes reste visible ---
+    // --- Une couleur retenue absente des deux listes reste visible, mais
+    // --- elle n'est pas dans l'historique : rien à y retirer ---
     final isSelectedElsewhere =
         colors.contains(selectedColor) || recentColors.contains(selectedColor);
-    if (!isSelectedElsewhere) recentColors.insert(0, selectedColor);
 
     final items = <Widget>[
       for (final color in colors) _buildSwatch(color),
-      if (recentColors.isNotEmpty) _buildSeparator(),
-      for (final color in recentColors) _buildSwatch(color),
+      if (recentColors.isNotEmpty || !isSelectedElsewhere) _buildSeparator(),
+      if (!isSelectedElsewhere) _buildSwatch(selectedColor),
+      for (final color in recentColors)
+        _buildSwatch(
+          color,
+          onLongPress: () => _confirmRemoval(context, recentViewModel, color),
+        ),
       _buildCustomButton(context, recentViewModel),
     ];
 
@@ -80,12 +87,28 @@ class ImportantDateColorRow extends StatelessWidget {
     );
   }
 
-  Widget _buildSwatch(int color) {
+  Widget _buildSwatch(int color, {VoidCallback? onLongPress}) {
     return ImportantDateColorSwatch(
       color: color,
       isSelected: color == selectedColor,
       onTap: () => onColorSelected(color),
+      onLongPress: onLongPress,
     );
+  }
+
+  // --- Appui long sur une couleur récente : confirmation, puis retrait ---
+  Future<void> _confirmRemoval(
+    BuildContext context,
+    RecentColorsViewModel recentViewModel,
+    int color,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => DeleteRecentColorDialog(color: color),
+    );
+    if (confirmed == true) {
+      await recentViewModel.removeColor(historyKind, color);
+    }
   }
 
   // --- Sépare les couleurs proposées des couleurs récentes ---

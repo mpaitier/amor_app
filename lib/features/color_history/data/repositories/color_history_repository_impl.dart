@@ -22,4 +22,9 @@ class ColorHistoryRepositoryImpl implements ColorHistoryRepository {
   Future<List<int>> addRecentColor(ColorHistoryKind kind, int color) {
     return _localDataSource.addRecentColor(kind, color);
   }
+
+  @override
+  Future<List<int>> removeRecentColor(ColorHistoryKind kind, int color) {
+    return _localDataSource.removeRecentColor(kind, color);
+  }
 }

@@ -12,4 +12,7 @@ abstract class ColorHistoryRepository {
 
   // --- Ajoute une couleur en tête et renvoie la liste à jour ---
   Future<List<int>> addRecentColor(ColorHistoryKind kind, int color);
+
+  // --- Retire une couleur et renvoie la liste à jour ---
+  Future<List<int>> removeRecentColor(ColorHistoryKind kind, int color);
 }

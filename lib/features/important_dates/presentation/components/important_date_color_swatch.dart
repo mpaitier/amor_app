@@ -11,17 +11,22 @@ class ImportantDateColorSwatch extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
+  // --- Appui long, pour les couleurs que l'on peut retirer ---
+  final VoidCallback? onLongPress;
+
   const ImportantDateColorSwatch({
     super.key,
     required this.color,
     required this.isSelected,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       customBorder: const CircleBorder(),
       child: Container(
         width: 44,

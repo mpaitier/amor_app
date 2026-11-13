@@ -43,6 +43,7 @@ class AddImportantDateScreen extends StatelessWidget {
           create: (_) => RecentColorsViewModel(
             getRecentColors: sl.getRecentColors,
             addRecentColor: sl.addRecentColor,
+            removeRecentColor: sl.removeRecentColor,
           ),
         ),
       ],

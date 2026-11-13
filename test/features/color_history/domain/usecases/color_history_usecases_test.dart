@@ -8,6 +8,7 @@ import 'package:amor_app/features/color_history/domain/entities/color_history_ki
 import 'package:amor_app/features/color_history/domain/repositories/color_history_repository.dart';
 import 'package:amor_app/features/color_history/domain/usecases/add_recent_color.dart';
 import 'package:amor_app/features/color_history/domain/usecases/get_recent_colors.dart';
+import 'package:amor_app/features/color_history/domain/usecases/remove_recent_color.dart';
 
 class MockColorHistoryRepository extends Mock
     implements ColorHistoryRepository {}
@@ -42,5 +43,19 @@ void main() {
     );
 
     expect(result, [0xFFD9EAFF]);
+  });
+
+  test('RemoveRecentColor doit transmettre l\'usage et la couleur', () async {
+    when(() => mockRepository.removeRecentColor(ColorHistoryKind.border, 0xFF2F6FDE))
+        .thenAnswer((_) async => []);
+
+    final result = await RemoveRecentColor(mockRepository)(
+      ColorHistoryKind.border,
+      0xFF2F6FDE,
+    );
+
+    expect(result, isEmpty);
+    verify(() => mockRepository.removeRecentColor(ColorHistoryKind.border, 0xFF2F6FDE))
+        .called(1);
   });
 }
