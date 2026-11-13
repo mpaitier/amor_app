@@ -1,7 +1,8 @@
 // ============================================================================
 // CROPPED IMAGE WIDGET
 // ============================================================================
-// Cover-fit image with a loading/error placeholder and a multi-image badge.
+// Cover-fit image with loading, error and "no image" placeholders, plus a
+// multi-image badge.
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -34,7 +35,7 @@ class CroppedImage extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (url.isEmpty) return _buildPlaceholder();
+    if (url.isEmpty) return _buildNoImagePlaceholder();
 
     return CachedNetworkImage(
       imageUrl: url,
@@ -50,11 +51,22 @@ class CroppedImage extends StatelessWidget {
           ),
         ),
       ),
-      errorWidget: (context, url, error) => _buildPlaceholder(),
+      errorWidget: (context, url, error) => _buildErrorPlaceholder(),
     );
   }
 
-  Widget _buildPlaceholder() {
+  // --- Souvenir sans image : le même cœur que dans le calendrier ---
+  Widget _buildNoImagePlaceholder() {
+    return Container(
+      color: primaryContainerLight,
+      child: const Center(
+        child: Icon(Icons.favorite, color: amorDarkRose, size: 40),
+      ),
+    );
+  }
+
+  // --- Image prévue mais impossible à charger ---
+  Widget _buildErrorPlaceholder() {
     return Container(
       color: const Color(0xFFF5F5F5),
       child: const Center(
