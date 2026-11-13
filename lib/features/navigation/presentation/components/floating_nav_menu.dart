@@ -1,11 +1,12 @@
 // ============================================================================
 // FLOATING NAV MENU
 // ============================================================================
-// Point d'entrée de la feature : crée le ViewModel et connecte les
-// composants visuels. À placer dans un Stack plein écran. Le bouton est en
-// bas à droite ; ouvert, le menu dispose les écrans en arc autour de lui
-// (RadialMenuLayout) et un voile transparent le referme au moindre tap
-// ailleurs. Seul endroit de la feature qui déclenche une navigation.
+// Point d'entrée de la feature : crée le ViewModel du menu et connecte les
+// composants visuels. À placer dans un Stack plein écran. Le bouton se
+// déplace au doigt et se colle au bord le plus proche (position partagée
+// par FloatingButtonsViewModel). Ouvert, le menu dispose les écrans en arc
+// autour de lui (RadialMenuLayout) et un voile transparent le referme au
+// moindre tap ailleurs. Seul endroit de la feature qui navigue.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,18 +14,18 @@ import 'package:provider/provider.dart';
 import '../../../../navigation/nav_destinations.dart';
 import '../models/nav_destination.dart';
 import '../models/radial_menu_layout.dart';
+import '../viewmodels/floating_buttons_viewmodel.dart';
 import '../viewmodels/nav_menu_viewmodel.dart';
 import 'nav_menu_button.dart';
 import 'nav_menu_item.dart';
+import 'snapping_button_positioner.dart';
 
 class FloatingNavMenu extends StatelessWidget {
   final String currentRoute;
 
   const FloatingNavMenu({super.key, required this.currentRoute});
 
-  // --- Marge entre le bouton et les bords de l'écran ---
-  static const double _margin = 16;
-  static const double _buttonSize = 56;
+  static const FloatingButtonId _id = FloatingButtonId.navigation;
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +34,16 @@ class FloatingNavMenu extends StatelessWidget {
       // --- Positioned.fill : le calque couvre l'écran, mais sans fond, il
       // --- laisse passer les taps tant que le menu est fermé ---
       child: Positioned.fill(
-        child: Consumer<NavMenuViewModel>(
-          builder: (context, viewModel, _) {
+        child: Consumer2<NavMenuViewModel, FloatingButtonsViewModel>(
+          builder: (context, menuViewModel, buttonsViewModel, _) {
             return LayoutBuilder(
               builder: (context, constraints) {
-                return _buildLayer(context, viewModel, constraints.biggest);
+                return _buildLayer(
+                  context,
+                  menuViewModel,
+                  buttonsViewModel,
+                  constraints.biggest,
+                );
               },
             );
           },
@@ -48,14 +54,13 @@ class FloatingNavMenu extends StatelessWidget {
 
   Widget _buildLayer(
     BuildContext context,
-    NavMenuViewModel viewModel,
+    NavMenuViewModel menuViewModel,
+    FloatingButtonsViewModel buttonsViewModel,
     Size area,
   ) {
-    final isExpanded = viewModel.isExpanded;
-    final anchor = Offset(
-      area.width - _margin - _buttonSize / 2,
-      area.height - _margin - _buttonSize / 2,
-    );
+    final isExpanded = menuViewModel.isExpanded;
+    final isDragging = buttonsViewModel.isDragging(_id);
+    final anchor = buttonsViewModel.centerOf(_id, area);
     final offsets = RadialMenuLayout.offsets(
       count: navDestinations.length,
       anchor: anchor,
@@ -74,7 +79,7 @@ class FloatingNavMenu extends StatelessWidget {
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: viewModel.close,
+              onTap: menuViewModel.close,
             ),
           ),
 
@@ -82,19 +87,26 @@ class FloatingNavMenu extends StatelessWidget {
         for (var i = 0; i < navDestinations.length; i++)
           _buildItem(
             context,
-            viewModel,
+            menuViewModel,
             destination: navDestinations[i],
             center: isExpanded ? anchor + offsets[i] : anchor,
             isExpanded: isExpanded,
+            follow: isDragging,
           ),
 
-        Positioned(
-          right: _margin,
-          bottom: _margin,
+        SnappingButtonPositioner(
+          center: anchor,
+          isDragging: isDragging,
+          // --- On referme le menu dès qu'on déplace le bouton ---
+          onDragUpdate: (delta) {
+            menuViewModel.close();
+            buttonsViewModel.drag(_id, delta, area);
+          },
+          onDragEnd: () => buttonsViewModel.endDrag(_id, area),
           child: NavMenuButton(
             currentDestination: currentDestination,
             isExpanded: isExpanded,
-            onTap: viewModel.toggle,
+            onTap: menuViewModel.toggle,
           ),
         ),
       ],
@@ -107,12 +119,14 @@ class FloatingNavMenu extends StatelessWidget {
     required NavDestination destination,
     required Offset center,
     required bool isExpanded,
+    required bool follow,
   }) {
     // --- La bulle (et non le libellé) est centrée sur sa place dans l'arc ---
     const bubbleCenterY = NavMenuItem.bubbleSize / 2;
 
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 220),
+      // --- Repliées sous le bouton, elles le suivent sans délai ---
+      duration: follow ? Duration.zero : const Duration(milliseconds: 220),
       curve: Curves.easeOutBack,
       left: center.dx - NavMenuItem.width / 2,
       top: center.dy - bubbleCenterY,
