@@ -22,3 +22,12 @@ String? extractEmoji(String input) {
   final first = trimmed.characters.first;
   return _emojiPattern.hasMatch(first) ? first : null;
 }
+
+// --- Dernier emoji de la saisie. Sert quand on touche un emoji puis un
+// --- autre : c'est le dernier touché qui compte ---
+String? extractLastEmoji(String input) {
+  for (final character in input.characters.toList().reversed) {
+    if (_emojiPattern.hasMatch(character)) return character;
+  }
+  return null;
+}

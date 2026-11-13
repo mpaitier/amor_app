@@ -38,4 +38,23 @@ void main() {
   test('doit refuser une saisie vide', () {
     expect(extractEmoji('   '), isNull);
   });
+
+  group('extractLastEmoji', () {
+    test('doit garder le dernier emoji touché', () {
+      expect(extractLastEmoji('🐧🎉'), '🎉');
+    });
+
+    test('doit garder entier un dernier emoji composé', () {
+      expect(extractLastEmoji('🐧👩‍❤️‍👨'), '👩‍❤️‍👨');
+    });
+
+    test('doit ignorer le texte tapé après un emoji', () {
+      expect(extractLastEmoji('🐧a'), '🐧');
+    });
+
+    test('doit renvoyer null sans aucun emoji', () {
+      expect(extractLastEmoji('abc'), isNull);
+      expect(extractLastEmoji(''), isNull);
+    });
+  });
 }
