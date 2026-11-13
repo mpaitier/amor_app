@@ -90,6 +90,7 @@ class FloatingNavMenu extends StatelessWidget {
             menuViewModel,
             destination: navDestinations[i],
             center: isExpanded ? anchor + offsets[i] : anchor,
+            area: area,
             isExpanded: isExpanded,
             follow: isDragging,
           ),
@@ -118,6 +119,7 @@ class FloatingNavMenu extends StatelessWidget {
     NavMenuViewModel viewModel, {
     required NavDestination destination,
     required Offset center,
+    required Size area,
     required bool isExpanded,
     required bool follow,
   }) {
@@ -128,8 +130,18 @@ class FloatingNavMenu extends StatelessWidget {
       // --- Repliées sous le bouton, elles le suivent sans délai ---
       duration: follow ? Duration.zero : const Duration(milliseconds: 220),
       curve: Curves.easeOutBack,
-      left: center.dx - NavMenuItem.width / 2,
-      top: center.dy - bubbleCenterY,
+      // --- Recalée dans l'écran : près d'un bord, le libellé ne doit pas
+      // --- être coupé ("aramètres") ---
+      left: _clampToArea(
+        center.dx - NavMenuItem.width / 2,
+        NavMenuItem.width,
+        area.width,
+      ),
+      top: _clampToArea(
+        center.dy - bubbleCenterY,
+        NavMenuItem.height,
+        area.height,
+      ),
       child: IgnorePointer(
         ignoring: !isExpanded,
         child: AnimatedOpacity(
@@ -143,6 +155,14 @@ class FloatingNavMenu extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // --- Position de départ gardée entre 0 et (écran - taille). Écran plus
+  // --- petit que l'entrée : collée à 0 ---
+  static double _clampToArea(double start, double size, double extent) {
+    final max = extent - size;
+    if (max <= 0) return 0;
+    return start.clamp(0.0, max);
   }
 
   // --- Ferme le menu puis navigue vers l'écran choisi : empilé s'il

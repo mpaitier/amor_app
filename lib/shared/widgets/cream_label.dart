@@ -10,8 +10,17 @@ import '../../core/theme/app_colors.dart';
 class CreamLabel extends StatelessWidget {
   final String text;
   final TextStyle style;
+  // --- Une ligne par défaut ; plus pour les libellés étroits ---
+  final int maxLines;
+  final TextAlign? textAlign;
 
-  const CreamLabel({super.key, required this.text, required this.style});
+  const CreamLabel({
+    super.key,
+    required this.text,
+    required this.style,
+    this.maxLines = 1,
+    this.textAlign,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +32,8 @@ class CreamLabel extends StatelessWidget {
       ),
       child: Text(
         text,
-        maxLines: 1,
+        maxLines: maxLines,
+        textAlign: textAlign,
         overflow: TextOverflow.ellipsis,
         style: style,
       ),

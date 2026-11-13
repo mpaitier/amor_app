@@ -13,7 +13,8 @@ import '../models/nav_destination.dart';
 class NavMenuItem extends StatelessWidget {
   // --- Encombrement fixe, pour centrer l'entrée sur sa place dans l'arc ---
   static const double width = 96;
-  static const double height = 80;
+  // --- Bulle + libellé sur deux lignes au plus ("Notre histoire") ---
+  static const double height = 96;
   static const double bubbleSize = 52;
 
   final NavDestination destination;
@@ -57,6 +58,8 @@ class NavMenuItem extends StatelessWidget {
           const SizedBox(height: 4),
           CreamLabel(
             text: destination.label,
+            maxLines: 2,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: amorDarkRose,
               fontSize: 12,
