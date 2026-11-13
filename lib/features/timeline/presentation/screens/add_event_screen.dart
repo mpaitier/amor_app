@@ -131,7 +131,14 @@ class _AddEventView extends StatelessWidget {
     if (!context.mounted) return;
 
     if (savedId != null) {
-      context.pushReplacement(AppRoutes.timelineDetailPath(savedId));
+      // --- En modification, le détail du souvenir est déjà juste en
+      // --- dessous : on y revient, il affiche les nouvelles valeurs.
+      // --- En création, on remplace le formulaire par le détail ---
+      if (viewModel.isEditing) {
+        context.pop();
+      } else {
+        context.pushReplacement(AppRoutes.timelineDetailPath(savedId));
+      }
     } else if (viewModel.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(viewModel.errorMessage!)),
