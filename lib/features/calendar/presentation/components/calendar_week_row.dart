@@ -3,7 +3,8 @@
 // ============================================================================
 // Une semaine du lundi au dimanche. Choisit pour chaque jour la bonne case :
 // vide hors du mois, numéro seul, couverture d'un souvenir, ou jour spécial
-// (date importante, anniversaire, mois-anniversaire).
+// (date importante, anniversaire, mois-anniversaire). Les jours à venir
+// sont légèrement grisés.
 
 import 'package:flutter/material.dart';
 import '../../domain/entities/calendar_special_day.dart';
@@ -50,12 +51,26 @@ class CalendarWeekRow extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: CalendarLayout.cellGap / 2,
                   ),
-                  child: _buildCell(day),
+                  child: _buildDimmedIfFuture(day, _buildCell(day)),
                 ),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  // --- Voile gris léger sur les jours après aujourd'hui. srcATop ne teinte
+  // --- que ce que la case dessine : la bande vide du numéro reste nette ---
+  Widget _buildDimmedIfFuture(DateTime? day, Widget cell) {
+    if (day == null || !day.isAfter(today)) return cell;
+
+    return ColorFiltered(
+      colorFilter: ColorFilter.mode(
+        Colors.grey.withValues(alpha: 0.22),
+        BlendMode.srcATop,
+      ),
+      child: cell,
     );
   }
 
