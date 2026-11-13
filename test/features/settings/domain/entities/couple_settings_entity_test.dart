@@ -19,6 +19,7 @@ void main() {
       expect(defaults.relationshipStart, DateTime(2023, 12, 12));
       expect(defaults.showAnniversary, isFalse);
       expect(defaults.showMonthAnniversaries, isFalse);
+      expect(defaults.gifSearchTerm, 'hedgehog cute');
       expect(
         defaults.anniversaryStyle,
         CoupleSettingsEntity.defaultAnniversaryStyle,

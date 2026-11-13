@@ -16,6 +16,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
     super.anniversaryStyle,
     super.showMonthAnniversaries,
     super.monthAnniversaryStyle,
+    super.gifSearchTerm,
   });
 
   // --- Construit le modèle depuis le document. Un champ absent reprend
@@ -29,6 +30,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
     final anniversary = _mapOf(data['anniversary']);
     final monthAnniversary = _mapOf(data['monthAnniversary']);
     final start = data['relationshipStart'];
+    final gifSearchTerm = data['gifSearchTerm'];
 
     return CoupleSettingsModel(
       relationshipStart:
@@ -43,6 +45,9 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
         monthAnniversary,
         CoupleSettingsEntity.defaultMonthAnniversaryStyle,
       ),
+      gifSearchTerm: gifSearchTerm is String && gifSearchTerm.trim().isNotEmpty
+          ? gifSearchTerm
+          : CoupleSettingsEntity.defaultGifSearchTerm,
     );
   }
 
@@ -53,6 +58,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
       anniversaryStyle: entity.anniversaryStyle,
       showMonthAnniversaries: entity.showMonthAnniversaries,
       monthAnniversaryStyle: entity.monthAnniversaryStyle,
+      gifSearchTerm: entity.gifSearchTerm,
     );
   }
 
@@ -62,6 +68,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
       'anniversary': _specialDayToMap(showAnniversary, anniversaryStyle),
       'monthAnniversary':
           _specialDayToMap(showMonthAnniversaries, monthAnniversaryStyle),
+      'gifSearchTerm': gifSearchTerm,
     };
   }
 

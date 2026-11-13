@@ -114,6 +114,34 @@ void main() {
     expect(lastSaved().relationshipStart, DateTime(2023, 11, 30));
   });
 
+  test('doit enregistrer le terme de recherche des GIF, nettoyé', () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    await viewModel.setGifSearchTerm('  penguin hug ');
+
+    expect(viewModel.settings.gifSearchTerm, 'penguin hug');
+    expect(lastSaved().gifSearchTerm, 'penguin hug');
+  });
+
+  test('doit reprendre le terme d\'origine pour un terme vide', () async {
+    settingsController.add(tSettings.copyWith(gifSearchTerm: 'penguin'));
+    await flushStream();
+
+    await viewModel.setGifSearchTerm('   ');
+
+    expect(lastSaved().gifSearchTerm, 'hedgehog cute');
+  });
+
+  test('ne doit pas réenregistrer un terme inchangé', () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    await viewModel.setGifSearchTerm('hedgehog cute');
+
+    verifyNever(() => mockRepository.saveSettings(any()));
+  });
+
   test('doit exposer un message si l\'enregistrement échoue', () async {
     when(() => mockRepository.saveSettings(any()))
         .thenThrow(Exception('Firestore indisponible'));

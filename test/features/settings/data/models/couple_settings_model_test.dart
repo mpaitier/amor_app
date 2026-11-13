@@ -24,6 +24,7 @@ void main() {
     showAnniversary: true,
     anniversaryStyle: tAnniversaryStyle,
     showMonthAnniversaries: false,
+    gifSearchTerm: 'penguin hug',
   );
 
   group('toFirestore', () {
@@ -38,6 +39,7 @@ void main() {
         'borderColor': 0xFFE0A800,
       });
       expect((map['monthAnniversary'] as Map)['show'], isFalse);
+      expect(map['gifSearchTerm'], 'penguin hug');
     });
   });
 
@@ -65,6 +67,7 @@ void main() {
       expect(model.showAnniversary, isTrue);
       expect(model.anniversaryStyle, tAnniversaryStyle);
       expect(model.showMonthAnniversaries, isFalse);
+      expect(model.gifSearchTerm, 'penguin hug');
       expect(
         model.monthAnniversaryStyle,
         CoupleSettingsEntity.defaultMonthAnniversaryStyle,
@@ -96,6 +99,16 @@ void main() {
         model.anniversaryStyle,
         CoupleSettingsEntity.defaultAnniversaryStyle,
       );
+      expect(model.gifSearchTerm, CoupleSettingsEntity.defaultGifSearchTerm);
+    });
+
+    test('doit reprendre le terme d\'origine si le terme stocké est vide',
+        () async {
+      final snapshot = await snapshotOf({'gifSearchTerm': '   '});
+
+      final model = CoupleSettingsModel.fromFirestore(snapshot);
+
+      expect(model.gifSearchTerm, CoupleSettingsEntity.defaultGifSearchTerm);
     });
   });
 }

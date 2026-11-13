@@ -1,9 +1,9 @@
 // ============================================================================
 // COUPLE SETTINGS ENTITY
 // ============================================================================
-// Réglages partagés par le couple : le jour où l'histoire a commencé, et
+// Réglages partagés par le couple : le jour où l'histoire a commencé,
 // l'affichage de l'anniversaire et des mois-anniversaires dans le
-// calendrier. Modèle de domaine pur, sans Firestore ni Flutter.
+// calendrier, et le terme de recherche des GIF tirés au hasard. Modèle de domaine pur, sans Firestore ni Flutter.
 
 import '../../../../core/constants/app_constants.dart';
 import 'special_day_style.dart';
@@ -21,11 +21,15 @@ class CoupleSettingsEntity {
     borderColor: 0xFFE91E63,
   );
 
+  // --- Recherche Giphy tant que rien d'autre n'a été choisi ---
+  static const String defaultGifSearchTerm = 'hedgehog cute';
+
   final DateTime relationshipStart;
   final bool showAnniversary;
   final SpecialDayStyle anniversaryStyle;
   final bool showMonthAnniversaries;
   final SpecialDayStyle monthAnniversaryStyle;
+  final String gifSearchTerm;
 
   const CoupleSettingsEntity({
     required this.relationshipStart,
@@ -33,6 +37,7 @@ class CoupleSettingsEntity {
     this.anniversaryStyle = defaultAnniversaryStyle,
     this.showMonthAnniversaries = false,
     this.monthAnniversaryStyle = defaultMonthAnniversaryStyle,
+    this.gifSearchTerm = defaultGifSearchTerm,
   });
 
   // --- Réglages d'origine : la date de début reprend celle qui était
@@ -53,6 +58,7 @@ class CoupleSettingsEntity {
     SpecialDayStyle? anniversaryStyle,
     bool? showMonthAnniversaries,
     SpecialDayStyle? monthAnniversaryStyle,
+    String? gifSearchTerm,
   }) {
     return CoupleSettingsEntity(
       relationshipStart: relationshipStart ?? this.relationshipStart,
@@ -62,6 +68,7 @@ class CoupleSettingsEntity {
           showMonthAnniversaries ?? this.showMonthAnniversaries,
       monthAnniversaryStyle:
           monthAnniversaryStyle ?? this.monthAnniversaryStyle,
+      gifSearchTerm: gifSearchTerm ?? this.gifSearchTerm,
     );
   }
 

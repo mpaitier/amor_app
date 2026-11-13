@@ -75,6 +75,16 @@ class SettingsViewModel extends ChangeNotifier {
     return _update(settings.copyWith(monthAnniversaryStyle: style));
   }
 
+  // --- Un terme vide reprend celui d'origine ; un terme inchangé n'est
+  // --- pas réenregistré ---
+  Future<void> setGifSearchTerm(String term) async {
+    final trimmed = term.trim();
+    final value =
+        trimmed.isEmpty ? CoupleSettingsEntity.defaultGifSearchTerm : trimmed;
+    if (value == settings.gifSearchTerm) return;
+    await _update(settings.copyWith(gifSearchTerm: value));
+  }
+
   // --- Affiche le changement tout de suite, puis l'enregistre ---
   Future<void> _update(CoupleSettingsEntity updated) async {
     _settings = updated;

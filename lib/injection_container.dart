@@ -76,6 +76,7 @@ import 'features/settings/data/repositories/couple_settings_repository_impl.dart
 import 'features/settings/domain/repositories/couple_settings_repository.dart';
 import 'features/settings/domain/usecases/watch_couple_settings.dart';
 import 'features/settings/domain/usecases/save_couple_settings.dart';
+import 'features/settings/domain/usecases/get_gif_search_term.dart';
 
 // --- Color history feature ---
 import 'features/color_history/data/datasources/color_history_local_datasource.dart';
@@ -214,6 +215,8 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       WatchCoupleSettings(coupleSettingsRepository);
   late final SaveCoupleSettings saveCoupleSettings =
       SaveCoupleSettings(coupleSettingsRepository);
+  late final GetGifSearchTerm getGifSearchTerm =
+      GetGifSearchTerm(coupleSettingsRepository);
 
   // --- Color history: couleurs libres récentes, propres au téléphone ---
   late final ColorHistoryRepository colorHistoryRepository =
