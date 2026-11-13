@@ -13,14 +13,19 @@ import 'package:amor_app/features/settings/domain/repositories/couple_settings_r
 import 'package:amor_app/features/settings/domain/usecases/save_couple_settings.dart';
 import 'package:amor_app/features/settings/domain/usecases/watch_couple_settings.dart';
 import 'package:amor_app/features/settings/presentation/viewmodels/settings_viewmodel.dart';
+import 'package:amor_app/features/gif/domain/repositories/gif_repository.dart';
+import 'package:amor_app/features/gif/domain/usecases/get_random_gif.dart';
 
 class MockCoupleSettingsRepository extends Mock
     implements CoupleSettingsRepository {}
 
 class _FakeCoupleSettingsEntity extends Fake implements CoupleSettingsEntity {}
 
+class MockGifRepository extends Mock implements GifRepository {}
+
 void main() {
   late MockCoupleSettingsRepository mockRepository;
+  late MockGifRepository mockGifRepository;
   late StreamController<CoupleSettingsEntity> settingsController;
   late SettingsViewModel viewModel;
 
@@ -40,10 +45,14 @@ void main() {
     when(() => mockRepository.watchSettings())
         .thenAnswer((_) => settingsController.stream);
     when(() => mockRepository.saveSettings(any())).thenAnswer((_) async {});
+    mockGifRepository = MockGifRepository();
+    when(() => mockGifRepository.getRandomGifUrl(any()))
+        .thenAnswer((_) async => 'https://gif/anniversaire');
 
     viewModel = SettingsViewModel(
       watchCoupleSettings: WatchCoupleSettings(mockRepository),
       saveCoupleSettings: SaveCoupleSettings(mockRepository),
+      getRandomGif: GetRandomGif(mockGifRepository),
       now: DateTime(2026, 11, 13, 13, 23),
     );
   });
@@ -89,6 +98,54 @@ void main() {
 
     expect(viewModel.settings.showAnniversary, isTrue);
     expect(lastSaved().showAnniversary, isTrue);
+  });
+
+  test('doit tirer un GIF à la première activation de l\'anniversaire',
+      () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    await viewModel.setShowAnniversary(true);
+
+    expect(viewModel.settings.anniversaryStyle.gifUrl, 'https://gif/anniversaire');
+    expect(lastSaved().anniversaryStyle.gifUrl, 'https://gif/anniversaire');
+    verify(() => mockGifRepository.getRandomGifUrl('hedgehog cute')).called(1);
+  });
+
+  test('ne doit pas tirer de nouveau GIF si l\'anniversaire en a déjà un', () async {
+    settingsController.add(
+      tSettings.copyWith(
+        anniversaryStyle: CoupleSettingsEntity.defaultAnniversaryStyle
+            .copyWith(gifUrl: 'https://gif/existant'),
+      ),
+    );
+    await flushStream();
+
+    await viewModel.setShowAnniversary(true);
+
+    verifyNever(() => mockGifRepository.getRandomGifUrl(any()));
+  });
+
+  test('doit changer le GIF des mois-anniversaires à la demande', () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    await viewModel.drawMonthAnniversaryGif();
+
+    expect(viewModel.isMonthAnniversaryGifLoading, isFalse);
+    expect(lastSaved().monthAnniversaryStyle.gifUrl, 'https://gif/anniversaire');
+  });
+
+  test('doit garder le GIF si le tirage échoue', () async {
+    when(() => mockGifRepository.getRandomGifUrl(any()))
+        .thenAnswer((_) async => null);
+    settingsController.add(tSettings);
+    await flushStream();
+
+    await viewModel.drawAnniversaryGif();
+
+    expect(viewModel.isAnniversaryGifLoading, isFalse);
+    verifyNever(() => mockRepository.saveSettings(any()));
   });
 
   test('doit enregistrer le style des mois-anniversaires', () async {

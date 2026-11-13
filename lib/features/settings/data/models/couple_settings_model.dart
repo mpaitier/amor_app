@@ -81,6 +81,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
       'emoji': style.emoji,
       'backgroundColor': style.backgroundColor,
       'borderColor': style.borderColor,
+      'gifUrl': style.gifUrl,
     };
   }
 
@@ -96,6 +97,7 @@ class CoupleSettingsModel extends CoupleSettingsEntity {
       emoji: data['emoji'] ?? fallback.emoji,
       backgroundColor: data['backgroundColor'] ?? fallback.backgroundColor,
       borderColor: data['borderColor'] ?? fallback.borderColor,
+      gifUrl: data['gifUrl'] ?? fallback.gifUrl,
     );
   }
 }

@@ -35,6 +35,7 @@ class SettingsScreen extends StatelessWidget {
           create: (_) => SettingsViewModel(
             watchCoupleSettings: sl.watchCoupleSettings,
             saveCoupleSettings: sl.saveCoupleSettings,
+            getRandomGif: sl.getRandomGif,
           ),
         ),
         // --- Couleurs libres récentes, lues par les rangées de couleurs ---
@@ -137,6 +138,8 @@ class _SettingsView extends StatelessWidget {
                   viewModel.nextAnniversary,
                   today,
                 ),
+                isGifLoading: viewModel.isAnniversaryGifLoading,
+                onRefreshGif: viewModel.drawAnniversaryGif,
               ),
               const Divider(height: 28),
               SpecialDaySettingCard(
@@ -153,6 +156,8 @@ class _SettingsView extends StatelessWidget {
                   viewModel.nextMonthAnniversary,
                   today,
                 ),
+                isGifLoading: viewModel.isMonthAnniversaryGifLoading,
+                onRefreshGif: viewModel.drawMonthAnniversaryGif,
               ),
             ],
           ),

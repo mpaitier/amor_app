@@ -15,6 +15,9 @@ class CalendarSpecialDay {
   final int backgroundColor;
   final int borderColor;
 
+  // --- GIF montré dans la fiche, vide s'il n'y en a pas ---
+  final String gifUrl;
+
   // --- La date importante d'origine, pour pouvoir la modifier. Null pour
   // --- un anniversaire, qui vient des réglages ---
   final ImportantDateEntity? importantDate;
@@ -25,6 +28,7 @@ class CalendarSpecialDay {
     required this.emoji,
     required this.backgroundColor,
     required this.borderColor,
+    this.gifUrl = '',
     this.importantDate,
   });
 
@@ -35,6 +39,7 @@ class CalendarSpecialDay {
       emoji: date.emoji,
       backgroundColor: date.backgroundColor,
       borderColor: date.borderColor,
+      gifUrl: date.gifUrl,
       importantDate: date,
     );
   }

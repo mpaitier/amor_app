@@ -30,6 +30,7 @@ void main() {
     expect(result, hasLength(1));
     expect(result.first.kind, CalendarSpecialDayKind.importantDate);
     expect(result.first.importantDate, tDate);
+    expect(result.first.gifUrl, tDate.gifUrl);
   });
 
   test('doit ignorer les anniversaires tant qu\'ils ne sont pas affichés', () {
@@ -55,6 +56,7 @@ void main() {
     expect(result.first.kind, CalendarSpecialDayKind.anniversary);
     expect(result.first.title, '1er anniversaire');
     expect(result.first.emoji, settings.anniversaryStyle.emoji);
+    expect(result.first.gifUrl, settings.anniversaryStyle.gifUrl);
     expect(result.first.importantDate, isNull);
   });
 

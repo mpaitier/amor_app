@@ -41,6 +41,7 @@ class BuildSpecialDays {
             emoji: style.emoji,
             backgroundColor: style.backgroundColor,
             borderColor: style.borderColor,
+            gifUrl: style.gifUrl,
           ),
         ];
       }
@@ -60,6 +61,7 @@ class BuildSpecialDays {
             emoji: style.emoji,
             backgroundColor: style.backgroundColor,
             borderColor: style.borderColor,
+            gifUrl: style.gifUrl,
           ),
         ];
       }

@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../gif/presentation/components/gif_view.dart';
 import '../../../important_dates/presentation/utils/important_date_labels.dart';
 import '../../domain/entities/calendar_special_day.dart';
 import '../utils/calendar_labels.dart';
@@ -25,9 +26,12 @@ class CalendarAnniversarySheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- Défilante : avec le GIF, la fiche peut dépasser la hauteur
+    // --- accordée aux panneaux du bas sur un petit écran ---
     return SafeArea(
       top: false,
-      child: Padding(
+      child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -69,6 +73,10 @@ class CalendarAnniversarySheet extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (specialDay.gifUrl.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              GifView(gifUrl: specialDay.gifUrl, height: 120),
+            ],
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () => Navigator.of(context).pop(true),
@@ -79,6 +87,7 @@ class CalendarAnniversarySheet extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

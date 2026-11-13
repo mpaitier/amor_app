@@ -17,6 +17,7 @@ void main() {
     emoji: '🎉',
     backgroundColor: 0xFFFFF3C4,
     borderColor: 0xFFE0A800,
+    gifUrl: 'https://gif/anniversaire',
   );
 
   final tEntity = CoupleSettingsEntity(
@@ -37,6 +38,7 @@ void main() {
         'emoji': '🎉',
         'backgroundColor': 0xFFFFF3C4,
         'borderColor': 0xFFE0A800,
+        'gifUrl': 'https://gif/anniversaire',
       });
       expect((map['monthAnniversary'] as Map)['show'], isFalse);
       expect(map['gifSearchTerm'], 'penguin hug');

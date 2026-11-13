@@ -3,10 +3,11 @@
 // ============================================================================
 // Réglage d'un jour spécial (anniversaire ou mois-anniversaire) : un
 // interrupteur pour l'afficher dans le calendrier, puis, s'il est activé,
-// l'aperçu du prochain et le choix de son style. Composant "bête".
+// son GIF, l'aperçu du prochain et le choix de son style. Composant "bête".
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../gif/presentation/components/gif_view.dart';
 import '../../../important_dates/presentation/components/important_date_banner.dart';
 import '../../domain/entities/special_day_style.dart';
 import 'special_day_style_editor.dart';
@@ -20,6 +21,8 @@ class SpecialDaySettingCard extends StatelessWidget {
   final ValueChanged<SpecialDayStyle> onStyleChanged;
   final String previewTitle;
   final String previewCountdown;
+  final bool isGifLoading;
+  final VoidCallback onRefreshGif;
 
   const SpecialDaySettingCard({
     super.key,
@@ -31,6 +34,8 @@ class SpecialDaySettingCard extends StatelessWidget {
     required this.onStyleChanged,
     required this.previewTitle,
     required this.previewCountdown,
+    required this.isGifLoading,
+    required this.onRefreshGif,
   });
 
   @override
@@ -73,6 +78,12 @@ class SpecialDaySettingCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      GifView(
+                        gifUrl: style.gifUrl,
+                        isLoading: isGifLoading,
+                        onRefresh: onRefreshGif,
+                      ),
+                      const SizedBox(height: 12),
                       ImportantDateBanner(
                         emoji: style.emoji,
                         title: previewTitle,

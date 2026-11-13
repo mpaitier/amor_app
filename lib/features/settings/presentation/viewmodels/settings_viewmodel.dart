@@ -8,12 +8,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/couple_settings_entity.dart';
 import '../../domain/entities/special_day_style.dart';
+import '../../../gif/domain/usecases/get_random_gif.dart';
 import '../../domain/usecases/save_couple_settings.dart';
 import '../../domain/usecases/watch_couple_settings.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   final WatchCoupleSettings _watchCoupleSettings;
   final SaveCoupleSettings _saveCoupleSettings;
+  final GetRandomGif _getRandomGif;
 
   StreamSubscription<CoupleSettingsEntity>? _subscription;
 
@@ -23,13 +25,18 @@ class SettingsViewModel extends ChangeNotifier {
   // --- State ---
   CoupleSettingsEntity? _settings;
   String? _errorMessage;
+  bool _isAnniversaryGifLoading = false;
+  bool _isMonthAnniversaryGifLoading = false;
+  bool _isDisposed = false;
 
   SettingsViewModel({
     required WatchCoupleSettings watchCoupleSettings,
     required SaveCoupleSettings saveCoupleSettings,
+    required GetRandomGif getRandomGif,
     DateTime? now,
   })  : _watchCoupleSettings = watchCoupleSettings,
         _saveCoupleSettings = saveCoupleSettings,
+        _getRandomGif = getRandomGif,
         today = _dayOf(now ?? DateTime.now()) {
     _listenToSettings();
   }
@@ -41,6 +48,8 @@ class SettingsViewModel extends ChangeNotifier {
   // --- Getters ---
   bool get isLoading => _settings == null;
   String? get errorMessage => _errorMessage;
+  bool get isAnniversaryGifLoading => _isAnniversaryGifLoading;
+  bool get isMonthAnniversaryGifLoading => _isMonthAnniversaryGifLoading;
   CoupleSettingsEntity get settings =>
       _settings ?? CoupleSettingsEntity.defaults();
 
@@ -59,16 +68,66 @@ class SettingsViewModel extends ChangeNotifier {
     return _update(settings.copyWith(relationshipStart: _dayOf(date)));
   }
 
-  Future<void> setShowAnniversary(bool value) {
-    return _update(settings.copyWith(showAnniversary: value));
+  // --- À la première activation, un GIF est tiré ---
+  Future<void> setShowAnniversary(bool value) async {
+    await _update(settings.copyWith(showAnniversary: value));
+    if (value && settings.anniversaryStyle.gifUrl.isEmpty) {
+      await drawAnniversaryGif();
+    }
   }
 
   Future<void> setAnniversaryStyle(SpecialDayStyle style) {
     return _update(settings.copyWith(anniversaryStyle: style));
   }
 
-  Future<void> setShowMonthAnniversaries(bool value) {
-    return _update(settings.copyWith(showMonthAnniversaries: value));
+  // --- À la première activation, un GIF est tiré ---
+  Future<void> setShowMonthAnniversaries(bool value) async {
+    await _update(settings.copyWith(showMonthAnniversaries: value));
+    if (value && settings.monthAnniversaryStyle.gifUrl.isEmpty) {
+      await drawMonthAnniversaryGif();
+    }
+  }
+
+  // --- Tire un GIF pour l'anniversaire, avec le terme des paramètres ---
+  Future<void> drawAnniversaryGif() async {
+    _isAnniversaryGifLoading = true;
+    notifyListeners();
+
+    final url = await _getRandomGif(settings.gifSearchTerm);
+    if (_isDisposed) return;
+    _isAnniversaryGifLoading = false;
+
+    // --- En cas d'échec, on garde le GIF précédent ---
+    if (url == null) {
+      notifyListeners();
+      return;
+    }
+    await _update(
+      settings.copyWith(
+        anniversaryStyle: settings.anniversaryStyle.copyWith(gifUrl: url),
+      ),
+    );
+  }
+
+  // --- Tire un GIF pour les mois-anniversaires ---
+  Future<void> drawMonthAnniversaryGif() async {
+    _isMonthAnniversaryGifLoading = true;
+    notifyListeners();
+
+    final url = await _getRandomGif(settings.gifSearchTerm);
+    if (_isDisposed) return;
+    _isMonthAnniversaryGifLoading = false;
+
+    if (url == null) {
+      notifyListeners();
+      return;
+    }
+    await _update(
+      settings.copyWith(
+        monthAnniversaryStyle:
+            settings.monthAnniversaryStyle.copyWith(gifUrl: url),
+      ),
+    );
   }
 
   Future<void> setMonthAnniversaryStyle(SpecialDayStyle style) {
@@ -111,6 +170,7 @@ class SettingsViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     _subscription?.cancel();
     super.dispose();
   }
