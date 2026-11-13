@@ -113,6 +113,15 @@ void main() {
       expect(index, 0);
     });
 
+    test('doit ignorer un dépassement de moins d\'un demi-pixel', () {
+      final index = layout.topMonthIndex(
+        scrollOffset: 0,
+        viewportHeight: CalendarLayout.bottomInset + novemberExtent + 0.25,
+      );
+
+      expect(index, 0);
+    });
+
     test('doit passer au mois précédent dès que celui-ci dépasse en haut', () {
       final index = layout.topMonthIndex(
         scrollOffset: 0,

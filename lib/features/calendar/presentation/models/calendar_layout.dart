@@ -30,6 +30,11 @@ class CalendarLayout {
   // --- Espace libre sous le dernier mois, pour dégager le menu flottant ---
   static const double bottomInset = 88;
 
+  // --- Dépassement en dessous duquel le mois du dessus ne compte pas encore.
+  // --- Les hauteurs sont des décimaux : sans cette marge, un écart d'arrondi
+  // --- suffirait à changer le mois affiché quand un mois est pile au bord ---
+  static const double _edgeTolerance = 0.5;
+
   // --- Nombre de lignes supposé pour un index hors de la liste ---
   static const int _fallbackWeekCount = 5;
 
@@ -103,7 +108,8 @@ class CalendarLayout {
     required double scrollOffset,
     required double viewportHeight,
   }) {
-    final topEdge = scrollOffset + viewportHeight - bottomInset;
+    final topEdge =
+        scrollOffset + viewportHeight - bottomInset - _edgeTolerance;
 
     // --- Premier mois dont le haut est au niveau du bord ou au-dessus ---
     var low = 0;
