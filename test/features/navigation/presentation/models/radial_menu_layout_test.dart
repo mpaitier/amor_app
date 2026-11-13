@@ -2,7 +2,7 @@
 // TEST UNITAIRE : RadialMenuLayout (géométrie pure)
 // ============================================================================
 // Écran de 390 × 780, bouton de 56 à 16 px des bords : son centre est à
-// 44 px du bord. Rayon de 112.
+// 44 px du bord. Rayon de 112 le long d'un bord, de 140 dans un coin.
 
 import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,17 +25,17 @@ void main() {
 
   test('coin bas-droite : quart de cercle, du haut vers la gauche', () {
     expectOffsets(layoutAt(const Offset(346, 736)), const [
-      Offset(0, -112),
-      Offset(-79.196, -79.196),
-      Offset(-112, 0),
+      Offset(0, -140),
+      Offset(-98.995, -98.995),
+      Offset(-140, 0),
     ]);
   });
 
   test('coin haut-gauche : quart de cercle, de la droite vers le bas', () {
     expectOffsets(layoutAt(const Offset(44, 44)), const [
-      Offset(112, 0),
-      Offset(79.196, 79.196),
-      Offset(0, 112),
+      Offset(140, 0),
+      Offset(98.995, 98.995),
+      Offset(0, 140),
     ]);
   });
 
@@ -66,6 +66,20 @@ void main() {
   test('chaque entrée est à la même distance du bouton', () {
     for (final offset in layoutAt(const Offset(346, 390))) {
       expect(offset.distance, closeTo(RadialMenuLayout.defaultRadius, 0.01));
+    }
+  });
+
+  test('dans un coin, deux entrées voisines ne se chevauchent pas', () {
+    // --- Entrées de 96 × 96 : il suffit qu'elles soient écartées d'au
+    // --- moins 96 px en largeur ou en hauteur ---
+    final offsets = layoutAt(const Offset(346, 736));
+    for (var i = 0; i < offsets.length - 1; i++) {
+      final gap = offsets[i + 1] - offsets[i];
+      expect(
+        gap.dx.abs() >= 96 || gap.dy.abs() >= 96,
+        isTrue,
+        reason: 'entrées $i et ${i + 1}',
+      );
     }
   });
 

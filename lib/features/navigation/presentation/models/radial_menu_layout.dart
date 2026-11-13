@@ -3,7 +3,7 @@
 // ============================================================================
 // Place les entrées du menu en arc autour du bouton, tournées vers
 // l'intérieur de l'écran :
-// - dans un coin, sur un quart de cercle ;
+// - dans un coin, sur un quart de cercle, un peu plus loin du bouton ;
 // - le long d'un bord, sur un arc plus ouvert, face au centre.
 // La première entrée de la liste (le journal) part de l'extrémité de l'arc
 // la plus haute (à hauteur égale, celle de gauche), puis on suit l'arc.
@@ -17,6 +17,11 @@ class RadialMenuLayout {
 
   // --- Distance entre le centre du bouton et celui de chaque entrée ---
   static const double defaultRadius = 112;
+
+  // --- Dans un coin, l'arc est plus fermé (90°) : les entrées y sont plus
+  // --- serrées. Avec 3 entrées de 96 × 96, il faut au moins 136 px pour
+  // --- que deux voisines ne se chevauchent pas ---
+  static const double defaultCornerRadius = 140;
 
   // --- Part de l'écran, depuis un bord, considérée comme "près du bord" ---
   static const double _sideRatioX = 0.3;
@@ -33,6 +38,7 @@ class RadialMenuLayout {
     required Offset anchor,
     required Size area,
     double radius = defaultRadius,
+    double cornerRadius = defaultCornerRadius,
   }) {
     if (count <= 0) return const [];
 
@@ -51,6 +57,7 @@ class RadialMenuLayout {
     final isCorner = directionX != 0 && directionY != 0;
     final centerAngle = math.atan2(directionY, directionX);
     final spread = count == 1 ? 0.0 : (isCorner ? _cornerSpread : _edgeSpread);
+    final distance = isCorner ? cornerRadius : radius;
 
     final positions = <Offset>[
       for (var i = 0; i < count; i++)
@@ -58,7 +65,7 @@ class RadialMenuLayout {
           count == 1
               ? centerAngle
               : centerAngle - spread / 2 + spread * i / (count - 1),
-          radius,
+          distance,
         ),
     ];
 

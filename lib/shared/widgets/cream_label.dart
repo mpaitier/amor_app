@@ -24,18 +24,23 @@ class CreamLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: amorCreamTransparent,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        maxLines: maxLines,
-        textAlign: textAlign,
-        overflow: TextOverflow.ellipsis,
-        style: style,
+    // --- Material transparent : sans lui, un texte posé hors d'un
+    // --- Scaffold (menu flottant) s'affiche souligné de jaune ---
+    return Material(
+      type: MaterialType.transparency,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: amorCreamTransparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          text,
+          maxLines: maxLines,
+          textAlign: textAlign,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+        ),
       ),
     );
   }
