@@ -24,15 +24,16 @@ String formatCountdown(DateTime occurrence, DateTime today) {
   return 'Il y a ${-days} jours';
 }
 
-// --- Version courte pour la bannière : "45 J", "Jour J", ou "Passée"
-// --- quand la date ne reviendra plus ---
+// --- Version courte pour la bannière : "45 jours", "1 jour", "Jour J",
+// --- ou "Passée" quand la date ne reviendra plus ---
 String formatShortCountdown(DateTime? nextOccurrence, DateTime today) {
   if (nextOccurrence == null) return 'Passée';
 
   final days = _daysBetween(today, nextOccurrence);
   if (days < 0) return 'Passée';
   if (days == 0) return 'Jour J';
-  return '$days J';
+  if (days == 1) return '1 jour';
+  return '$days jours';
 }
 
 // --- "Tous les ans", "Tous les mois"... ---

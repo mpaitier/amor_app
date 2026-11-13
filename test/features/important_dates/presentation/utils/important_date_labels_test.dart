@@ -39,8 +39,12 @@ void main() {
   });
 
   group('formatShortCountdown', () {
-    test('doit donner le nombre de jours restants', () {
-      expect(formatShortCountdown(DateTime(2026, 12, 28), today), '45 J');
+    test('doit donner le nombre de jours restants en toutes lettres', () {
+      expect(formatShortCountdown(DateTime(2026, 12, 28), today), '45 jours');
+    });
+
+    test('doit écrire jour au singulier la veille', () {
+      expect(formatShortCountdown(DateTime(2026, 11, 14), today), '1 jour');
     });
 
     test('doit annoncer le jour J', () {
