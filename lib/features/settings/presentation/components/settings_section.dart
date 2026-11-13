@@ -1,10 +1,12 @@
 // ============================================================================
 // SETTINGS SECTION
 // ============================================================================
-// Un bloc de l'écran : un intitulé, puis son contenu dans une carte blanche.
+// Un bloc de l'écran : un intitulé sur pastille crème, puis son contenu
+// dans une carte blanche.
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/cream_label.dart';
 
 class SettingsSection extends StatelessWidget {
   final String title;
@@ -22,13 +24,16 @@ class SettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 6),
-          child: Text(
-            title,
-            style: const TextStyle(
-              color: amorDarkRose,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: CreamLabel(
+              text: title,
+              style: const TextStyle(
+                color: amorDarkRose,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

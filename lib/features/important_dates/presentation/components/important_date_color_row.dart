@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/cream_label.dart';
 import '../../../color_history/domain/entities/color_history_kind.dart';
 import '../../../color_history/presentation/screens/custom_color_picker.dart';
 import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
@@ -62,8 +63,8 @@ class ImportantDateColorRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
+        CreamLabel(
+          text: label,
           style: const TextStyle(
             color: amorDarkRose,
             fontSize: 16,
