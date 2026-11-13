@@ -3,11 +3,19 @@
 // ============================================================================
 // Place un bouton flottant à un centre donné, dans un Stack plein écran, et
 // remonte les glissers. Le bouton suit le doigt sans délai, puis glisse
-// jusqu'au bord quand on le lâche. Composant "bête".
+// jusqu'au bord quand on le lâche.
+//
+// Le glisser est lu directement sur les événements du pointeur (Listener)
+// et non par un GestureDetector : un appui maintenu avant de bouger
+// déclenche un appui long (infobulle, InkWell) qui gagnait l'arène des
+// gestes et bloquait le déplacement. Ici, dès que le doigt a bougé de plus
+// que la tolérance d'un tap, le bouton suit, quoi qu'il se soit passé avant.
+// Le tap du bouton, lui, reste géré par son InkWell.
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-class SnappingButtonPositioner extends StatelessWidget {
+class SnappingButtonPositioner extends StatefulWidget {
   final Offset center;
   final double size;
   final bool isDragging;
@@ -26,18 +34,60 @@ class SnappingButtonPositioner extends StatelessWidget {
   });
 
   @override
+  State<SnappingButtonPositioner> createState() =>
+      _SnappingButtonPositionerState();
+}
+
+class _SnappingButtonPositionerState extends State<SnappingButtonPositioner> {
+  // --- Pointeur suivi (un seul doigt à la fois) ---
+  int? _pointer;
+  Offset _travel = Offset.zero;
+  bool _moving = false;
+
+  void _onDown(PointerDownEvent event) {
+    if (_pointer != null) return;
+    _pointer = event.pointer;
+    _travel = Offset.zero;
+    _moving = false;
+  }
+
+  void _onMove(PointerMoveEvent event) {
+    if (event.pointer != _pointer) return;
+
+    if (!_moving) {
+      _travel += event.delta;
+      if (_travel.distance <= kTouchSlop) return;
+      // --- Seuil franchi : on rattrape le chemin déjà parcouru ---
+      _moving = true;
+      widget.onDragUpdate(_travel);
+      return;
+    }
+
+    widget.onDragUpdate(event.delta);
+  }
+
+  void _onRelease(PointerEvent event) {
+    if (event.pointer != _pointer) return;
+    if (_moving) widget.onDragEnd();
+    _pointer = null;
+    _moving = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnimatedPositioned(
       // --- Sous le doigt : pas d'animation. Au lâcher : glisse au bord ---
-      duration: isDragging ? Duration.zero : const Duration(milliseconds: 250),
+      duration:
+          widget.isDragging ? Duration.zero : const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
-      left: center.dx - size / 2,
-      top: center.dy - size / 2,
-      child: GestureDetector(
-        onPanUpdate: (details) => onDragUpdate(details.delta),
-        onPanEnd: (_) => onDragEnd(),
-        onPanCancel: onDragEnd,
-        child: child,
+      left: widget.center.dx - widget.size / 2,
+      top: widget.center.dy - widget.size / 2,
+      child: Listener(
+        onPointerDown: _onDown,
+        onPointerMove: _onMove,
+        onPointerUp: _onRelease,
+        onPointerCancel: _onRelease,
+        child: widget.child,
       ),
     );
   }

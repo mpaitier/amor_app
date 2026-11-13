@@ -52,13 +52,12 @@ class FloatingAddButton extends StatelessWidget {
       child: InkWell(
         onTap: () => openAddEntryFlow(context),
         customBorder: const CircleBorder(),
+        // --- Pas d'infobulle : elle s'ouvrait sur un appui maintenu, donc
+        // --- au début de chaque déplacement du bouton ---
         child: const SizedBox(
           width: 56,
           height: 56,
-          child: Tooltip(
-            message: 'Ajouter',
-            child: Icon(Icons.add, color: amorDarkRose, size: 28),
-          ),
+          child: Icon(Icons.add, color: amorDarkRose, size: 28),
         ),
       ),
     );
