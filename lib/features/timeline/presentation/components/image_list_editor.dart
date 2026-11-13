@@ -63,8 +63,9 @@ class ImageListEditor extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: images.length,
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) newIndex--;
+      // --- onReorderItem donne déjà l'index final, une fois l'image
+      // --- retirée de sa place d'origine : pas de correction à faire ---
+      onReorderItem: (oldIndex, newIndex) {
         final updated = List<ImageItem>.from(images);
         final item = updated.removeAt(oldIndex);
         updated.insert(newIndex, item);
