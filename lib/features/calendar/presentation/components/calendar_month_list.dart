@@ -2,12 +2,13 @@
 // CALENDAR MONTH LIST
 // ============================================================================
 // Le "parchemin" : tous les mois à la suite dans une seule liste défilante.
-// La liste est inversée, donc elle s'ouvre en bas sur le mois en cours et
-// l'on remonte vers le passé. Chaque mois a une hauteur connue d'avance
+// La liste est inversée, donc son index 0 est le dernier mois, posé en bas,
+// et l'on remonte vers le passé. Chaque mois a une hauteur connue d'avance
 // (CalendarLayout), ce qui permet de sauter à un mois lointain sans
 // construire tous ceux qui le séparent de l'écran.
 
 import 'package:flutter/material.dart';
+import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../../domain/entities/calendar_month.dart';
 import '../models/calendar_layout.dart';
@@ -19,7 +20,8 @@ class CalendarMonthList extends StatelessWidget {
   final CalendarMonth visibleMonth;
   final DateTime today;
   final List<TimelineEventEntity> Function(DateTime day) eventsOn;
-  final void Function(List<TimelineEventEntity> events) onEventsTap;
+  final List<ImportantDateEntity> Function(DateTime day) importantDatesOn;
+  final void Function(DateTime day) onDayTap;
 
   const CalendarMonthList({
     super.key,
@@ -28,7 +30,8 @@ class CalendarMonthList extends StatelessWidget {
     required this.visibleMonth,
     required this.today,
     required this.eventsOn,
-    required this.onEventsTap,
+    required this.importantDatesOn,
+    required this.onDayTap,
   });
 
   @override
@@ -48,7 +51,8 @@ class CalendarMonthList extends StatelessWidget {
           showTitle: month != visibleMonth,
           today: today,
           eventsOn: eventsOn,
-          onEventsTap: onEventsTap,
+          importantDatesOn: importantDatesOn,
+          onDayTap: onDayTap,
         );
       },
     );

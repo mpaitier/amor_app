@@ -49,7 +49,7 @@ class CalendarHeader extends StatelessWidget {
 
                 IconButton(
                   onPressed: onAddTap,
-                  tooltip: 'Ajouter un souvenir',
+                  tooltip: 'Ajouter',
                   icon: const Icon(Icons.add),
                 ),
               ],

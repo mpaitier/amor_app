@@ -2,12 +2,15 @@
 // CALENDAR WEEK ROW
 // ============================================================================
 // Une semaine du lundi au dimanche. Choisit pour chaque jour la bonne case :
-// vide hors du mois, numéro seul, ou couverture s'il y a un souvenir.
+// vide hors du mois, numéro seul, couverture d'un souvenir, ou date
+// importante.
 
 import 'package:flutter/material.dart';
+import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../models/calendar_layout.dart';
 import 'calendar_day_cell.dart';
+import 'calendar_important_date_cell.dart';
 import 'calendar_memory_cell.dart';
 
 class CalendarWeekRow extends StatelessWidget {
@@ -15,7 +18,8 @@ class CalendarWeekRow extends StatelessWidget {
   final double rowHeight;
   final DateTime today;
   final List<TimelineEventEntity> Function(DateTime day) eventsOn;
-  final void Function(List<TimelineEventEntity> events) onEventsTap;
+  final List<ImportantDateEntity> Function(DateTime day) importantDatesOn;
+  final void Function(DateTime day) onDayTap;
 
   const CalendarWeekRow({
     super.key,
@@ -23,7 +27,8 @@ class CalendarWeekRow extends StatelessWidget {
     required this.rowHeight,
     required this.today,
     required this.eventsOn,
-    required this.onEventsTap,
+    required this.importantDatesOn,
+    required this.onDayTap,
   });
 
   @override
@@ -59,17 +64,32 @@ class CalendarWeekRow extends StatelessWidget {
     if (day == null) return const SizedBox.shrink();
 
     final events = eventsOn(day);
+    final importantDates = importantDatesOn(day);
 
-    if (events.isEmpty) {
+    if (events.isEmpty && importantDates.isEmpty) {
       return CalendarDayCell(day: day.day, isToday: day == today);
     }
 
-    // --- La couverture est la première image du premier souvenir du jour ---
+    if (events.isEmpty) {
+      return CalendarImportantDateCell(
+        day: day.day,
+        date: importantDates.first,
+        onTap: () => onDayTap(day),
+      );
+    }
+
+    // --- La couverture est la première image du premier souvenir du jour.
+    // --- Une date importante le même jour y ajoute sa bordure et son emoji ---
     final images = events.first.imagesList;
+    final importantDate =
+        importantDates.isNotEmpty ? importantDates.first : null;
+
     return CalendarMemoryCell(
       day: day.day,
       coverUrl: images.isNotEmpty ? images.first : '',
-      onTap: () => onEventsTap(events),
+      borderColor: importantDate?.borderColor,
+      badgeEmoji: importantDate?.emoji,
+      onTap: () => onDayTap(day),
     );
   }
 }

@@ -44,3 +44,9 @@ const List<String> calendarWeekdayInitials = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 String formatMonthYear(CalendarMonth month) {
   return '${calendarMonthNames[month.month - 1]} ${month.year}';
 }
+
+// --- "28 décembre 2026" ---
+String formatDayMonthYear(DateTime day) {
+  final monthName = calendarMonthNames[day.month - 1].toLowerCase();
+  return '${day.day} $monthName ${day.year}';
+}

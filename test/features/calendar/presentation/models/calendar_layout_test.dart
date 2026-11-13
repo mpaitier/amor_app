@@ -93,6 +93,25 @@ void main() {
     });
   });
 
+  group('monthStart', () {
+    test('doit valoir 0 pour le mois le plus récent', () {
+      expect(layout.monthStart(0), 0);
+    });
+
+    test('doit cumuler la hauteur des mois plus récents', () {
+      expect(layout.monthStart(1), closeTo(novemberExtent, 1e-9));
+      expect(
+        layout.monthStart(2),
+        closeTo(novemberExtent + octoberExtent, 1e-9),
+      );
+    });
+
+    test('doit rester borné pour un index hors de la liste', () {
+      expect(layout.monthStart(-3), 0);
+      expect(layout.monthStart(999), layout.monthStart(monthCount));
+    });
+  });
+
   group('topMonthIndex', () {
     test('doit renvoyer le mois le plus récent quand il remplit tout l\'écran',
         () {

@@ -60,6 +60,15 @@ import 'features/notifications/domain/usecases/get_device_id.dart';
 // --- Calendar feature ---
 import 'features/calendar/domain/usecases/group_events_by_day.dart';
 
+// --- Important dates feature ---
+import 'features/important_dates/data/datasources/important_date_remote_datasource.dart';
+import 'features/important_dates/data/repositories/important_date_repository_impl.dart';
+import 'features/important_dates/domain/repositories/important_date_repository.dart';
+import 'features/important_dates/domain/usecases/watch_important_dates.dart';
+import 'features/important_dates/domain/usecases/add_important_date.dart';
+import 'features/important_dates/domain/usecases/update_important_date.dart';
+import 'features/important_dates/domain/usecases/delete_important_date.dart';
+
 // --- Service locator singleton ---
 class ServiceLocator {
   ServiceLocator._internal();
@@ -160,6 +169,22 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Calendar: use case (les souvenirs viennent de la feature timeline) ---
   late final GroupEventsByDay groupEventsByDay = const GroupEventsByDay();
+
+  // --- Important dates: data source, repository, use cases ---
+  late final ImportantDateRemoteDataSource importantDateRemoteDataSource =
+      ImportantDateRemoteDataSource(firestore: _firestore);
+  late final ImportantDateRepository importantDateRepository =
+      ImportantDateRepositoryImpl(
+    remoteDataSource: importantDateRemoteDataSource,
+  );
+  late final WatchImportantDates watchImportantDates =
+      WatchImportantDates(importantDateRepository);
+  late final AddImportantDate addImportantDate =
+      AddImportantDate(importantDateRepository);
+  late final UpdateImportantDate updateImportantDate =
+      UpdateImportantDate(importantDateRepository);
+  late final DeleteImportantDate deleteImportantDate =
+      DeleteImportantDate(importantDateRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();

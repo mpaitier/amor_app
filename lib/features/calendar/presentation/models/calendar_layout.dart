@@ -102,6 +102,13 @@ class CalendarLayout {
     return monthTitleHeight + weekCount * rowHeight;
   }
 
+  // --- Distance entre le bas de la liste et le bas d'un mois, c'est-à-dire
+  // --- la hauteur cumulée des mois plus récents que lui ---
+  double monthStart(int index) {
+    if (index <= 0) return 0;
+    return _monthEnds[math.min(index, monthCount) - 1];
+  }
+
   // --- Index du mois qui touche le haut de la zone visible. C'est lui que
   // --- l'en-tête fixe doit afficher ---
   int topMonthIndex({
