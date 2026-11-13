@@ -102,9 +102,12 @@ class _GifViewState extends State<GifView> {
               widget.gifUrl,
               height: widget.height,
               fit: BoxFit.cover,
-              // --- Un GIF pèse vite plusieurs Mo : on montre qu'il arrive ---
-              loadingBuilder: (context, child, progress) {
-                return progress == null ? child : _buildSpinner();
+              // --- Un GIF pèse vite plusieurs Mo. Tant que sa première image
+              // --- n'est pas à l'écran (attente de la réponse, téléchargement,
+              // --- décodage), on montre qu'il arrive ---
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded || frame != null) return child;
+                return _buildSpinner();
               },
               errorBuilder: (_, __, ___) =>
                   _buildPlaceholder('GIF indisponible'),
