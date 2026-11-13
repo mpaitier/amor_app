@@ -14,6 +14,7 @@ import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.d
 import '../../../important_dates/presentation/utils/important_date_labels.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../domain/utils/anniversary_titles.dart';
+import '../components/gif_search_term_field.dart';
 import '../components/relationship_start_field.dart';
 import '../components/settings_section.dart';
 import '../components/settings_top_bar.dart';
@@ -135,6 +136,11 @@ class _SettingsView extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 20),
+        const SettingsSection(
+          title: 'GIF des souvenirs et des dates',
+          child: GifSearchTermField(),
         ),
       ],
     );
