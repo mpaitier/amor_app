@@ -24,6 +24,7 @@ void main() {
     who: 'Lulu',
     imageUrl: 'url1|url2',
     description: 'Trop bien',
+    gifUrl: 'https://media.giphy.com/hedgehog.gif',
   );
 
   group('fromEntity', () {
@@ -37,6 +38,7 @@ void main() {
       expect(model.who, tEntity.who);
       expect(model.imageUrl, tEntity.imageUrl);
       expect(model.description, tEntity.description);
+      expect(model.gifUrl, tEntity.gifUrl);
     });
   });
 
@@ -52,6 +54,7 @@ void main() {
       expect(map['who'], 'Lulu');
       expect(map['imageUrl'], 'url1|url2');
       expect(map['description'], 'Trop bien');
+      expect(map['gifUrl'], 'https://media.giphy.com/hedgehog.gif');
       expect(map.containsKey('id'), isFalse);
     });
   });
@@ -107,6 +110,7 @@ void main() {
       expect(model.who, '');
       expect(model.imageUrl, '');
       expect(model.description, '');
+      expect(model.gifUrl, '');
     });
   });
 }

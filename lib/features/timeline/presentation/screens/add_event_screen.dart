@@ -4,9 +4,8 @@
 // Images are uploaded ONLY when "Save" is pressed.
 // Images are stored under: amor_events/{event_title}/
 //
-// NOTE: depends on RandomGif from the "gif" feature and PlaceAutocompleteField
-// (via EventDatePlaceCard) from the "place" feature, both created in later
-// steps of the refactor.
+// NOTE: depends on the "gif" feature (via EventGifField) and on
+// PlaceAutocompleteField (via EventDatePlaceCard) from the "place" feature.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,9 +13,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
-import '../../../gif/presentation/components/random_gif.dart';
 import '../../domain/entities/timeline_event_entity.dart';
 import '../viewmodels/add_edit_event_viewmodel.dart';
+import '../components/event_gif_field.dart';
 import '../components/event_title_field.dart';
 import '../components/event_date_place_card.dart';
 import '../components/event_who_selector.dart';
@@ -40,6 +39,8 @@ class AddEventScreen extends StatelessWidget {
         uploadImages: sl.uploadImages,
         eventToEdit: eventToEdit,
         getDeviceId: sl.getDeviceId,
+        getRandomGif: sl.getRandomGif,
+        getGifSearchTerm: sl.getGifSearchTerm,
       ),
       child: const _AddEventView(),
     );
@@ -105,9 +106,7 @@ class _AddEventView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
       children: const [
-        Center(
-          child: RandomGif(searchTerm: 'hedgehog cute', height: 100),
-        ),
+        EventGifField(),
         SizedBox(height: 12),
         EventTitleField(),
         SizedBox(height: 12),

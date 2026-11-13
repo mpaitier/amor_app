@@ -13,6 +13,9 @@ class TimelineEventEntity {
   final String description;
   final String creatorDeviceId;
 
+  // --- GIF tiré au hasard à la création, vide pour les anciens souvenirs ---
+  final String gifUrl;
+
   const TimelineEventEntity({
     required this.id,
     required this.title,
@@ -22,6 +25,7 @@ class TimelineEventEntity {
     required this.imageUrl,
     required this.description,
     this.creatorDeviceId = '',
+    this.gifUrl = '',
   });
 
   // --- Copy with modifications ---
@@ -34,6 +38,7 @@ class TimelineEventEntity {
     String? imageUrl,
     String? description,
     String? creatorDeviceId,
+    String? gifUrl,
   }) {
     return TimelineEventEntity(
       id: id ?? this.id,
@@ -44,6 +49,7 @@ class TimelineEventEntity {
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
       creatorDeviceId: creatorDeviceId ?? this.creatorDeviceId,
+      gifUrl: gifUrl ?? this.gifUrl,
     );
   }
 

@@ -2,11 +2,12 @@
 // TIMELINE DETAIL VIEW
 // ============================================================================
 // Full detail content of a single memory: title, date, place,
-// description, author and image grid.
+// description, author, gif (tap to copy its link) and image grid.
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../gif/presentation/components/gif_view.dart';
 import '../../domain/entities/timeline_event_entity.dart';
 import 'image_grid.dart';
 
@@ -45,6 +46,10 @@ class TimelineDetailView extends StatelessWidget {
                   'Créé par ${event.who}',
                   color: const Color(0xFF616161),
                 ),
+                if (event.gifUrl.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  GifView(gifUrl: event.gifUrl, height: 120),
+                ],
                 const SizedBox(height: 16),
                 ImageGrid(event: event),
               ],
