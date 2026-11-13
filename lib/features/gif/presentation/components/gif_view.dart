@@ -83,10 +83,14 @@ class _GifViewState extends State<GifView> {
   }
 
   Widget _buildGif() {
-    if (widget.isLoading) {
-      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+    if (widget.isLoading) return _buildSpinner();
+
+    // --- Rien reçu de Giphy : on le dit, plutôt qu'un vide muet ---
+    if (widget.gifUrl.isEmpty) {
+      return widget.onRefresh == null
+          ? const SizedBox.shrink()
+          : _buildPlaceholder('Pas de GIF');
     }
-    if (widget.gifUrl.isEmpty) return const SizedBox.shrink();
 
     return GestureDetector(
       onTap: _copyLink,
@@ -98,11 +102,48 @@ class _GifViewState extends State<GifView> {
               widget.gifUrl,
               height: widget.height,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              // --- Un GIF pèse vite plusieurs Mo : on montre qu'il arrive ---
+              loadingBuilder: (context, child, progress) {
+                return progress == null ? child : _buildSpinner();
+              },
+              errorBuilder: (_, __, ___) =>
+                  _buildPlaceholder('GIF indisponible'),
             ),
             if (_showCopied) Positioned.fill(child: _buildCopiedBadge()),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSpinner() {
+    return SizedBox(
+      width: widget.height,
+      height: widget.height,
+      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+    );
+  }
+
+  // --- Cadre de la taille du GIF, avec un message ---
+  Widget _buildPlaceholder(String message) {
+    return Container(
+      width: widget.height * 1.4,
+      height: widget.height,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: amorCreamTransparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.gif_box_outlined, color: outlineLight),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            style: const TextStyle(color: outlineLight, fontSize: 13),
+          ),
+        ],
       ),
     );
   }
