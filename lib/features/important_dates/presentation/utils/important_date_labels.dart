@@ -49,7 +49,29 @@ String recurrenceLabel(ImportantDateRecurrence recurrence) {
   }
 }
 
-// --- Fréquence et limite : "Tous les ans", "Tous les mois, 5 fois"... ---
+// --- Unité d'une durée exprimée dans la fréquence : "an"/"ans", "mois",
+// --- "semaine"/"semaines" ---
+String occurrenceUnitLabel(ImportantDateRecurrence recurrence, int count) {
+  final plural = count > 1;
+  switch (recurrence) {
+    case ImportantDateRecurrence.none:
+      return 'fois';
+    case ImportantDateRecurrence.weekly:
+      return plural ? 'semaines' : 'semaine';
+    case ImportantDateRecurrence.monthly:
+      return 'mois';
+    case ImportantDateRecurrence.yearly:
+      return plural ? 'ans' : 'an';
+  }
+}
+
+// --- "5 ans", "1 semaine", "12 mois" ---
+String occurrenceCountLabel(ImportantDateRecurrence recurrence, int count) {
+  return '$count ${occurrenceUnitLabel(recurrence, count)}';
+}
+
+// --- Fréquence et limite : "Tous les ans", "Tous les mois, pendant
+// --- 5 mois"... ---
 String recurrenceSummary(
   ImportantDateRecurrence recurrence,
   int? occurrenceLimit,
@@ -58,5 +80,5 @@ String recurrenceSummary(
   if (recurrence == ImportantDateRecurrence.none || occurrenceLimit == null) {
     return label;
   }
-  return '$label, $occurrenceLimit fois';
+  return '$label, pendant ${occurrenceCountLabel(recurrence, occurrenceLimit)}';
 }

@@ -61,6 +61,7 @@ class _ImportantDateRecurrenceDialogState
                 value: _limit,
                 min: _minLimit,
                 max: _maxLimit,
+                unit: occurrenceUnitLabel(_recurrence, _limit),
                 onChanged: (value) => setState(() => _limit = value),
               ),
           ],

@@ -77,7 +77,44 @@ void main() {
     });
   });
 
+  group('occurrenceCountLabel', () {
+    test('doit compter en années, avec le pluriel', () {
+      expect(occurrenceCountLabel(ImportantDateRecurrence.yearly, 1), '1 an');
+      expect(occurrenceCountLabel(ImportantDateRecurrence.yearly, 9), '9 ans');
+    });
+
+    test('doit compter en mois, invariable', () {
+      expect(occurrenceCountLabel(ImportantDateRecurrence.monthly, 1), '1 mois');
+      expect(
+        occurrenceCountLabel(ImportantDateRecurrence.monthly, 12),
+        '12 mois',
+      );
+    });
+
+    test('doit compter en semaines, avec le pluriel', () {
+      expect(
+        occurrenceCountLabel(ImportantDateRecurrence.weekly, 1),
+        '1 semaine',
+      );
+      expect(
+        occurrenceCountLabel(ImportantDateRecurrence.weekly, 3),
+        '3 semaines',
+      );
+    });
+  });
+
   group('recurrenceSummary', () {
+    test('doit exprimer la limite dans l\'unité de la fréquence', () {
+      expect(
+        recurrenceSummary(ImportantDateRecurrence.yearly, 9),
+        'Tous les ans, pendant 9 ans',
+      );
+      expect(
+        recurrenceSummary(ImportantDateRecurrence.weekly, 4),
+        'Toutes les semaines, pendant 4 semaines',
+      );
+    });
+
     test('doit se limiter à la fréquence sans limite', () {
       expect(
         recurrenceSummary(ImportantDateRecurrence.yearly, null),
@@ -88,7 +125,7 @@ void main() {
     test('doit ajouter le nombre de fois quand il y a une limite', () {
       expect(
         recurrenceSummary(ImportantDateRecurrence.monthly, 5),
-        'Tous les mois, 5 fois',
+        'Tous les mois, pendant 5 mois',
       );
     });
 
