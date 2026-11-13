@@ -255,7 +255,8 @@ class _CalendarViewState extends State<_CalendarView> {
         today: viewModel.today,
       ),
     );
-    if (openSettings == true && mounted) context.go(AppRoutes.settings);
+    // --- Empilé : le retour des paramètres ramène au calendrier ---
+    if (openSettings == true && mounted) context.push(AppRoutes.settings);
   }
 
   // --- Le détail est empilé : son bouton retour ramène donc ici ---

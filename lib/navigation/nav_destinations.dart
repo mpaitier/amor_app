@@ -25,5 +25,7 @@ const List<NavDestination> navDestinations = [
     label: 'Paramètres',
     icon: Icons.settings,
     routePath: AppRoutes.settings,
+    // --- Empilé : son bouton retour ramène à l'écran d'où l'on vient ---
+    opensOnTop: true,
   ),
 ];

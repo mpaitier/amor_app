@@ -6,6 +6,7 @@
 // calendrier. Chaque changement est enregistré aussitôt.
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
@@ -62,7 +63,7 @@ class _SettingsView extends StatelessWidget {
         children: [
           Column(
             children: [
-              const SettingsTopBar(),
+              SettingsTopBar(onBack: () => _goBack(context)),
               Expanded(
                 child: viewModel.isLoading
                     ? const Center(
@@ -78,6 +79,16 @@ class _SettingsView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // --- Retour à l'écran d'où l'on vient. Sans écran en dessous (lien
+  // --- direct), on rejoint le journal ---
+  void _goBack(BuildContext context) {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.mainMenu);
+    }
   }
 
   Widget _buildContent(SettingsViewModel viewModel) {

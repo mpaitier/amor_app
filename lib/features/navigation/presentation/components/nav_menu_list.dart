@@ -24,10 +24,15 @@ class NavMenuList extends StatelessWidget {
     required this.viewModel,
   });
 
-  // --- Ferme le menu puis navigue vers l'écran choisi ---
+  // --- Ferme le menu puis navigue vers l'écran choisi : empilé s'il
+  // --- s'ouvre par-dessus, sinon à la place de l'écran courant ---
   void _handleTap(BuildContext context, NavDestination destination) {
     viewModel.close();
-    context.go(destination.routePath);
+    if (destination.opensOnTop) {
+      context.push(destination.routePath);
+    } else {
+      context.go(destination.routePath);
+    }
   }
 
   @override
