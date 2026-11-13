@@ -81,8 +81,11 @@ void main() {
     await viewModel.setDayOfTime(8 * 60);
     await viewModel.setReminderTime(21 * 60 + 30);
 
-    expect(lastSaved().dayOfTime, 480);
-    expect(lastSaved().reminderTime, 1290);
+    // --- Une seule capture : mocktail marque les appels comme vérifiés,
+    // --- un second verify ne les retrouverait plus ---
+    final saved = lastSaved();
+    expect(saved.dayOfTime, 480);
+    expect(saved.reminderTime, 1290);
   });
 
   test('doit borner le nombre de jours du rappel', () async {
