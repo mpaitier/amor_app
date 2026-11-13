@@ -26,7 +26,7 @@ class TimelineRow extends StatelessWidget {
         // --- Date column (15% of width) ---
         Flexible(
           flex: 15,
-          child: TimelineDateColumn(event: event),
+          child: TimelineDateColumn(date: event.date),
         ),
 
         const SizedBox(width: 8),
