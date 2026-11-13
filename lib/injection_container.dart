@@ -77,6 +77,13 @@ import 'features/settings/domain/repositories/couple_settings_repository.dart';
 import 'features/settings/domain/usecases/watch_couple_settings.dart';
 import 'features/settings/domain/usecases/save_couple_settings.dart';
 
+// --- Color history feature ---
+import 'features/color_history/data/datasources/color_history_local_datasource.dart';
+import 'features/color_history/data/repositories/color_history_repository_impl.dart';
+import 'features/color_history/domain/repositories/color_history_repository.dart';
+import 'features/color_history/domain/usecases/get_recent_colors.dart';
+import 'features/color_history/domain/usecases/add_recent_color.dart';
+
 // --- Service locator singleton ---
 class ServiceLocator {
   ServiceLocator._internal();
@@ -206,6 +213,16 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       WatchCoupleSettings(coupleSettingsRepository);
   late final SaveCoupleSettings saveCoupleSettings =
       SaveCoupleSettings(coupleSettingsRepository);
+
+  // --- Color history: couleurs libres récentes, propres au téléphone ---
+  late final ColorHistoryRepository colorHistoryRepository =
+      const ColorHistoryRepositoryImpl(
+    localDataSource: ColorHistoryLocalDataSource(),
+  );
+  late final GetRecentColors getRecentColors =
+      GetRecentColors(colorHistoryRepository);
+  late final AddRecentColor addRecentColor =
+      AddRecentColor(colorHistoryRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();
