@@ -29,8 +29,9 @@ class ImportantDateSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatter = DateFormat('d MMMM yyyy', 'fr_FR');
-    final dayLabel = date.repeatsYearly
-        ? '${formatter.format(occurrence)} · chaque année'
+    final dayLabel = date.repeats
+        ? '${formatter.format(occurrence)} · '
+            '${recurrenceLabel(date.recurrence).toLowerCase()}'
         : formatter.format(occurrence);
 
     return SafeArea(

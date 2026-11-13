@@ -39,6 +39,7 @@ void main() {
       updateImportantDate: UpdateImportantDate(mockRepository),
       dateToEdit: dateToEdit,
       initialDate: initialDate,
+      now: DateTime(2026, 11, 13, 12, 56),
     );
     addTearDown(viewModel.dispose);
     return viewModel;
@@ -49,7 +50,7 @@ void main() {
     title: 'Anniversaire de Lulu',
     date: DateTime(2026, 12, 28),
     emoji: '🎂',
-    repeatsYearly: true,
+    recurrence: ImportantDateRecurrence.monthly,
     backgroundColor: 0xFFE6D9FF,
     borderColor: 0xFF7B4FD6,
   );
@@ -63,8 +64,10 @@ void main() {
       expect(viewModel.isEditing, isFalse);
       expect(viewModel.titleController.text, isEmpty);
       expect(viewModel.selectedDate, DateTime(2026, 12, 28));
+      expect(viewModel.today, DateTime(2026, 11, 13));
       expect(viewModel.selectedEmoji, ImportantDatePalette.emojis.first);
-      expect(viewModel.repeatsYearly, isFalse);
+      expect(viewModel.recurrence, ImportantDateRecurrence.none);
+      expect(viewModel.repeats, isFalse);
       expect(
         viewModel.backgroundColor,
         ImportantDateEntity.defaultBackgroundColor,
@@ -79,7 +82,8 @@ void main() {
       expect(viewModel.titleController.text, 'Anniversaire de Lulu');
       expect(viewModel.selectedDate, DateTime(2026, 12, 28));
       expect(viewModel.selectedEmoji, '🎂');
-      expect(viewModel.repeatsYearly, isTrue);
+      expect(viewModel.recurrence, ImportantDateRecurrence.monthly);
+      expect(viewModel.repeats, isTrue);
       expect(viewModel.backgroundColor, 0xFFE6D9FF);
       expect(viewModel.borderColor, 0xFF7B4FD6);
     });
@@ -100,15 +104,75 @@ void main() {
       viewModel.addListener(() => notifications++);
 
       viewModel.setEmoji('🎄');
-      viewModel.setRepeatsYearly(true);
+      viewModel.setRepeats(true);
       viewModel.setBackgroundColor(0xFFD9F2E0);
       viewModel.setBorderColor(0xFF2E8B57);
 
       expect(viewModel.selectedEmoji, '🎄');
-      expect(viewModel.repeatsYearly, isTrue);
+      expect(viewModel.repeats, isTrue);
       expect(viewModel.backgroundColor, 0xFFD9F2E0);
       expect(viewModel.borderColor, 0xFF2E8B57);
       expect(notifications, 4);
+    });
+  });
+
+  group('répétition', () {
+    test('doit partir sur tous les ans quand on l\'active', () {
+      final viewModel = buildViewModel();
+
+      viewModel.setRepeats(true);
+
+      expect(viewModel.recurrence, ImportantDateRecurrence.yearly);
+      expect(viewModel.repeats, isTrue);
+    });
+
+    test('doit laisser choisir une autre fréquence', () {
+      final viewModel = buildViewModel();
+      viewModel.setRepeats(true);
+
+      viewModel.setRecurrence(ImportantDateRecurrence.monthly);
+
+      expect(viewModel.recurrence, ImportantDateRecurrence.monthly);
+    });
+
+    test('doit revenir à une date ponctuelle quand on la coupe', () {
+      final viewModel = buildViewModel();
+      viewModel.setRecurrence(ImportantDateRecurrence.weekly);
+
+      viewModel.setRepeats(false);
+
+      expect(viewModel.recurrence, ImportantDateRecurrence.none);
+      expect(viewModel.repeats, isFalse);
+    });
+
+    test('doit proposer tous les ans comme première fréquence', () {
+      expect(
+        ImportantDatePalette.recurrences.first,
+        ImportantDateRecurrence.yearly,
+      );
+    });
+  });
+
+  group('draft', () {
+    test('doit refléter le formulaire, titre nettoyé de ses espaces', () {
+      final viewModel = buildViewModel(initialDate: DateTime(2026, 12, 28));
+      viewModel.titleController.text = '  Départ à Lisbonne ';
+      viewModel.setEmoji('✈️');
+
+      final draft = viewModel.draft;
+
+      expect(draft.id, isEmpty);
+      expect(draft.title, 'Départ à Lisbonne');
+      expect(draft.date, DateTime(2026, 12, 28));
+      expect(draft.emoji, '✈️');
+      expect(draft.nextOccurrence(viewModel.today), DateTime(2026, 12, 28));
+    });
+
+    test('doit proposer par défaut des couleurs présentes dans la palette', () {
+      final draft = buildViewModel().draft;
+
+      expect(ImportantDatePalette.backgroundColors, contains(draft.backgroundColor));
+      expect(ImportantDatePalette.borderColors, contains(draft.borderColor));
     });
   });
 
@@ -131,7 +195,7 @@ void main() {
       final viewModel = buildViewModel(initialDate: DateTime(2026, 12, 28));
       viewModel.titleController.text = '  Départ à Lisbonne  ';
       viewModel.setEmoji('✈️');
-      viewModel.setRepeatsYearly(true);
+      viewModel.setRecurrence(ImportantDateRecurrence.weekly);
       viewModel.setBackgroundColor(0xFFD9EAFF);
       viewModel.setBorderColor(0xFF2F6FDE);
 
@@ -146,7 +210,7 @@ void main() {
       expect(captured.title, 'Départ à Lisbonne');
       expect(captured.date, DateTime(2026, 12, 28));
       expect(captured.emoji, '✈️');
-      expect(captured.repeatsYearly, isTrue);
+      expect(captured.recurrence, ImportantDateRecurrence.weekly);
       expect(captured.backgroundColor, 0xFFD9EAFF);
       expect(captured.borderColor, 0xFF2F6FDE);
     });

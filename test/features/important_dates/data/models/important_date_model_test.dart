@@ -18,7 +18,7 @@ void main() {
     title: 'Départ à Lisbonne',
     date: tDay,
     emoji: '✈️',
-    repeatsYearly: true,
+    recurrence: ImportantDateRecurrence.yearly,
     backgroundColor: 0xFFD9EAFF,
     borderColor: 0xFF2F6FDE,
   );
@@ -31,7 +31,7 @@ void main() {
       expect(model.title, tEntity.title);
       expect(model.date, tEntity.date);
       expect(model.emoji, tEntity.emoji);
-      expect(model.repeatsYearly, tEntity.repeatsYearly);
+      expect(model.recurrence, tEntity.recurrence);
       expect(model.backgroundColor, tEntity.backgroundColor);
       expect(model.borderColor, tEntity.borderColor);
     });
@@ -46,7 +46,8 @@ void main() {
       expect(map['title'], 'Départ à Lisbonne');
       expect(map['date'], Timestamp.fromDate(tDay));
       expect(map['emoji'], '✈️');
-      expect(map['repeatsYearly'], isTrue);
+      expect(map['recurrence'], 'yearly');
+      expect(map.containsKey('repeatsYearly'), isFalse);
       expect(map['backgroundColor'], 0xFFD9EAFF);
       expect(map['borderColor'], 0xFF2F6FDE);
       expect(map.containsKey('id'), isFalse);
@@ -66,7 +67,7 @@ void main() {
         'title': 'Noël',
         'date': Timestamp.fromDate(tDay),
         'emoji': '🎄',
-        'repeatsYearly': true,
+        'recurrence': 'monthly',
         'backgroundColor': 0xFFD9F2E0,
         'borderColor': 0xFF2E8B57,
       });
@@ -79,7 +80,7 @@ void main() {
       expect(model.title, 'Noël');
       expect(model.date, tDay);
       expect(model.emoji, '🎄');
-      expect(model.repeatsYearly, isTrue);
+      expect(model.recurrence, ImportantDateRecurrence.monthly);
       expect(model.backgroundColor, 0xFFD9F2E0);
       expect(model.borderColor, 0xFF2E8B57);
     });
@@ -97,12 +98,39 @@ void main() {
 
       expect(model.title, '');
       expect(model.emoji, '');
-      expect(model.repeatsYearly, isFalse);
+      expect(model.recurrence, ImportantDateRecurrence.none);
       expect(
         model.backgroundColor,
         ImportantDateEntity.defaultBackgroundColor,
       );
       expect(model.borderColor, ImportantDateEntity.defaultBorderColor);
+    });
+
+    test('doit ignorer une fréquence inconnue', () async {
+      await firestore.collection('important_dates').doc('date_44').set({
+        'date': Timestamp.fromDate(tDay),
+        'recurrence': 'daily',
+      });
+
+      final snapshot =
+          await firestore.collection('important_dates').doc('date_44').get();
+      final model = ImportantDateModel.fromFirestore(snapshot);
+
+      expect(model.recurrence, ImportantDateRecurrence.none);
+    });
+
+    test('doit lire l\'ancien champ repeatsYearly comme une répétition annuelle',
+        () async {
+      await firestore.collection('important_dates').doc('date_45').set({
+        'date': Timestamp.fromDate(tDay),
+        'repeatsYearly': true,
+      });
+
+      final snapshot =
+          await firestore.collection('important_dates').doc('date_45').get();
+      final model = ImportantDateModel.fromFirestore(snapshot);
+
+      expect(model.recurrence, ImportantDateRecurrence.yearly);
     });
   });
 }

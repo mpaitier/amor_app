@@ -1,8 +1,9 @@
 // ============================================================================
 // ADD / EDIT IMPORTANT DATE SCREEN
 // ============================================================================
-// Formulaire d'une date importante : titre, jour, répétition, emoji et
-// couleurs de la case, avec un aperçu.
+// Formulaire d'une date importante. De haut en bas : l'aperçu, le titre,
+// l'emoji et le jour, la répétition, la bordure, le fond, puis les boutons
+// annuler et valider fixés en bas.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,11 +11,11 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../domain/entities/important_date_entity.dart';
-import '../components/important_date_color_picker.dart';
-import '../components/important_date_date_card.dart';
-import '../components/important_date_emoji_picker.dart';
-import '../components/important_date_form_section.dart';
+import '../components/important_date_color_row.dart';
+import '../components/important_date_emoji_date_row.dart';
+import '../components/important_date_form_actions.dart';
 import '../components/important_date_preview.dart';
+import '../components/important_date_recurrence_field.dart';
 import '../components/important_date_title_field.dart';
 import '../models/important_date_palette.dart';
 import '../viewmodels/add_edit_important_date_viewmodel.dart';
@@ -48,10 +49,14 @@ class _AddImportantDateView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       appBar: _buildAppBar(context, viewModel),
       body: _buildForm(viewModel),
+      bottomNavigationBar: ImportantDateFormActions(
+        isSaving: viewModel.isSaving,
+        onCancel: () => context.pop(),
+        onSubmit: () => _handleSave(context, viewModel),
+      ),
     );
   }
 
-  // --- App bar avec l'action d'enregistrement ---
   PreferredSizeWidget _buildAppBar(
     BuildContext context,
     AddEditImportantDateViewModel viewModel,
@@ -70,57 +75,34 @@ class _AddImportantDateView extends StatelessWidget {
         onPressed: () => context.pop(),
         icon: const Icon(Icons.arrow_back),
       ),
-      actions: [
-        TextButton(
-          onPressed:
-              viewModel.isSaving ? null : () => _handleSave(context, viewModel),
-          child: Text(
-            'Enregistrer',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: viewModel.isSaving ? Colors.grey : amorDarkRose,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
   // --- Formulaire défilant ---
   Widget _buildForm(AddEditImportantDateViewModel viewModel) {
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
+        const ImportantDatePreview(),
+        const SizedBox(height: 16),
         const ImportantDateTitleField(),
         const SizedBox(height: 12),
-        const ImportantDateDateCard(),
+        const ImportantDateEmojiDateRow(),
         const SizedBox(height: 12),
-        const ImportantDateFormSection(
-          label: 'Emoji',
-          child: ImportantDateEmojiPicker(),
+        const ImportantDateRecurrenceField(),
+        const SizedBox(height: 16),
+        ImportantDateColorRow(
+          label: 'Bordure',
+          colors: ImportantDatePalette.borderColors,
+          selectedColor: viewModel.borderColor,
+          onColorSelected: viewModel.setBorderColor,
         ),
         const SizedBox(height: 12),
-        ImportantDateFormSection(
-          label: 'Fond de la case',
-          child: ImportantDateColorPicker(
-            colors: ImportantDatePalette.backgroundColors,
-            selectedColor: viewModel.backgroundColor,
-            onColorSelected: viewModel.setBackgroundColor,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ImportantDateFormSection(
-          label: 'Bordure de la case',
-          child: ImportantDateColorPicker(
-            colors: ImportantDatePalette.borderColors,
-            selectedColor: viewModel.borderColor,
-            onColorSelected: viewModel.setBorderColor,
-          ),
-        ),
-        const SizedBox(height: 12),
-        const ImportantDateFormSection(
-          label: 'Aperçu dans le calendrier',
-          child: Center(child: ImportantDatePreview()),
+        ImportantDateColorRow(
+          label: 'Fond',
+          colors: ImportantDatePalette.backgroundColors,
+          selectedColor: viewModel.backgroundColor,
+          onColorSelected: viewModel.setBackgroundColor,
         ),
       ],
     );

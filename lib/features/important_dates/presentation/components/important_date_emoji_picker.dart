@@ -1,42 +1,53 @@
 // ============================================================================
 // IMPORTANT DATE EMOJI PICKER
 // ============================================================================
-// Grille des emojis proposés. Celui qui est retenu est entouré.
+// Grille des emojis proposés, dépliée sous la case d'emoji. Celui qui est
+// retenu est entouré. Composant "bête" : ne connaît pas le ViewModel.
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../models/important_date_palette.dart';
-import '../viewmodels/add_edit_important_date_viewmodel.dart';
 
 class ImportantDateEmojiPicker extends StatelessWidget {
-  const ImportantDateEmojiPicker({super.key});
+  final String selectedEmoji;
+  final ValueChanged<String> onEmojiSelected;
+
+  const ImportantDateEmojiPicker({
+    super.key,
+    required this.selectedEmoji,
+    required this.onEmojiSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<AddEditImportantDateViewModel>();
-
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: [
-        for (final emoji in ImportantDatePalette.emojis)
-          _buildChoice(
-            emoji: emoji,
-            isSelected: emoji == viewModel.selectedEmoji,
-            onTap: () => viewModel.setEmoji(emoji),
+    return Material(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: outlineLight),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              for (final emoji in ImportantDatePalette.emojis)
+                _buildChoice(emoji),
+            ],
           ),
-      ],
+        ),
+      ),
     );
   }
 
-  Widget _buildChoice({
-    required String emoji,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildChoice(String emoji) {
+    final isSelected = emoji == selectedEmoji;
+
     return InkWell(
-      onTap: onTap,
+      onTap: () => onEmojiSelected(emoji),
       customBorder: const CircleBorder(),
       child: Container(
         width: 44,
@@ -44,7 +55,6 @@ class ImportantDateEmojiPicker extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: isSelected ? Colors.white : Colors.transparent,
           border: Border.all(
             color: isSelected ? amorDarkRose : Colors.transparent,
             width: 2,

@@ -2,7 +2,7 @@
 // IMPORTANT DATE TILE
 // ============================================================================
 // Carré d'une date importante : son emoji sur le fond et la bordure choisis.
-// Utilisé par la case du calendrier et par l'aperçu du formulaire.
+// Utilisé par la case du calendrier.
 
 import 'package:flutter/material.dart';
 

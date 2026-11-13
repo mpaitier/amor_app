@@ -27,7 +27,7 @@ void main() {
         title: 'Noël',
         date: DateTime(2026, 12, 25),
         emoji: '🎄',
-        repeatsYearly: true,
+        recurrence: ImportantDateRecurrence.yearly,
       ),
     ];
     when(() => mockRepository.watchImportantDates())

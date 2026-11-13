@@ -20,7 +20,7 @@ void main() {
     title: 'Départ à Lisbonne',
     date: DateTime(2026, 12, 28),
     emoji: '✈️',
-    repeatsYearly: false,
+    recurrence: ImportantDateRecurrence.none,
   );
 
   setUp(() {

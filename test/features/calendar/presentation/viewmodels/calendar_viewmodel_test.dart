@@ -48,14 +48,14 @@ void main() {
   ImportantDateEntity buildDate(
     String id,
     DateTime date, {
-    bool repeatsYearly = false,
+    ImportantDateRecurrence recurrence = ImportantDateRecurrence.none,
   }) {
     return ImportantDateEntity(
       id: id,
       title: 'Date $id',
       date: date,
       emoji: '🎂',
-      repeatsYearly: repeatsYearly,
+      recurrence: recurrence,
     );
   }
 
@@ -159,7 +159,7 @@ void main() {
     test('doit s\'étendre jusqu\'à la prochaine occurrence d\'une date répétée',
         () async {
       datesController.add([
-        buildDate('1', DateTime(2023, 12, 12), repeatsYearly: true),
+        buildDate('1', DateTime(2023, 12, 12), recurrence: ImportantDateRecurrence.yearly),
       ]);
       await flushStreams();
 
@@ -169,11 +169,28 @@ void main() {
     test('doit viser l\'année suivante si l\'occurrence de l\'année est passée',
         () async {
       datesController.add([
-        buildDate('1', DateTime(2024, 3, 3), repeatsYearly: true),
+        buildDate('1', DateTime(2024, 3, 3), recurrence: ImportantDateRecurrence.yearly),
       ]);
       await flushStreams();
 
       expect(viewModel.lastMonth, const CalendarMonth(2027, 3));
+    });
+
+    test('doit s\'étendre jusqu\'à la prochaine occurrence hebdomadaire',
+        () async {
+      // --- Tous les mardis depuis le 3 novembre. Le jour simulé est le
+      // --- jeudi 12 : le prochain mardi est le 17, encore en novembre ---
+      datesController.add([
+        buildDate(
+          '1',
+          DateTime(2026, 11, 3),
+          recurrence: ImportantDateRecurrence.weekly,
+        ),
+      ]);
+      await flushStreams();
+
+      expect(viewModel.lastMonth, const CalendarMonth(2026, 11));
+      expect(viewModel.importantDatesOn(DateTime(2026, 11, 17)), hasLength(1));
     });
 
     test('doit revenir au mois en cours quand la date disparaît', () async {
@@ -278,7 +295,7 @@ void main() {
 
     test('doit exposer une date répétée chaque année depuis la première',
         () async {
-      final date = buildDate('1', DateTime(2023, 12, 12), repeatsYearly: true);
+      final date = buildDate('1', DateTime(2023, 12, 12), recurrence: ImportantDateRecurrence.yearly);
 
       datesController.add([date]);
       await flushStreams();

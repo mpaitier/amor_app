@@ -36,7 +36,7 @@ void main() {
     title: 'Anniversaire de Lulu',
     date: DateTime(2026, 12, 28),
     emoji: '🎂',
-    repeatsYearly: true,
+    recurrence: ImportantDateRecurrence.yearly,
   );
 
   test('watchImportantDates doit relayer le flux de modèles en tant qu\'entités',
@@ -49,7 +49,7 @@ void main() {
 
     expect(result, hasLength(1));
     expect(result.first.title, 'Anniversaire de Lulu');
-    expect(result.first.repeatsYearly, isTrue);
+    expect(result.first.recurrence, ImportantDateRecurrence.yearly);
   });
 
   test('addImportantDate doit convertir l\'entité en modèle avant l\'envoi',
@@ -79,7 +79,7 @@ void main() {
       () => mockDataSource.updateImportantDate(captureAny()),
     ).captured.single as ImportantDateModel;
     expect(captured.id, tEntity.id);
-    expect(captured.repeatsYearly, tEntity.repeatsYearly);
+    expect(captured.recurrence, tEntity.recurrence);
   });
 
   test(

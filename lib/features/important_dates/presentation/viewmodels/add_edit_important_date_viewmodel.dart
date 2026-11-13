@@ -16,13 +16,16 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
 
   final ImportantDateEntity? dateToEdit;
 
+  // --- Aujourd'hui, sans heure : sert au compte à rebours de l'aperçu ---
+  final DateTime today;
+
   // --- Contrôleur de texte, détenu et libéré par le ViewModel ---
   final TextEditingController titleController;
 
   // --- Form state ---
   DateTime selectedDate;
   String selectedEmoji;
-  bool repeatsYearly;
+  ImportantDateRecurrence recurrence;
   int backgroundColor;
   int borderColor;
 
@@ -30,19 +33,20 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
   bool isSaving = false;
   String? errorMessage;
 
-  bool get isEditing => dateToEdit != null;
-
   AddEditImportantDateViewModel({
     required AddImportantDate addImportantDate,
     required UpdateImportantDate updateImportantDate,
     this.dateToEdit,
     DateTime? initialDate,
+    DateTime? now,
   })  : _addImportantDate = addImportantDate,
         _updateImportantDate = updateImportantDate,
+        today = _dayOf(now ?? DateTime.now()),
         titleController = TextEditingController(text: dateToEdit?.title ?? ''),
-        selectedDate = _dayOf(dateToEdit?.date ?? initialDate ?? DateTime.now()),
+        selectedDate =
+            _dayOf(dateToEdit?.date ?? initialDate ?? now ?? DateTime.now()),
         selectedEmoji = dateToEdit?.emoji ?? ImportantDatePalette.emojis.first,
-        repeatsYearly = dateToEdit?.repeatsYearly ?? false,
+        recurrence = dateToEdit?.recurrence ?? ImportantDateRecurrence.none,
         backgroundColor = dateToEdit?.backgroundColor ??
             ImportantDateEntity.defaultBackgroundColor,
         borderColor =
@@ -51,6 +55,24 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
   // --- Ne garde que le jour : une date importante n'a pas d'heure ---
   static DateTime _dayOf(DateTime date) {
     return DateTime(date.year, date.month, date.day);
+  }
+
+  // --- Getters ---
+  bool get isEditing => dateToEdit != null;
+  bool get repeats => recurrence != ImportantDateRecurrence.none;
+
+  // --- La date telle que le formulaire la décrit en ce moment. Sert à
+  // --- l'aperçu, puis à l'enregistrement ---
+  ImportantDateEntity get draft {
+    return ImportantDateEntity(
+      id: dateToEdit?.id ?? '',
+      title: titleController.text.trim(),
+      date: selectedDate,
+      emoji: selectedEmoji,
+      recurrence: recurrence,
+      backgroundColor: backgroundColor,
+      borderColor: borderColor,
+    );
   }
 
   // --- Field setters ---
@@ -64,8 +86,17 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setRepeatsYearly(bool value) {
-    repeatsYearly = value;
+  // --- Active ou coupe la répétition. Activée, elle part sur la première
+  // --- fréquence proposée : tous les ans ---
+  void setRepeats(bool value) {
+    recurrence = value
+        ? ImportantDatePalette.recurrences.first
+        : ImportantDateRecurrence.none;
+    notifyListeners();
+  }
+
+  void setRecurrence(ImportantDateRecurrence value) {
+    recurrence = value;
     notifyListeners();
   }
 
@@ -81,8 +112,8 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
 
   // --- Enregistre la date. Renvoie true si elle a bien été sauvegardée ---
   Future<bool> save() async {
-    final title = titleController.text.trim();
-    if (title.isEmpty) {
+    final date = draft;
+    if (date.title.isEmpty) {
       errorMessage = 'Donne un titre à cette date';
       notifyListeners();
       return false;
@@ -93,16 +124,6 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final date = ImportantDateEntity(
-        id: dateToEdit?.id ?? '',
-        title: title,
-        date: selectedDate,
-        emoji: selectedEmoji,
-        repeatsYearly: repeatsYearly,
-        backgroundColor: backgroundColor,
-        borderColor: borderColor,
-      );
-
       if (isEditing) {
         await _updateImportantDate(date);
       } else {

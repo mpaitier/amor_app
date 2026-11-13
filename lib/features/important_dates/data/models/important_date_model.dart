@@ -13,7 +13,7 @@ class ImportantDateModel extends ImportantDateEntity {
     required super.title,
     required super.date,
     required super.emoji,
-    required super.repeatsYearly,
+    required super.recurrence,
     super.backgroundColor,
     super.borderColor,
   });
@@ -26,7 +26,7 @@ class ImportantDateModel extends ImportantDateEntity {
       title: data['title'] ?? '',
       date: (data['date'] as Timestamp).toDate(),
       emoji: data['emoji'] ?? '',
-      repeatsYearly: data['repeatsYearly'] ?? false,
+      recurrence: _recurrenceFrom(data),
       backgroundColor: data['backgroundColor'] ??
           ImportantDateEntity.defaultBackgroundColor,
       borderColor:
@@ -41,21 +41,36 @@ class ImportantDateModel extends ImportantDateEntity {
       title: entity.title,
       date: entity.date,
       emoji: entity.emoji,
-      repeatsYearly: entity.repeatsYearly,
+      recurrence: entity.recurrence,
       backgroundColor: entity.backgroundColor,
       borderColor: entity.borderColor,
     );
   }
 
-  // --- Convertit en map compatible Firestore (l'id n'en fait pas partie) ---
+  // --- Convertit en map compatible Firestore (l'id n'en fait pas partie).
+  // --- La fréquence est enregistrée par son nom : "none", "yearly"... ---
   Map<String, dynamic> toFirestore() {
     return {
       'title': title,
       'date': Timestamp.fromDate(date),
       'emoji': emoji,
-      'repeatsYearly': repeatsYearly,
+      'recurrence': recurrence.name,
       'backgroundColor': backgroundColor,
       'borderColor': borderColor,
     };
+  }
+
+  // --- Lit la fréquence d'un document. Un nom inconnu ou absent vaut
+  // --- "aucune" ---
+  static ImportantDateRecurrence _recurrenceFrom(Map<String, dynamic> data) {
+    final name = data['recurrence'];
+    for (final recurrence in ImportantDateRecurrence.values) {
+      if (recurrence.name == name) return recurrence;
+    }
+
+    // --- Ancien format : un simple booléen "repeatsYearly" ---
+    return data['repeatsYearly'] == true
+        ? ImportantDateRecurrence.yearly
+        : ImportantDateRecurrence.none;
   }
 }
