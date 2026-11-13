@@ -10,6 +10,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
+import '../../../color_history/domain/entities/color_history_kind.dart';
+import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
 import '../../domain/entities/important_date_entity.dart';
 import '../components/important_date_color_row.dart';
 import '../components/important_date_emoji_date_row.dart';
@@ -27,12 +29,23 @@ class AddImportantDateScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AddEditImportantDateViewModel(
-        addImportantDate: sl.addImportantDate,
-        updateImportantDate: sl.updateImportantDate,
-        dateToEdit: dateToEdit,
-      ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AddEditImportantDateViewModel(
+            addImportantDate: sl.addImportantDate,
+            updateImportantDate: sl.updateImportantDate,
+            dateToEdit: dateToEdit,
+          ),
+        ),
+        // --- Couleurs libres récentes, lues par les rangées de couleurs ---
+        ChangeNotifierProvider(
+          create: (_) => RecentColorsViewModel(
+            getRecentColors: sl.getRecentColors,
+            addRecentColor: sl.addRecentColor,
+          ),
+        ),
+      ],
       child: const _AddImportantDateView(),
     );
   }
@@ -94,6 +107,7 @@ class _AddImportantDateView extends StatelessWidget {
         ImportantDateColorRow(
           label: 'Bordure',
           colors: ImportantDatePalette.borderColors,
+          historyKind: ColorHistoryKind.border,
           selectedColor: viewModel.borderColor,
           onColorSelected: viewModel.setBorderColor,
         ),
@@ -101,6 +115,7 @@ class _AddImportantDateView extends StatelessWidget {
         ImportantDateColorRow(
           label: 'Fond',
           colors: ImportantDatePalette.backgroundColors,
+          historyKind: ColorHistoryKind.background,
           selectedColor: viewModel.backgroundColor,
           onColorSelected: viewModel.setBackgroundColor,
         ),

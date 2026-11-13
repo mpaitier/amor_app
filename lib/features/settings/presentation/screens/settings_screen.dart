@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
 import '../../../important_dates/presentation/utils/important_date_labels.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../domain/utils/anniversary_titles.dart';
@@ -24,11 +25,22 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => SettingsViewModel(
-        watchCoupleSettings: sl.watchCoupleSettings,
-        saveCoupleSettings: sl.saveCoupleSettings,
-      ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => SettingsViewModel(
+            watchCoupleSettings: sl.watchCoupleSettings,
+            saveCoupleSettings: sl.saveCoupleSettings,
+          ),
+        ),
+        // --- Couleurs libres récentes, lues par les rangées de couleurs ---
+        ChangeNotifierProvider(
+          create: (_) => RecentColorsViewModel(
+            getRecentColors: sl.getRecentColors,
+            addRecentColor: sl.addRecentColor,
+          ),
+        ),
+      ],
       child: const _SettingsView(),
     );
   }

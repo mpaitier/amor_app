@@ -3,10 +3,12 @@
 // ============================================================================
 // Réglage de l'apparence d'un jour spécial : emoji (grille dépliable),
 // bordure et fond. Reprend les composants du formulaire des dates
-// importantes. Composant "bête" : reçoit le style et un callback.
+// importantes. Reçoit le style et un callback ; les rangées de couleurs
+// lisent l'historique fourni par l'écran.
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../color_history/domain/entities/color_history_kind.dart';
 import '../../../important_dates/presentation/components/important_date_color_row.dart';
 import '../../../important_dates/presentation/components/important_date_emoji_button.dart';
 import '../../../important_dates/presentation/components/important_date_emoji_picker.dart';
@@ -79,6 +81,7 @@ class _SpecialDayStyleEditorState extends State<SpecialDayStyleEditor> {
         ImportantDateColorRow(
           label: 'Bordure',
           colors: ImportantDatePalette.borderColors,
+          historyKind: ColorHistoryKind.border,
           selectedColor: style.borderColor,
           onColorSelected: (color) {
             widget.onChanged(style.copyWith(borderColor: color));
@@ -88,6 +91,7 @@ class _SpecialDayStyleEditorState extends State<SpecialDayStyleEditor> {
         ImportantDateColorRow(
           label: 'Fond',
           colors: ImportantDatePalette.backgroundColors,
+          historyKind: ColorHistoryKind.background,
           selectedColor: style.backgroundColor,
           onColorSelected: (color) {
             widget.onChanged(style.copyWith(backgroundColor: color));

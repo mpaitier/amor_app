@@ -14,7 +14,10 @@ import 'recent_colors_row.dart';
 import 'saturation_value_panel.dart';
 
 class ColorPickerDialog extends StatelessWidget {
-  const ColorPickerDialog({super.key});
+  // --- Couleurs libres déjà utilisées pour cet usage ---
+  final List<int> recentColors;
+
+  const ColorPickerDialog({super.key, required this.recentColors});
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +46,10 @@ class ColorPickerDialog extends StatelessWidget {
               HueSlider(hue: color.hue, onChanged: viewModel.setHue),
               const SizedBox(height: 16),
               _buildPreview(viewModel),
-              if (viewModel.recentColors.isNotEmpty) ...[
+              if (recentColors.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 RecentColorsRow(
-                  colors: viewModel.recentColors,
+                  colors: recentColors,
                   onColorSelected: viewModel.selectRecentColor,
                 ),
               ],
@@ -60,7 +63,7 @@ class ColorPickerDialog extends StatelessWidget {
           child: const Text('Annuler'),
         ),
         TextButton(
-          onPressed: () => _confirm(context, viewModel),
+          onPressed: () => Navigator.of(context).pop(viewModel.colorValue),
           child: const Text(
             'Choisir',
             style: TextStyle(color: amorDarkRose, fontWeight: FontWeight.bold),
@@ -93,13 +96,5 @@ class ColorPickerDialog extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _confirm(
-    BuildContext context,
-    ColorPickerViewModel viewModel,
-  ) async {
-    final color = await viewModel.confirm();
-    if (context.mounted) Navigator.of(context).pop(color);
   }
 }
