@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../utils/clock_labels.dart';
+import '../utils/clock_picker.dart';
 
 class NotificationTimeTile extends StatelessWidget {
   final String label;
@@ -68,15 +69,7 @@ class NotificationTimeTile extends StatelessWidget {
   }
 
   Future<void> _pickTime(BuildContext context) async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60),
-      // --- Format 24 h, quelle que soit la langue du téléphone ---
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    if (picked != null) onChanged?.call(picked.hour * 60 + picked.minute);
+    final picked = await pickClockTime(context, minutes);
+    if (picked != null) onChanged?.call(picked);
   }
 }

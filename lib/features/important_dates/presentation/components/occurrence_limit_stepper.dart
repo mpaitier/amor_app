@@ -2,8 +2,10 @@
 // OCCURRENCE LIMIT STEPPER
 // ============================================================================
 // Compteur "− 5 ans +" pour la durée d'une répétition. Le nombre au milieu
-// est un champ : un tap ouvre le clavier numérique pour le taper. Composant
-// "bête" : reçoit la valeur, ses bornes, son unité et un callback.
+// est un champ : un tap ouvre le clavier numérique pour le taper. En mode
+// compact, l'unité passe après les boutons ("− 1 + jour avant"), pour tenir
+// sur une ligne avec d'autres réglages. Composant "bête" : reçoit la valeur,
+// ses bornes, son unité et un callback.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +20,9 @@ class OccurrenceLimitStepper extends StatefulWidget {
   final String unit;
   final ValueChanged<int> onChanged;
 
+  // --- Champ plus étroit, boutons resserrés, unité après le bouton + ---
+  final bool compact;
+
   const OccurrenceLimitStepper({
     super.key,
     required this.value,
@@ -25,6 +30,7 @@ class OccurrenceLimitStepper extends StatefulWidget {
     required this.max,
     required this.unit,
     required this.onChanged,
+    this.compact = false,
   });
 
   @override
@@ -90,63 +96,82 @@ class _OccurrenceLimitStepperState extends State<OccurrenceLimitStepper> {
 
   @override
   Widget build(BuildContext context) {
+    final minus = IconButton(
+      onPressed: widget.value > widget.min ? () => _step(-1) : null,
+      tooltip: 'Moins',
+      visualDensity: widget.compact ? VisualDensity.compact : null,
+      icon: const Icon(Icons.remove_circle_outline),
+      color: amorDarkRose,
+    );
+    final plus = IconButton(
+      onPressed: widget.value < widget.max ? () => _step(1) : null,
+      tooltip: 'Plus',
+      visualDensity: widget.compact ? VisualDensity.compact : null,
+      icon: const Icon(Icons.add_circle_outline),
+      color: amorDarkRose,
+    );
+    final unit = Text(
+      widget.unit,
+      style: const TextStyle(color: onBackgroundLight, fontSize: 16),
+    );
+
+    if (widget.compact) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          minus,
+          SizedBox(width: 40, child: _buildField()),
+          plus,
+          const SizedBox(width: 2),
+          unit,
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        IconButton(
-          onPressed: widget.value > widget.min ? () => _step(-1) : null,
-          tooltip: 'Moins',
-          icon: const Icon(Icons.remove_circle_outline),
-          color: amorDarkRose,
-        ),
-        SizedBox(
-          width: 64,
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.done,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter('${widget.max}'.length),
-            ],
-            onChanged: _onTyped,
-            onSubmitted: (_) => _commit(),
-            style: const TextStyle(
-              color: onBackgroundLight,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 8),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: outlineVariantLight),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: amorDarkRose, width: 2),
-              ),
-            ),
-          ),
-        ),
+        minus,
+        SizedBox(width: 64, child: _buildField()),
         const SizedBox(width: 6),
-        // --- Largeur minimale plutôt que fixe : "jours avant" tient sur
-        // --- une ligne ---
+        // --- Largeur minimale plutôt que fixe : l'unité tient sur une ligne ---
         ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 76),
-          child: Text(
-            widget.unit,
-            style: const TextStyle(color: onBackgroundLight, fontSize: 16),
-          ),
+          child: unit,
         ),
-        IconButton(
-          onPressed: widget.value < widget.max ? () => _step(1) : null,
-          tooltip: 'Plus',
-          icon: const Icon(Icons.add_circle_outline),
-          color: amorDarkRose,
-        ),
+        plus,
       ],
+    );
+  }
+
+  Widget _buildField() {
+    return TextField(
+      controller: _controller,
+      focusNode: _focusNode,
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.done,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter('${widget.max}'.length),
+      ],
+      onChanged: _onTyped,
+      onSubmitted: (_) => _commit(),
+      style: const TextStyle(
+        color: onBackgroundLight,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+      decoration: const InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 8),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: outlineVariantLight),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: amorDarkRose, width: 2),
+        ),
+      ),
     );
   }
 }

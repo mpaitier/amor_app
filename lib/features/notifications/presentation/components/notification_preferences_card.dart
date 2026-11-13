@@ -8,8 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../important_dates/presentation/components/occurrence_limit_stepper.dart';
 import '../viewmodels/notification_preferences_viewmodel.dart';
+import 'notification_reminder_row.dart';
 import 'notification_switch_tile.dart';
 import 'notification_time_tile.dart';
 
@@ -33,7 +33,6 @@ class NotificationPreferencesCard extends StatelessWidget {
     final enabled = preferences.enabled;
     final timingEnabled = preferences.notifiesSpecialDays;
     final reminderEnabled = timingEnabled && preferences.reminderEnabled;
-    final days = preferences.reminderDaysBefore;
 
     // --- Un réglage dépendant d'un interrupteur coupé n'est pas modifiable ---
     T? onlyIf<T>(bool condition, T value) => condition ? value : null;
@@ -90,27 +89,22 @@ class NotificationPreferencesCard extends StatelessWidget {
           onChanged: onlyIf(timingEnabled, viewModel.setReminderEnabled),
           indent: _indent,
         ),
-        if (preferences.reminderEnabled) ...[
+        // --- "− 1 + jour avant à 18:00", sur une seule ligne ---
+        if (preferences.reminderEnabled)
           IgnorePointer(
             ignoring: !reminderEnabled,
             child: Opacity(
               opacity: reminderEnabled ? 1 : 0.4,
-              child: OccurrenceLimitStepper(
-                value: days,
-                min: NotificationPreferencesViewModel.minReminderDays,
-                max: NotificationPreferencesViewModel.maxReminderDays,
-                unit: days > 1 ? 'jours avant' : 'jour avant',
-                onChanged: viewModel.setReminderDaysBefore,
+              child: NotificationReminderRow(
+                daysBefore: preferences.reminderDaysBefore,
+                minDays: NotificationPreferencesViewModel.minReminderDays,
+                maxDays: NotificationPreferencesViewModel.maxReminderDays,
+                time: preferences.reminderTime,
+                onDaysChanged: viewModel.setReminderDaysBefore,
+                onTimeChanged: viewModel.setReminderTime,
               ),
             ),
           ),
-          NotificationTimeTile(
-            label: 'Heure du rappel',
-            minutes: preferences.reminderTime,
-            onChanged: onlyIf(reminderEnabled, viewModel.setReminderTime),
-            indent: _indent * 2,
-          ),
-        ],
       ],
     );
   }
