@@ -25,6 +25,16 @@ class ImportantDateBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- Material transparent : sur un écran sans Scaffold (le journal),
+    // --- les textes prendraient sinon le style de secours de Flutter,
+    // --- souligné en jaune ---
+    return Material(
+      type: MaterialType.transparency,
+      child: _buildContent(),
+    );
+  }
+
+  Widget _buildContent() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
