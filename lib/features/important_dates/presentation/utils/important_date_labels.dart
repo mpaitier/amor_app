@@ -1,0 +1,85 @@
+// ============================================================================
+// IMPORTANT DATE LABELS
+// ============================================================================
+// Textes dérivés d'une date importante. Fonctions pures, sans Flutter.
+
+import '../../domain/entities/important_date_entity.dart';
+
+// --- Nombre de jours entre aujourd'hui et un jour donné. Calcul en UTC
+// --- pour qu'un changement d'heure ne fausse pas le compte ---
+int _daysBetween(DateTime today, DateTime day) {
+  return DateTime.utc(day.year, day.month, day.day)
+      .difference(DateTime.utc(today.year, today.month, today.day))
+      .inDays;
+}
+
+// --- "Dans 45 jours", "Demain", "Aujourd'hui", "Il y a 3 jours"... ---
+String formatCountdown(DateTime occurrence, DateTime today) {
+  final days = _daysBetween(today, occurrence);
+
+  if (days == 0) return 'Aujourd\'hui';
+  if (days == 1) return 'Demain';
+  if (days == -1) return 'Hier';
+  if (days > 0) return 'Dans $days jours';
+  return 'Il y a ${-days} jours';
+}
+
+// --- Version courte pour la bannière : "45 jours", "1 jour", "Jour J",
+// --- ou "Passée" quand la date ne reviendra plus ---
+String formatShortCountdown(DateTime? nextOccurrence, DateTime today) {
+  if (nextOccurrence == null) return 'Passée';
+
+  final days = _daysBetween(today, nextOccurrence);
+  if (days < 0) return 'Passée';
+  if (days == 0) return 'Jour J';
+  if (days == 1) return '1 jour';
+  return '$days jours';
+}
+
+// --- "Tous les ans", "Tous les mois"... ---
+String recurrenceLabel(ImportantDateRecurrence recurrence) {
+  switch (recurrence) {
+    case ImportantDateRecurrence.none:
+      return 'Une seule fois';
+    case ImportantDateRecurrence.weekly:
+      return 'Toutes les semaines';
+    case ImportantDateRecurrence.monthly:
+      return 'Tous les mois';
+    case ImportantDateRecurrence.yearly:
+      return 'Tous les ans';
+  }
+}
+
+// --- Unité d'une durée exprimée dans la fréquence : "an"/"ans", "mois",
+// --- "semaine"/"semaines" ---
+String occurrenceUnitLabel(ImportantDateRecurrence recurrence, int count) {
+  final plural = count > 1;
+  switch (recurrence) {
+    case ImportantDateRecurrence.none:
+      return 'fois';
+    case ImportantDateRecurrence.weekly:
+      return plural ? 'semaines' : 'semaine';
+    case ImportantDateRecurrence.monthly:
+      return 'mois';
+    case ImportantDateRecurrence.yearly:
+      return plural ? 'ans' : 'an';
+  }
+}
+
+// --- "5 ans", "1 semaine", "12 mois" ---
+String occurrenceCountLabel(ImportantDateRecurrence recurrence, int count) {
+  return '$count ${occurrenceUnitLabel(recurrence, count)}';
+}
+
+// --- Fréquence et limite : "Tous les ans", "Tous les mois, pendant
+// --- 5 mois"... ---
+String recurrenceSummary(
+  ImportantDateRecurrence recurrence,
+  int? occurrenceLimit,
+) {
+  final label = recurrenceLabel(recurrence);
+  if (recurrence == ImportantDateRecurrence.none || occurrenceLimit == null) {
+    return label;
+  }
+  return '$label, pendant ${occurrenceCountLabel(recurrence, occurrenceLimit)}';
+}

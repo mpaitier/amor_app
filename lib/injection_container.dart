@@ -56,6 +56,40 @@ import 'features/notifications/domain/repositories/notification_repository.dart'
 import 'features/notifications/data/datasources/local_notification_datasource.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
+import 'features/notifications/data/datasources/notification_preferences_remote_datasource.dart';
+import 'features/notifications/data/repositories/notification_preferences_repository_impl.dart';
+import 'features/notifications/domain/repositories/notification_preferences_repository.dart';
+import 'features/notifications/domain/usecases/watch_notification_preferences.dart';
+import 'features/notifications/domain/usecases/save_notification_preferences.dart';
+
+// --- Calendar feature ---
+import 'features/calendar/domain/usecases/group_events_by_day.dart';
+import 'features/calendar/domain/usecases/build_special_days.dart';
+
+// --- Important dates feature ---
+import 'features/important_dates/data/datasources/important_date_remote_datasource.dart';
+import 'features/important_dates/data/repositories/important_date_repository_impl.dart';
+import 'features/important_dates/domain/repositories/important_date_repository.dart';
+import 'features/important_dates/domain/usecases/watch_important_dates.dart';
+import 'features/important_dates/domain/usecases/add_important_date.dart';
+import 'features/important_dates/domain/usecases/update_important_date.dart';
+import 'features/important_dates/domain/usecases/delete_important_date.dart';
+
+// --- Settings feature ---
+import 'features/settings/data/datasources/couple_settings_remote_datasource.dart';
+import 'features/settings/data/repositories/couple_settings_repository_impl.dart';
+import 'features/settings/domain/repositories/couple_settings_repository.dart';
+import 'features/settings/domain/usecases/watch_couple_settings.dart';
+import 'features/settings/domain/usecases/save_couple_settings.dart';
+import 'features/settings/domain/usecases/get_gif_search_term.dart';
+
+// --- Color history feature ---
+import 'features/color_history/data/datasources/color_history_local_datasource.dart';
+import 'features/color_history/data/repositories/color_history_repository_impl.dart';
+import 'features/color_history/domain/repositories/color_history_repository.dart';
+import 'features/color_history/domain/usecases/get_recent_colors.dart';
+import 'features/color_history/domain/usecases/add_recent_color.dart';
+import 'features/color_history/domain/usecases/remove_recent_color.dart';
 
 // --- Service locator singleton ---
 class ServiceLocator {
@@ -154,6 +188,65 @@ late final InitializeNotifications initializeNotifications =
     InitializeNotifications(notificationRepository);
 
 late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
+
+  // --- Préférences de notifications de ce téléphone ---
+  late final NotificationPreferencesRepository
+      notificationPreferencesRepository =
+      NotificationPreferencesRepositoryImpl(
+    remoteDataSource:
+        NotificationPreferencesRemoteDataSource(firestore: _firestore),
+    deviceIdentityDataSource: deviceIdentityDataSource,
+  );
+  late final WatchNotificationPreferences watchNotificationPreferences =
+      WatchNotificationPreferences(notificationPreferencesRepository);
+  late final SaveNotificationPreferences saveNotificationPreferences =
+      SaveNotificationPreferences(notificationPreferencesRepository);
+
+  // --- Calendar: use case (les souvenirs viennent de la feature timeline) ---
+  late final GroupEventsByDay groupEventsByDay = const GroupEventsByDay();
+  late final BuildSpecialDays buildSpecialDays = const BuildSpecialDays();
+
+  // --- Important dates: data source, repository, use cases ---
+  late final ImportantDateRemoteDataSource importantDateRemoteDataSource =
+      ImportantDateRemoteDataSource(firestore: _firestore);
+  late final ImportantDateRepository importantDateRepository =
+      ImportantDateRepositoryImpl(
+    remoteDataSource: importantDateRemoteDataSource,
+  );
+  late final WatchImportantDates watchImportantDates =
+      WatchImportantDates(importantDateRepository);
+  late final AddImportantDate addImportantDate =
+      AddImportantDate(importantDateRepository);
+  late final UpdateImportantDate updateImportantDate =
+      UpdateImportantDate(importantDateRepository);
+  late final DeleteImportantDate deleteImportantDate =
+      DeleteImportantDate(importantDateRepository);
+
+  // --- Settings: data source, repository, use cases ---
+  late final CoupleSettingsRemoteDataSource coupleSettingsRemoteDataSource =
+      CoupleSettingsRemoteDataSource(firestore: _firestore);
+  late final CoupleSettingsRepository coupleSettingsRepository =
+      CoupleSettingsRepositoryImpl(
+    remoteDataSource: coupleSettingsRemoteDataSource,
+  );
+  late final WatchCoupleSettings watchCoupleSettings =
+      WatchCoupleSettings(coupleSettingsRepository);
+  late final SaveCoupleSettings saveCoupleSettings =
+      SaveCoupleSettings(coupleSettingsRepository);
+  late final GetGifSearchTerm getGifSearchTerm =
+      GetGifSearchTerm(coupleSettingsRepository);
+
+  // --- Color history: couleurs libres récentes, propres au téléphone ---
+  late final ColorHistoryRepository colorHistoryRepository =
+      const ColorHistoryRepositoryImpl(
+    localDataSource: ColorHistoryLocalDataSource(),
+  );
+  late final GetRecentColors getRecentColors =
+      GetRecentColors(colorHistoryRepository);
+  late final AddRecentColor addRecentColor =
+      AddRecentColor(colorHistoryRepository);
+  late final RemoveRecentColor removeRecentColor =
+      RemoveRecentColor(colorHistoryRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();

@@ -2,8 +2,6 @@
 // NAV DESTINATIONS
 // ============================================================================
 // Source unique de vérité pour les écrans accessibles via le menu flottant.
-// Pour ajouter un écran au menu (ex: le futur calendrier), il suffira
-// d'ajouter une entrée ici.
 
 import 'package:flutter/material.dart';
 import '../features/navigation/presentation/models/nav_destination.dart';
@@ -16,5 +14,18 @@ const List<NavDestination> navDestinations = [
     icon: Icons.favorite,
     routePath: AppRoutes.mainMenu,
   ),
-  // --- Le calendrier sera ajouté ici dans une prochaine étape ---
+  NavDestination(
+    id: 'calendar',
+    label: 'Calendrier',
+    icon: Icons.calendar_month,
+    routePath: AppRoutes.calendar,
+  ),
+  NavDestination(
+    id: 'settings',
+    label: 'Paramètres',
+    icon: Icons.settings,
+    routePath: AppRoutes.settings,
+    // --- Empilé : son bouton retour ramène à l'écran d'où l'on vient ---
+    opensOnTop: true,
+  ),
 ];

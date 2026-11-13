@@ -1,17 +1,17 @@
 // ============================================================================
 // TIMELINE DATE COLUMN
 // ============================================================================
-// Month / day / year badge shown next to each event in the list.
+// Month / day / year badge shown next to each event in the list, and next
+// to the upcoming anniversaries.
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/timeline_event_entity.dart';
 
 class TimelineDateColumn extends StatelessWidget {
-  final TimelineEventEntity event;
+  final DateTime date;
 
-  const TimelineDateColumn({super.key, required this.event});
+  const TimelineDateColumn({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class TimelineDateColumn extends StatelessWidget {
   }
 
   Widget _buildMonth() {
-    final month = DateFormat('MMM', 'fr_FR').format(event.date).toUpperCase();
+    final month = DateFormat('MMM', 'fr_FR').format(date).toUpperCase();
 
     return Container(
       decoration: const BoxDecoration(
@@ -64,7 +64,7 @@ class TimelineDateColumn extends StatelessWidget {
       color: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
       child: Text(
-        '${event.date.day}',
+        '${date.day}',
         textAlign: TextAlign.center,
         style: const TextStyle(
           fontSize: 24,
@@ -87,7 +87,7 @@ class TimelineDateColumn extends StatelessWidget {
       ),
       padding: const EdgeInsets.only(top: 2, bottom: 6, left: 6, right: 6),
       child: Text(
-        '${event.date.year}',
+        '${date.year}',
         textAlign: TextAlign.center,
         style: const TextStyle(
           fontSize: 13,

@@ -14,6 +14,8 @@ import '../../domain/usecases/take_photo.dart';
 import '../../domain/usecases/upload_images.dart';
 import '../models/image_item.dart';
 import '../../../notifications/domain/usecases/get_device_id.dart';
+import '../../../gif/domain/usecases/get_random_gif.dart';
+import '../../../settings/domain/usecases/get_gif_search_term.dart';
 
 class AddEditEventViewModel extends ChangeNotifier {
   final AddTimelineEvent _addTimelineEvent;
@@ -34,16 +36,23 @@ class AddEditEventViewModel extends ChangeNotifier {
   String currentPlace = '';
   List<ImageItem> imageItems = [];
 
+  // --- GIF du souvenir : repris à la modification, tiré au hasard sinon ---
+  String gifUrl = '';
+  bool isGifLoading = false;
+
   // --- Technical state ---
   bool isSaving = false;
   String? errorMessage;
   int _nextImageId = 1;
+  bool _isDisposed = false;
 
   bool get isEditing => eventToEdit != null;
   int get pendingUploadCount =>
       imageItems.where((i) => i.isPendingUpload).length;
 
   final GetDeviceId _getDeviceId;
+  final GetRandomGif _getRandomGif;
+  final GetGifSearchTerm _getGifSearchTerm;
 
   AddEditEventViewModel({
     required AddTimelineEvent addTimelineEvent,
@@ -52,14 +61,19 @@ class AddEditEventViewModel extends ChangeNotifier {
     required TakePhoto takePhoto,
     required UploadImages uploadImages,
     required GetDeviceId getDeviceId,
+    required GetRandomGif getRandomGif,
+    required GetGifSearchTerm getGifSearchTerm,
     this.eventToEdit,
   })  : _addTimelineEvent = addTimelineEvent,
         _updateTimelineEvent = updateTimelineEvent,
         _pickImagesFromGallery = pickImagesFromGallery,
         _takePhoto = takePhoto,
         _uploadImages = uploadImages,
-        _getDeviceId = getDeviceId {
+        _getDeviceId = getDeviceId,
+        _getRandomGif = getRandomGif,
+        _getGifSearchTerm = getGifSearchTerm {
     _initFromEvent();
+    if (gifUrl.isEmpty) loadRandomGif();
   }
 
   // --- Populate the form from an existing event, if any ---
@@ -70,6 +84,7 @@ class AddEditEventViewModel extends ChangeNotifier {
     selectedDate = eventToEdit?.date ?? DateTime.now();
     selectedWho = eventToEdit?.who ?? 'Lulu';
     currentPlace = eventToEdit?.place ?? '';
+    gifUrl = eventToEdit?.gifUrl ?? '';
 
     imageItems = [];
     final existingImageUrl = eventToEdit?.imageUrl ?? '';
@@ -95,6 +110,22 @@ class AddEditEventViewModel extends ChangeNotifier {
 
   void setPlace(String place) {
     currentPlace = place;
+    notifyListeners();
+  }
+
+  // --- Tire un nouveau GIF au hasard, avec le terme des paramètres ---
+  Future<void> loadRandomGif() async {
+    isGifLoading = true;
+    notifyListeners();
+
+    final searchTerm = await _getGifSearchTerm();
+    if (_isDisposed) return;
+    final url = await _getRandomGif(searchTerm);
+    if (_isDisposed) return;
+
+    // --- En cas d'échec, on garde le GIF précédent ---
+    if (url != null) gifUrl = url;
+    isGifLoading = false;
     notifyListeners();
   }
 
@@ -163,6 +194,7 @@ class AddEditEventViewModel extends ChangeNotifier {
         imageUrl: finalImageUrls,
         description: descriptionController.text.trim(),
         creatorDeviceId: deviceId,
+        gifUrl: gifUrl,
       );
 
       String savedId;
@@ -195,6 +227,7 @@ class AddEditEventViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     titleController.dispose();
     descriptionController.dispose();
     super.dispose();

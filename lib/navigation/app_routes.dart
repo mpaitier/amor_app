@@ -16,6 +16,15 @@ class AppRoutes {
   static const String addTimeline = '/add-timeline';
   static const String timelineDetail = '/timeline-detail/:id';
 
+  // --- Calendar route ---
+  static const String calendar = '/calendar';
+
+  // --- Important dates route ---
+  static const String addImportantDate = '/add-important-date';
+
+  // --- Settings route ---
+  static const String settings = '/settings';
+
   // --- Helper for the detail route with an id ---
   static String timelineDetailPath(String id) => '/timeline-detail/$id';
 }

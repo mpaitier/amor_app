@@ -12,6 +12,9 @@ import '../features/onboarding/presentation/screens/gift_screen.dart';
 import '../features/timeline/presentation/screens/timeline_screen.dart';
 import '../features/timeline/presentation/screens/event_detail_screen.dart';
 import '../features/timeline/presentation/screens/add_event_screen.dart';
+import '../features/calendar/presentation/screens/calendar_screen.dart';
+import '../features/important_dates/presentation/screens/add_important_date_screen.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
 import '../injection_container.dart';
 import 'app_routes.dart';
 
@@ -96,6 +99,35 @@ final GoRouter appRouter = GoRouter(
           },
         );
       },
+    ),
+
+    // --- Calendar route ---
+    GoRoute(
+      path: AppRoutes.calendar,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: CalendarScreen(),
+      ),
+    ),
+
+    // --- Add/edit important date route ---
+    GoRoute(
+      path: AppRoutes.addImportantDate,
+      pageBuilder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return NoTransitionPage(
+          child: AddImportantDateScreen(
+            dateToEdit: extra?['dateToEdit'],
+          ),
+        );
+      },
+    ),
+
+    // --- Settings route ---
+    GoRoute(
+      path: AppRoutes.settings,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: SettingsScreen(),
+      ),
     ),
   ],
 );

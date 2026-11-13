@@ -1,15 +1,22 @@
 // ============================================================================
 // NAV MENU ITEM
 // ============================================================================
-// Une ligne du menu déplié : nom de l'écran + icône, sous forme de pilule.
-// Composant "bête" : ne connaît ni le ViewModel ni GoRouter, uniquement des
-// données et un callback.
+// Une entrée du menu déplié : une bulle ronde avec l'icône de l'écran et son
+// nom en dessous. Celle de l'écran courant est pleine et inerte.
+// Composant "bête" : ne connaît ni le ViewModel ni GoRouter.
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/cream_label.dart';
 import '../models/nav_destination.dart';
 
 class NavMenuItem extends StatelessWidget {
+  // --- Encombrement fixe, pour centrer l'entrée sur sa place dans l'arc ---
+  static const double width = 96;
+  // --- Bulle + libellé sur deux lignes au plus ("Notre histoire") ---
+  static const double height = 96;
+  static const double bubbleSize = 52;
+
   final NavDestination destination;
   final bool isCurrent;
   final VoidCallback onTap;
@@ -23,48 +30,43 @@ class NavMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          // --- On désactive le tap si on est déjà sur cet écran ---
-          onTap: isCurrent ? null : onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isCurrent ? amorDarkRose : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  destination.label,
-                  style: TextStyle(
-                    color: isCurrent ? Colors.white : amorDarkRose,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Icon(
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Material(
+            color: isCurrent ? amorDarkRose : Colors.white,
+            shape: const CircleBorder(),
+            elevation: 4,
+            child: InkWell(
+              // --- On désactive le tap si on est déjà sur cet écran ---
+              onTap: isCurrent ? null : onTap,
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: bubbleSize,
+                height: bubbleSize,
+                child: Icon(
                   destination.icon,
                   color: isCurrent ? Colors.white : amorDarkRose,
-                  size: 20,
+                  size: 24,
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: 4),
+          CreamLabel(
+            text: destination.label,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: amorDarkRose,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

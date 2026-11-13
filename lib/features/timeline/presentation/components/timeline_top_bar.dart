@@ -1,13 +1,11 @@
 // ============================================================================
 // TIMELINE TOP BAR
 // ============================================================================
-// Sort toggle + centered title + "add event" button.
+// Sort toggle + centered title. Adding goes through FloatingAddButton.
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../navigation/app_routes.dart';
 import '../viewmodels/timeline_viewmodel.dart';
 
 class TimelineTopBar extends StatelessWidget {
@@ -66,11 +64,9 @@ class TimelineTopBar extends StatelessWidget {
             ),
           ),
 
-          // --- Add event button ---
-          IconButton(
-            onPressed: () => context.push(AppRoutes.addTimeline),
-            icon: const Icon(Icons.add),
-          ),
+          // --- Counterweight of the former add button, keeps the title
+          // --- where it was ---
+          const SizedBox(width: 48),
         ],
       ),
     );

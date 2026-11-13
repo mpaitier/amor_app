@@ -27,7 +27,6 @@ dependencies:
   # <<--- UI --->
   cached_network_image: ^3.3.1
   google_fonts: ^6.2.1
-
   # <<--- Stockage local --->
   shared_preferences: ^2.2.3
 

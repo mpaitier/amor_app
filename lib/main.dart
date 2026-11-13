@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
 import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
+import 'features/navigation/presentation/viewmodels/floating_buttons_viewmodel.dart';
 
 void main() async {
   // --- Flutter bootstrap ---
@@ -41,6 +42,9 @@ void main() async {
             deleteTimelineEvent: sl.deleteTimelineEvent,
           ),
         ),
+        // --- Position des boutons flottants, partagée par tous les écrans
+        // --- et oubliée à la fermeture de l'app ---
+        ChangeNotifierProvider(create: (_) => FloatingButtonsViewModel()),
       ],
       child: const AmorApp(),
     ),
