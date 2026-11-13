@@ -47,10 +47,15 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
     final deviceId = await _deviceIdentityDataSource.getOrCreateDeviceId();
 
-    await _firestore.collection('device_tokens').doc(deviceId).set({
-      'token': token,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    // --- Fusion : les préférences de notifications rangées dans le même
+    // --- document ne sont pas effacées à chaque lancement ---
+    await _firestore.collection('device_tokens').doc(deviceId).set(
+      {
+        'token': token,
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+      SetOptions(merge: true),
+    );
   }
 
   @override

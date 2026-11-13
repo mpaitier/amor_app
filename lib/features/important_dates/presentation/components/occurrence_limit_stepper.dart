@@ -131,8 +131,10 @@ class _OccurrenceLimitStepperState extends State<OccurrenceLimitStepper> {
           ),
         ),
         const SizedBox(width: 6),
-        SizedBox(
-          width: 76,
+        // --- Largeur minimale plutôt que fixe : "jours avant" tient sur
+        // --- une ligne ---
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 76),
           child: Text(
             widget.unit,
             style: const TextStyle(color: onBackgroundLight, fontSize: 16),

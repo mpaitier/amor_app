@@ -12,6 +12,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
 import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
+import '../../../notifications/presentation/components/notification_preferences_card.dart';
+import '../../../notifications/presentation/viewmodels/notification_preferences_viewmodel.dart';
 import '../../../important_dates/presentation/utils/important_date_labels.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../domain/utils/anniversary_titles.dart';
@@ -41,6 +43,13 @@ class SettingsScreen extends StatelessWidget {
             getRecentColors: sl.getRecentColors,
             addRecentColor: sl.addRecentColor,
             removeRecentColor: sl.removeRecentColor,
+          ),
+        ),
+        // --- Préférences de notifications, propres à ce téléphone ---
+        ChangeNotifierProvider(
+          create: (_) => NotificationPreferencesViewModel(
+            watchPreferences: sl.watchNotificationPreferences,
+            savePreferences: sl.saveNotificationPreferences,
           ),
         ),
       ],
@@ -147,6 +156,11 @@ class _SettingsView extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 20),
+        const SettingsSection(
+          title: 'Notifications',
+          child: NotificationPreferencesCard(),
         ),
         const SizedBox(height: 20),
         const SettingsSection(

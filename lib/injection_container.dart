@@ -56,6 +56,11 @@ import 'features/notifications/domain/repositories/notification_repository.dart'
 import 'features/notifications/data/datasources/local_notification_datasource.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
+import 'features/notifications/data/datasources/notification_preferences_remote_datasource.dart';
+import 'features/notifications/data/repositories/notification_preferences_repository_impl.dart';
+import 'features/notifications/domain/repositories/notification_preferences_repository.dart';
+import 'features/notifications/domain/usecases/watch_notification_preferences.dart';
+import 'features/notifications/domain/usecases/save_notification_preferences.dart';
 
 // --- Calendar feature ---
 import 'features/calendar/domain/usecases/group_events_by_day.dart';
@@ -183,6 +188,19 @@ late final InitializeNotifications initializeNotifications =
     InitializeNotifications(notificationRepository);
 
 late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
+
+  // --- Préférences de notifications de ce téléphone ---
+  late final NotificationPreferencesRepository
+      notificationPreferencesRepository =
+      NotificationPreferencesRepositoryImpl(
+    remoteDataSource:
+        NotificationPreferencesRemoteDataSource(firestore: _firestore),
+    deviceIdentityDataSource: deviceIdentityDataSource,
+  );
+  late final WatchNotificationPreferences watchNotificationPreferences =
+      WatchNotificationPreferences(notificationPreferencesRepository);
+  late final SaveNotificationPreferences saveNotificationPreferences =
+      SaveNotificationPreferences(notificationPreferencesRepository);
 
   // --- Calendar: use case (les souvenirs viennent de la feature timeline) ---
   late final GroupEventsByDay groupEventsByDay = const GroupEventsByDay();
