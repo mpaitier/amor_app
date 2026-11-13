@@ -17,6 +17,7 @@ class ImportantDateModel extends ImportantDateEntity {
     super.occurrenceLimit,
     super.backgroundColor,
     super.borderColor,
+    super.gifUrl,
   });
 
   // --- Construit le modèle depuis un document Firestore ---
@@ -33,6 +34,7 @@ class ImportantDateModel extends ImportantDateEntity {
           ImportantDateEntity.defaultBackgroundColor,
       borderColor:
           data['borderColor'] ?? ImportantDateEntity.defaultBorderColor,
+      gifUrl: data['gifUrl'] ?? '',
     );
   }
 
@@ -47,6 +49,7 @@ class ImportantDateModel extends ImportantDateEntity {
       occurrenceLimit: entity.occurrenceLimit,
       backgroundColor: entity.backgroundColor,
       borderColor: entity.borderColor,
+      gifUrl: entity.gifUrl,
     );
   }
 
@@ -61,6 +64,7 @@ class ImportantDateModel extends ImportantDateEntity {
       'occurrenceLimit': occurrenceLimit,
       'backgroundColor': backgroundColor,
       'borderColor': borderColor,
+      'gifUrl': gifUrl,
     };
   }
 

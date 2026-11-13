@@ -22,6 +22,7 @@ void main() {
     occurrenceLimit: 5,
     backgroundColor: 0xFFD9EAFF,
     borderColor: 0xFF2F6FDE,
+    gifUrl: 'https://media.giphy.com/hedgehog.gif',
   );
 
   group('fromEntity', () {
@@ -53,6 +54,7 @@ void main() {
       expect(map.containsKey('repeatsYearly'), isFalse);
       expect(map['backgroundColor'], 0xFFD9EAFF);
       expect(map['borderColor'], 0xFF2F6FDE);
+      expect(map['gifUrl'], 'https://media.giphy.com/hedgehog.gif');
       expect(map.containsKey('id'), isFalse);
     });
   });
@@ -105,6 +107,7 @@ void main() {
       expect(model.emoji, '');
       expect(model.recurrence, ImportantDateRecurrence.none);
       expect(model.occurrenceLimit, isNull);
+      expect(model.gifUrl, isEmpty);
       expect(
         model.backgroundColor,
         ImportantDateEntity.defaultBackgroundColor,

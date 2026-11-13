@@ -12,9 +12,19 @@ import 'package:amor_app/features/important_dates/domain/usecases/update_importa
 import 'package:amor_app/features/important_dates/presentation/models/important_date_palette.dart';
 import 'package:amor_app/features/important_dates/presentation/models/recurrence_rule.dart';
 import 'package:amor_app/features/important_dates/presentation/viewmodels/add_edit_important_date_viewmodel.dart';
+import 'package:amor_app/features/gif/domain/repositories/gif_repository.dart';
+import 'package:amor_app/features/gif/domain/usecases/get_random_gif.dart';
+import 'package:amor_app/features/settings/domain/entities/couple_settings_entity.dart';
+import 'package:amor_app/features/settings/domain/repositories/couple_settings_repository.dart';
+import 'package:amor_app/features/settings/domain/usecases/get_gif_search_term.dart';
 
 class MockImportantDateRepository extends Mock
     implements ImportantDateRepository {}
+
+class MockGifRepository extends Mock implements GifRepository {}
+
+class MockCoupleSettingsRepository extends Mock
+    implements CoupleSettingsRepository {}
 
 // --- Fake utilisé uniquement pour enregistrer une valeur de repli auprès
 // --- de mocktail (nécessaire pour matcher any() sur un type non natif) ---
@@ -22,6 +32,13 @@ class _FakeImportantDateEntity extends Fake implements ImportantDateEntity {}
 
 void main() {
   late MockImportantDateRepository mockRepository;
+  late MockGifRepository mockGifRepository;
+  late MockCoupleSettingsRepository mockSettingsRepository;
+
+  const tGif = 'https://media.giphy.com/penguin.gif';
+
+  // --- Laisse le tirage du GIF se terminer ---
+  Future<void> flush() => Future<void>.delayed(Duration.zero);
 
   setUpAll(() {
     registerFallbackValue(_FakeImportantDateEntity());
@@ -29,6 +46,15 @@ void main() {
 
   setUp(() {
     mockRepository = MockImportantDateRepository();
+    mockGifRepository = MockGifRepository();
+    mockSettingsRepository = MockCoupleSettingsRepository();
+    when(() => mockGifRepository.getRandomGifUrl(any()))
+        .thenAnswer((_) async => tGif);
+    when(() => mockSettingsRepository.watchSettings()).thenAnswer(
+      (_) => Stream.value(
+        CoupleSettingsEntity.defaults().copyWith(gifSearchTerm: 'penguin'),
+      ),
+    );
   });
 
   AddEditImportantDateViewModel buildViewModel({
@@ -38,6 +64,8 @@ void main() {
     final viewModel = AddEditImportantDateViewModel(
       addImportantDate: AddImportantDate(mockRepository),
       updateImportantDate: UpdateImportantDate(mockRepository),
+      getRandomGif: GetRandomGif(mockGifRepository),
+      getGifSearchTerm: GetGifSearchTerm(mockSettingsRepository),
       dateToEdit: dateToEdit,
       initialDate: initialDate,
       now: DateTime(2026, 11, 13, 12, 56),
@@ -115,6 +143,41 @@ void main() {
       expect(viewModel.backgroundColor, 0xFFD9F2E0);
       expect(viewModel.borderColor, 0xFF2E8B57);
       expect(notifications, 4);
+    });
+  });
+
+  group('GIF', () {
+    test('doit tirer un GIF avec le terme des paramètres en création',
+        () async {
+      final viewModel = buildViewModel();
+      await flush();
+
+      expect(viewModel.gifUrl, tGif);
+      expect(viewModel.isGifLoading, isFalse);
+      expect(viewModel.draft.gifUrl, tGif);
+      verify(() => mockGifRepository.getRandomGifUrl('penguin')).called(1);
+    });
+
+    test('doit garder le GIF d\'une date modifiée sans en tirer un autre',
+        () async {
+      final viewModel = buildViewModel(
+        dateToEdit: tExisting.copyWith(gifUrl: 'https://gif/existant'),
+      );
+      await flush();
+
+      expect(viewModel.gifUrl, 'https://gif/existant');
+      verifyNever(() => mockGifRepository.getRandomGifUrl(any()));
+    });
+
+    test('doit garder le GIF précédent si un nouveau tirage échoue', () async {
+      final viewModel = buildViewModel();
+      await flush();
+      when(() => mockGifRepository.getRandomGifUrl(any()))
+          .thenAnswer((_) async => null);
+
+      await viewModel.loadRandomGif();
+
+      expect(viewModel.gifUrl, tGif);
     });
   });
 

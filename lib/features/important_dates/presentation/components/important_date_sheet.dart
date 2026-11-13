@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../gif/presentation/components/gif_view.dart';
 import '../../domain/entities/important_date_entity.dart';
 import '../utils/important_date_labels.dart';
 
@@ -34,9 +35,12 @@ class ImportantDateSheet extends StatelessWidget {
             '${recurrenceSummary(date.recurrence, date.occurrenceLimit).toLowerCase()}'
         : formatter.format(occurrence);
 
+    // --- Défilant : avec le GIF, la fiche peut dépasser la hauteur
+    // --- accordée aux panneaux du bas sur un petit écran ---
     return SafeArea(
       top: false,
-      child: Padding(
+      child: SingleChildScrollView(
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -70,9 +74,14 @@ class ImportantDateSheet extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (date.gifUrl.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              GifView(gifUrl: date.gifUrl, height: 120),
+            ],
             const SizedBox(height: 16),
             _buildActions(context),
           ],
+        ),
         ),
       ),
     );

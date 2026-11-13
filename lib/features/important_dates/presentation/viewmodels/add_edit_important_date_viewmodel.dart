@@ -8,12 +8,16 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/important_date_entity.dart';
 import '../../domain/usecases/add_important_date.dart';
 import '../../domain/usecases/update_important_date.dart';
+import '../../../gif/domain/usecases/get_random_gif.dart';
+import '../../../settings/domain/usecases/get_gif_search_term.dart';
 import '../models/important_date_palette.dart';
 import '../models/recurrence_rule.dart';
 
 class AddEditImportantDateViewModel extends ChangeNotifier {
   final AddImportantDate _addImportantDate;
   final UpdateImportantDate _updateImportantDate;
+  final GetRandomGif _getRandomGif;
+  final GetGifSearchTerm _getGifSearchTerm;
 
   final ImportantDateEntity? dateToEdit;
 
@@ -36,18 +40,28 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
   ImportantDateRecurrence recurrence;
   int? occurrenceLimit;
 
+  // --- GIF de la date : repris à la modification, tiré au hasard sinon ---
+  String gifUrl;
+  bool isGifLoading = false;
+
   // --- Technical state ---
   bool isSaving = false;
   String? errorMessage;
+  bool _isDisposed = false;
 
   AddEditImportantDateViewModel({
     required AddImportantDate addImportantDate,
     required UpdateImportantDate updateImportantDate,
+    required GetRandomGif getRandomGif,
+    required GetGifSearchTerm getGifSearchTerm,
     this.dateToEdit,
     DateTime? initialDate,
     DateTime? now,
   })  : _addImportantDate = addImportantDate,
         _updateImportantDate = updateImportantDate,
+        _getRandomGif = getRandomGif,
+        _getGifSearchTerm = getGifSearchTerm,
+        gifUrl = dateToEdit?.gifUrl ?? '',
         today = _dayOf(now ?? DateTime.now()),
         titleController = TextEditingController(text: dateToEdit?.title ?? ''),
         selectedDate =
@@ -62,7 +76,9 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
             ? dateToEdit!.recurrence
             : ImportantDatePalette.recurrences.first,
         occurrenceLimit =
-            (dateToEdit?.repeats ?? false) ? dateToEdit!.occurrenceLimit : null;
+            (dateToEdit?.repeats ?? false) ? dateToEdit!.occurrenceLimit : null {
+    if (gifUrl.isEmpty) loadRandomGif();
+  }
 
   // --- Ne garde que le jour : une date importante n'a pas d'heure ---
   static DateTime _dayOf(DateTime date) {
@@ -84,6 +100,7 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
       occurrenceLimit: repeats ? occurrenceLimit : null,
       backgroundColor: backgroundColor,
       borderColor: borderColor,
+      gifUrl: gifUrl,
     );
   }
 
@@ -108,6 +125,22 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
     if (rule.recurrence == ImportantDateRecurrence.none) return;
     recurrence = rule.recurrence;
     occurrenceLimit = rule.occurrenceLimit;
+    notifyListeners();
+  }
+
+  // --- Tire un nouveau GIF au hasard, avec le terme des paramètres ---
+  Future<void> loadRandomGif() async {
+    isGifLoading = true;
+    notifyListeners();
+
+    final searchTerm = await _getGifSearchTerm();
+    if (_isDisposed) return;
+    final url = await _getRandomGif(searchTerm);
+    if (_isDisposed) return;
+
+    // --- En cas d'échec, on garde le GIF précédent ---
+    if (url != null) gifUrl = url;
+    isGifLoading = false;
     notifyListeners();
   }
 
@@ -152,6 +185,7 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     titleController.dispose();
     super.dispose();
   }

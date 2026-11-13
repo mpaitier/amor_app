@@ -29,6 +29,9 @@ class ImportantDateEntity {
   final int backgroundColor;
   final int borderColor;
 
+  // --- GIF tiré au hasard à la création ---
+  final String gifUrl;
+
   const ImportantDateEntity({
     required this.id,
     required this.title,
@@ -38,6 +41,7 @@ class ImportantDateEntity {
     this.occurrenceLimit,
     this.backgroundColor = defaultBackgroundColor,
     this.borderColor = defaultBorderColor,
+    this.gifUrl = '',
   });
 
   bool get repeats => recurrence != ImportantDateRecurrence.none;
@@ -53,6 +57,7 @@ class ImportantDateEntity {
     int? Function()? occurrenceLimit,
     int? backgroundColor,
     int? borderColor,
+    String? gifUrl,
   }) {
     return ImportantDateEntity(
       id: id ?? this.id,
@@ -64,6 +69,7 @@ class ImportantDateEntity {
           occurrenceLimit != null ? occurrenceLimit() : this.occurrenceLimit,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       borderColor: borderColor ?? this.borderColor,
+      gifUrl: gifUrl ?? this.gifUrl,
     );
   }
 
