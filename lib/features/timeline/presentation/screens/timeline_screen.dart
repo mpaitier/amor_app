@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../navigation/presentation/components/floating_add_button.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../../settings/domain/usecases/get_upcoming_special_days.dart';
 import '../components/timeline_top_bar.dart';
@@ -37,6 +38,9 @@ class TimelineScreen extends StatelessWidget {
               Expanded(child: TimelineEventList()),
             ],
           ),
+
+          // --- Ajout d'un souvenir ou d'une date, bas-gauche ---
+          FloatingAddButton(),
 
           // --- Menu de navigation flottant, bas-droite ---
           FloatingNavMenu(currentRoute: AppRoutes.mainMenu),

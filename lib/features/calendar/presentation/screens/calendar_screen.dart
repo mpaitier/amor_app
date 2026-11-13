@@ -11,11 +11,11 @@ import 'package:flutter/scheduler.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../injection_container.dart';
-import '../../../../navigation/add_entry_flow.dart';
 import '../../../../navigation/app_routes.dart';
 import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../important_dates/presentation/components/delete_important_date_dialog.dart';
 import '../../../important_dates/presentation/components/important_date_sheet.dart';
+import '../../../navigation/presentation/components/floating_add_button.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../../domain/entities/calendar_month.dart';
@@ -338,7 +338,6 @@ class _CalendarViewState extends State<_CalendarView> {
               CalendarHeader(
                 month: viewModel.visibleMonth,
                 onMonthTap: () => _openMonthPicker(viewModel),
-                onAddTap: () => openAddEntryFlow(context),
               ),
               Expanded(
                 child: LayoutBuilder(
@@ -358,6 +357,9 @@ class _CalendarViewState extends State<_CalendarView> {
               ),
             ],
           ),
+
+          // --- Ajout d'un souvenir ou d'une date, bas-gauche ---
+          const FloatingAddButton(),
 
           // --- Menu de navigation flottant, bas-droite ---
           const FloatingNavMenu(currentRoute: AppRoutes.calendar),

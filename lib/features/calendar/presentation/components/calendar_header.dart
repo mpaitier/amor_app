@@ -1,8 +1,8 @@
 // ============================================================================
 // CALENDAR HEADER
 // ============================================================================
-// En-tête fixe du calendrier : le mois affiché (cliquable), le bouton
-// d'ajout et la ligne des jours de la semaine. Composant "bête" : reçoit
+// En-tête fixe du calendrier : le mois affiché (cliquable) et la ligne des
+// jours de la semaine. Composant "bête" : reçoit
 // tout en paramètre.
 
 import 'package:flutter/material.dart';
@@ -14,13 +14,11 @@ import 'calendar_weekday_row.dart';
 class CalendarHeader extends StatelessWidget {
   final CalendarMonth month;
   final VoidCallback onMonthTap;
-  final VoidCallback onAddTap;
 
   const CalendarHeader({
     super.key,
     required this.month,
     required this.onMonthTap,
-    required this.onAddTap,
   });
 
   @override
@@ -47,11 +45,8 @@ class CalendarHeader extends StatelessWidget {
                   ),
                 ),
 
-                IconButton(
-                  onPressed: onAddTap,
-                  tooltip: 'Ajouter',
-                  icon: const Icon(Icons.add),
-                ),
+                // --- Même largeur à droite, pour garder le mois au centre ---
+                const SizedBox(width: 48),
               ],
             ),
           ),
