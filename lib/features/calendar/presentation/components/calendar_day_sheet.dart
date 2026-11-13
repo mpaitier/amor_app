@@ -2,25 +2,25 @@
 // CALENDAR DAY SHEET
 // ============================================================================
 // Panneau ouvert quand un jour contient plusieurs éléments : il liste ses
-// dates importantes et ses souvenirs. Se ferme en renvoyant l'élément
-// touché (un ImportantDateEntity ou un TimelineEventEntity).
+// jours spéciaux et ses souvenirs. Se ferme en renvoyant l'élément touché
+// (un CalendarSpecialDay ou un TimelineEventEntity).
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
+import '../../domain/entities/calendar_special_day.dart';
 import '../utils/calendar_labels.dart';
 
 class CalendarDaySheet extends StatelessWidget {
   final DateTime day;
   final List<TimelineEventEntity> memories;
-  final List<ImportantDateEntity> importantDates;
+  final List<CalendarSpecialDay> specialDays;
 
   const CalendarDaySheet({
     super.key,
     required this.day,
     required this.memories,
-    required this.importantDates,
+    required this.specialDays,
   });
 
   @override
@@ -49,8 +49,8 @@ class CalendarDaySheet extends StatelessWidget {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final date in importantDates)
-                    _buildImportantDate(context, date),
+                  for (final specialDay in specialDays)
+                    _buildSpecialDay(context, specialDay),
                   for (final memory in memories) _buildMemory(context, memory),
                 ],
               ),
@@ -72,20 +72,24 @@ class CalendarDaySheet extends StatelessWidget {
     );
   }
 
-  Widget _buildImportantDate(BuildContext context, ImportantDateEntity date) {
+  Widget _buildSpecialDay(BuildContext context, CalendarSpecialDay specialDay) {
+    final subtitle = specialDay.kind == CalendarSpecialDayKind.importantDate
+        ? 'Date importante'
+        : 'Anniversaire';
+
     return ListTile(
       leading: SizedBox(
         width: 32,
         child: Center(
           child: Text(
-            date.emoji,
+            specialDay.emoji,
             style: const TextStyle(fontSize: 22, height: 1.0),
           ),
         ),
       ),
-      title: Text(date.title),
-      subtitle: const Text('Date importante'),
-      onTap: () => Navigator.of(context).pop<Object>(date),
+      title: Text(specialDay.title),
+      subtitle: Text(subtitle),
+      onTap: () => Navigator.of(context).pop<Object>(specialDay),
     );
   }
 

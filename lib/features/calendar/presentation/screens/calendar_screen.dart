@@ -3,8 +3,8 @@
 // ============================================================================
 // Calendrier "parchemin" : tous les mois défilent dans une seule liste, du
 // plus ancien en haut au dernier en bas. Le dernier mois est le mois en
-// cours, ou plus loin s'il existe une date importante à venir. L'en-tête
-// fixe affiche le mois qui touche le haut de l'écran.
+// cours, ou plus loin s'il existe un jour spécial à venir. L'en-tête fixe
+// affiche le mois qui touche le haut de l'écran.
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -19,6 +19,8 @@ import '../../../important_dates/presentation/components/important_date_sheet.da
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../../domain/entities/calendar_month.dart';
+import '../../domain/entities/calendar_special_day.dart';
+import '../components/calendar_anniversary_sheet.dart';
 import '../components/calendar_day_sheet.dart';
 import '../components/calendar_header.dart';
 import '../components/calendar_month_list.dart';
@@ -36,7 +38,9 @@ class CalendarScreen extends StatelessWidget {
         watchTimelineEvents: sl.watchTimelineEvents,
         watchImportantDates: sl.watchImportantDates,
         deleteImportantDate: sl.deleteImportantDate,
+        watchCoupleSettings: sl.watchCoupleSettings,
         groupEventsByDay: sl.groupEventsByDay,
+        buildSpecialDays: sl.buildSpecialDays,
       ),
       child: const _CalendarView(),
     );
@@ -196,15 +200,15 @@ class _CalendarViewState extends State<_CalendarView> {
   Future<void> _openDay(DateTime day) async {
     final viewModel = context.read<CalendarViewModel>();
     final memories = viewModel.eventsOn(day);
-    final importantDates = viewModel.importantDatesOn(day);
+    final specialDays = viewModel.specialDaysOn(day);
 
-    if (memories.isEmpty && importantDates.isEmpty) return;
+    if (memories.isEmpty && specialDays.isEmpty) return;
 
-    if (memories.length + importantDates.length == 1) {
+    if (memories.length + specialDays.length == 1) {
       if (memories.isNotEmpty) {
         _openMemory(memories.first);
       } else {
-        await _openImportantDate(viewModel, importantDates.first, day);
+        await _openSpecialDay(viewModel, specialDays.first, day);
       }
       return;
     }
@@ -216,16 +220,42 @@ class _CalendarViewState extends State<_CalendarView> {
       builder: (_) => CalendarDaySheet(
         day: day,
         memories: memories,
-        importantDates: importantDates,
+        specialDays: specialDays,
       ),
     );
 
     if (picked == null || !mounted) return;
     if (picked is TimelineEventEntity) {
       _openMemory(picked);
-    } else if (picked is ImportantDateEntity) {
-      await _openImportantDate(viewModel, picked, day);
+    } else if (picked is CalendarSpecialDay) {
+      await _openSpecialDay(viewModel, picked, day);
     }
+  }
+
+  // --- Une date importante a sa propre fiche. Un anniversaire vient des
+  // --- réglages : sa fiche propose d'y aller ---
+  Future<void> _openSpecialDay(
+    CalendarViewModel viewModel,
+    CalendarSpecialDay specialDay,
+    DateTime day,
+  ) async {
+    final importantDate = specialDay.importantDate;
+    if (importantDate != null) {
+      await _openImportantDate(viewModel, importantDate, day);
+      return;
+    }
+
+    final openSettings = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: _sheetShape,
+      builder: (_) => CalendarAnniversarySheet(
+        specialDay: specialDay,
+        day: day,
+        today: viewModel.today,
+      ),
+    );
+    if (openSettings == true && mounted) context.go(AppRoutes.settings);
   }
 
   // --- Le détail est empilé : son bouton retour ramène donc ici ---
@@ -319,7 +349,7 @@ class _CalendarViewState extends State<_CalendarView> {
                       visibleMonth: viewModel.visibleMonth,
                       today: viewModel.today,
                       eventsOn: viewModel.eventsOn,
-                      importantDatesOn: viewModel.importantDatesOn,
+                      specialDaysOn: viewModel.specialDaysOn,
                       onDayTap: _openDay,
                     );
                   },

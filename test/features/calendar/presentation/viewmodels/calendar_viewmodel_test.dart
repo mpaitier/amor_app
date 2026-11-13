@@ -8,12 +8,17 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:amor_app/features/calendar/domain/entities/calendar_month.dart';
+import 'package:amor_app/features/calendar/domain/entities/calendar_special_day.dart';
+import 'package:amor_app/features/calendar/domain/usecases/build_special_days.dart';
 import 'package:amor_app/features/calendar/domain/usecases/group_events_by_day.dart';
 import 'package:amor_app/features/calendar/presentation/viewmodels/calendar_viewmodel.dart';
 import 'package:amor_app/features/important_dates/domain/entities/important_date_entity.dart';
 import 'package:amor_app/features/important_dates/domain/repositories/important_date_repository.dart';
 import 'package:amor_app/features/important_dates/domain/usecases/delete_important_date.dart';
 import 'package:amor_app/features/important_dates/domain/usecases/watch_important_dates.dart';
+import 'package:amor_app/features/settings/domain/entities/couple_settings_entity.dart';
+import 'package:amor_app/features/settings/domain/repositories/couple_settings_repository.dart';
+import 'package:amor_app/features/settings/domain/usecases/watch_couple_settings.dart';
 import 'package:amor_app/features/timeline/domain/entities/timeline_event_entity.dart';
 import 'package:amor_app/features/timeline/domain/repositories/timeline_repository.dart';
 import 'package:amor_app/features/timeline/domain/usecases/watch_timeline_events.dart';
@@ -23,11 +28,16 @@ class MockTimelineRepository extends Mock implements TimelineRepository {}
 class MockImportantDateRepository extends Mock
     implements ImportantDateRepository {}
 
+class MockCoupleSettingsRepository extends Mock
+    implements CoupleSettingsRepository {}
+
 void main() {
   late MockTimelineRepository mockTimelineRepository;
   late MockImportantDateRepository mockDateRepository;
+  late MockCoupleSettingsRepository mockSettingsRepository;
   late StreamController<List<TimelineEventEntity>> eventsController;
   late StreamController<List<ImportantDateEntity>> datesController;
+  late StreamController<CoupleSettingsEntity> settingsController;
   late CalendarViewModel viewModel;
 
   // --- Laisse les flux livrer leurs événements au ViewModel ---
@@ -59,21 +69,40 @@ void main() {
     );
   }
 
+  // --- Les dates importantes d'un jour, sans les anniversaires ---
+  List<ImportantDateEntity> importantDatesOn(DateTime day) {
+    return [
+      for (final specialDay in viewModel.specialDaysOn(day))
+        if (specialDay.importantDate != null) specialDay.importantDate!,
+    ];
+  }
+
+  // --- Début de l'histoire : le 12 décembre 2023 ---
+  final tSettings = CoupleSettingsEntity(
+    relationshipStart: DateTime(2023, 12, 12),
+  );
+
   setUp(() {
     mockTimelineRepository = MockTimelineRepository();
     mockDateRepository = MockImportantDateRepository();
+    mockSettingsRepository = MockCoupleSettingsRepository();
     eventsController = StreamController<List<TimelineEventEntity>>();
     datesController = StreamController<List<ImportantDateEntity>>();
+    settingsController = StreamController<CoupleSettingsEntity>();
     when(() => mockTimelineRepository.watchEvents())
         .thenAnswer((_) => eventsController.stream);
     when(() => mockDateRepository.watchImportantDates())
         .thenAnswer((_) => datesController.stream);
+    when(() => mockSettingsRepository.watchSettings())
+        .thenAnswer((_) => settingsController.stream);
 
     viewModel = CalendarViewModel(
       watchTimelineEvents: WatchTimelineEvents(mockTimelineRepository),
       watchImportantDates: WatchImportantDates(mockDateRepository),
       deleteImportantDate: DeleteImportantDate(mockDateRepository),
+      watchCoupleSettings: WatchCoupleSettings(mockSettingsRepository),
       groupEventsByDay: const GroupEventsByDay(),
+      buildSpecialDays: const BuildSpecialDays(),
       now: DateTime(2026, 11, 12, 15, 30),
     );
   });
@@ -82,6 +111,7 @@ void main() {
     viewModel.dispose();
     await eventsController.close();
     await datesController.close();
+    await settingsController.close();
   });
 
   group('plage de mois sans date à venir', () {
@@ -190,7 +220,7 @@ void main() {
       await flushStreams();
 
       expect(viewModel.lastMonth, const CalendarMonth(2026, 11));
-      expect(viewModel.importantDatesOn(DateTime(2026, 11, 17)), hasLength(1));
+      expect(importantDatesOn(DateTime(2026, 11, 17)), hasLength(1));
     });
 
     test('doit revenir au mois en cours quand la date disparaît', () async {
@@ -279,7 +309,7 @@ void main() {
 
   group('dates importantes', () {
     test('ne doit rien renvoyer tant que le flux n\'a rien émis', () {
-      expect(viewModel.importantDatesOn(DateTime(2026, 12, 28)), isEmpty);
+      expect(importantDatesOn(DateTime(2026, 12, 28)), isEmpty);
     });
 
     test('doit exposer une date ponctuelle le jour prévu seulement', () async {
@@ -288,9 +318,9 @@ void main() {
       datesController.add([date]);
       await flushStreams();
 
-      expect(viewModel.importantDatesOn(DateTime(2026, 12, 28)), [date]);
-      expect(viewModel.importantDatesOn(DateTime(2026, 12, 27)), isEmpty);
-      expect(viewModel.importantDatesOn(DateTime(2027, 12, 28)), isEmpty);
+      expect(importantDatesOn(DateTime(2026, 12, 28)), [date]);
+      expect(importantDatesOn(DateTime(2026, 12, 27)), isEmpty);
+      expect(importantDatesOn(DateTime(2027, 12, 28)), isEmpty);
     });
 
     test('doit exposer une date répétée chaque année depuis la première',
@@ -300,9 +330,9 @@ void main() {
       datesController.add([date]);
       await flushStreams();
 
-      expect(viewModel.importantDatesOn(DateTime(2023, 12, 12)), [date]);
-      expect(viewModel.importantDatesOn(DateTime(2025, 12, 12)), [date]);
-      expect(viewModel.importantDatesOn(DateTime(2022, 12, 12)), isEmpty);
+      expect(importantDatesOn(DateTime(2023, 12, 12)), [date]);
+      expect(importantDatesOn(DateTime(2025, 12, 12)), [date]);
+      expect(importantDatesOn(DateTime(2022, 12, 12)), isEmpty);
     });
 
     test('doit exposer un message quand le flux échoue', () async {
@@ -336,10 +366,60 @@ void main() {
     });
   });
 
-  test('doit s\'abonner aux deux flux dès sa création', () {
+  group('anniversaires', () {
+    test('ne doit rien afficher tant que les réglages ne sont pas activés',
+        () async {
+      settingsController.add(tSettings);
+      await flushStreams();
+
+      expect(viewModel.specialDaysOn(DateTime(2025, 12, 12)), isEmpty);
+      expect(viewModel.lastMonth, const CalendarMonth(2026, 11));
+    });
+
+    test('doit afficher l\'anniversaire et s\'étendre jusqu\'au prochain',
+        () async {
+      settingsController.add(tSettings.copyWith(showAnniversary: true));
+      await flushStreams();
+
+      final specialDays = viewModel.specialDaysOn(DateTime(2026, 12, 12));
+      expect(specialDays, hasLength(1));
+      expect(specialDays.first.kind, CalendarSpecialDayKind.anniversary);
+      expect(specialDays.first.title, '3e anniversaire');
+      expect(viewModel.lastMonth, const CalendarMonth(2026, 12));
+    });
+
+    test('doit afficher les mois-anniversaires', () async {
+      settingsController.add(
+        tSettings.copyWith(showMonthAnniversaries: true),
+      );
+      await flushStreams();
+
+      final specialDays = viewModel.specialDaysOn(DateTime(2026, 11, 12));
+      expect(specialDays, hasLength(1));
+      expect(specialDays.first.title, '35 mois');
+      expect(viewModel.lastMonth, const CalendarMonth(2026, 11));
+    });
+
+    test('doit placer l\'anniversaire avant les dates importantes du jour',
+        () async {
+      settingsController.add(tSettings.copyWith(showAnniversary: true));
+      datesController.add([buildDate('1', DateTime(2026, 12, 12))]);
+      await flushStreams();
+
+      final specialDays = viewModel.specialDaysOn(DateTime(2026, 12, 12));
+      expect(specialDays.map((day) => day.kind), [
+        CalendarSpecialDayKind.anniversary,
+        CalendarSpecialDayKind.importantDate,
+      ]);
+    });
+  });
+
+  test('doit s\'abonner aux trois flux dès sa création', () {
     expect(eventsController.hasListener, isTrue);
     expect(datesController.hasListener, isTrue);
+    expect(settingsController.hasListener, isTrue);
     verify(() => mockTimelineRepository.watchEvents()).called(1);
     verify(() => mockDateRepository.watchImportantDates()).called(1);
+    verify(() => mockSettingsRepository.watchSettings()).called(1);
   });
 }

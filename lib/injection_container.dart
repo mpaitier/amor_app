@@ -59,6 +59,7 @@ import 'features/notifications/domain/usecases/get_device_id.dart';
 
 // --- Calendar feature ---
 import 'features/calendar/domain/usecases/group_events_by_day.dart';
+import 'features/calendar/domain/usecases/build_special_days.dart';
 
 // --- Important dates feature ---
 import 'features/important_dates/data/datasources/important_date_remote_datasource.dart';
@@ -68,6 +69,13 @@ import 'features/important_dates/domain/usecases/watch_important_dates.dart';
 import 'features/important_dates/domain/usecases/add_important_date.dart';
 import 'features/important_dates/domain/usecases/update_important_date.dart';
 import 'features/important_dates/domain/usecases/delete_important_date.dart';
+
+// --- Settings feature ---
+import 'features/settings/data/datasources/couple_settings_remote_datasource.dart';
+import 'features/settings/data/repositories/couple_settings_repository_impl.dart';
+import 'features/settings/domain/repositories/couple_settings_repository.dart';
+import 'features/settings/domain/usecases/watch_couple_settings.dart';
+import 'features/settings/domain/usecases/save_couple_settings.dart';
 
 // --- Service locator singleton ---
 class ServiceLocator {
@@ -169,6 +177,7 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Calendar: use case (les souvenirs viennent de la feature timeline) ---
   late final GroupEventsByDay groupEventsByDay = const GroupEventsByDay();
+  late final BuildSpecialDays buildSpecialDays = const BuildSpecialDays();
 
   // --- Important dates: data source, repository, use cases ---
   late final ImportantDateRemoteDataSource importantDateRemoteDataSource =
@@ -185,6 +194,18 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       UpdateImportantDate(importantDateRepository);
   late final DeleteImportantDate deleteImportantDate =
       DeleteImportantDate(importantDateRepository);
+
+  // --- Settings: data source, repository, use cases ---
+  late final CoupleSettingsRemoteDataSource coupleSettingsRemoteDataSource =
+      CoupleSettingsRemoteDataSource(firestore: _firestore);
+  late final CoupleSettingsRepository coupleSettingsRepository =
+      CoupleSettingsRepositoryImpl(
+    remoteDataSource: coupleSettingsRemoteDataSource,
+  );
+  late final WatchCoupleSettings watchCoupleSettings =
+      WatchCoupleSettings(coupleSettingsRepository);
+  late final SaveCoupleSettings saveCoupleSettings =
+      SaveCoupleSettings(coupleSettingsRepository);
 
   // --- Convenience passthrough used by the router's redirect logic ---
   Future<bool> checkFirstRun() => checkFirstRunUseCase();

@@ -3,8 +3,8 @@
 // ============================================================================
 // Case d'un jour avec souvenir : le numéro monte en petit au-dessus de la
 // case, dont l'intérieur est rempli par l'image de couverture. Si le jour
-// porte aussi une date importante, sa bordure entoure la couverture et son
-// emoji apparaît en pastille.
+// est aussi un jour spécial, sa bordure entoure la couverture et son emoji
+// apparaît en pastille.
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -16,7 +16,7 @@ class CalendarMemoryCell extends StatelessWidget {
   final String coverUrl;
   final VoidCallback onTap;
 
-  // --- Renseignés seulement quand le jour a aussi une date importante ---
+  // --- Renseignés seulement quand le jour est aussi un jour spécial ---
   final int? borderColor;
   final String? badgeEmoji;
 
@@ -86,7 +86,7 @@ class CalendarMemoryCell extends StatelessWidget {
     );
   }
 
-  // --- Bordure de la date importante, posée sur la couverture ---
+  // --- Bordure du jour spécial, posée sur la couverture ---
   Widget _buildBorder(int color) {
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -96,7 +96,7 @@ class CalendarMemoryCell extends StatelessWidget {
     );
   }
 
-  // --- Emoji de la date importante, en pastille dans le coin ---
+  // --- Emoji du jour spécial, en pastille dans le coin ---
   Widget _buildBadge(String emoji) {
     return Align(
       alignment: Alignment.bottomRight,

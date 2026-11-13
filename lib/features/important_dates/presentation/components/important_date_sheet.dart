@@ -31,7 +31,7 @@ class ImportantDateSheet extends StatelessWidget {
     final formatter = DateFormat('d MMMM yyyy', 'fr_FR');
     final dayLabel = date.repeats
         ? '${formatter.format(occurrence)} · '
-            '${recurrenceLabel(date.recurrence).toLowerCase()}'
+            '${recurrenceSummary(date.recurrence, date.occurrenceLimit).toLowerCase()}'
         : formatter.format(occurrence);
 
     return SafeArea(

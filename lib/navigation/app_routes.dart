@@ -22,6 +22,9 @@ class AppRoutes {
   // --- Important dates route ---
   static const String addImportantDate = '/add-important-date';
 
+  // --- Settings route ---
+  static const String settings = '/settings';
+
   // --- Helper for the detail route with an id ---
   static String timelineDetailPath(String id) => '/timeline-detail/$id';
 }

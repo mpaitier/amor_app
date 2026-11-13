@@ -6,7 +6,7 @@
 // placer chaque mois.
 
 import 'package:flutter/material.dart';
-import '../../../important_dates/domain/entities/important_date_entity.dart';
+import '../../domain/entities/calendar_special_day.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../../domain/entities/calendar_month.dart';
 import '../models/calendar_layout.dart';
@@ -19,7 +19,7 @@ class CalendarMonthSection extends StatelessWidget {
   final bool showTitle;
   final DateTime today;
   final List<TimelineEventEntity> Function(DateTime day) eventsOn;
-  final List<ImportantDateEntity> Function(DateTime day) importantDatesOn;
+  final List<CalendarSpecialDay> Function(DateTime day) specialDaysOn;
   final void Function(DateTime day) onDayTap;
 
   const CalendarMonthSection({
@@ -29,7 +29,7 @@ class CalendarMonthSection extends StatelessWidget {
     required this.showTitle,
     required this.today,
     required this.eventsOn,
-    required this.importantDatesOn,
+    required this.specialDaysOn,
     required this.onDayTap,
   });
 
@@ -50,7 +50,7 @@ class CalendarMonthSection extends StatelessWidget {
             rowHeight: layout.rowHeight,
             today: today,
             eventsOn: eventsOn,
-            importantDatesOn: importantDatesOn,
+            specialDaysOn: specialDaysOn,
             onDayTap: onDayTap,
           ),
       ],

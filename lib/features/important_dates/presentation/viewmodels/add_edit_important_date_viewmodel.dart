@@ -9,6 +9,7 @@ import '../../domain/entities/important_date_entity.dart';
 import '../../domain/usecases/add_important_date.dart';
 import '../../domain/usecases/update_important_date.dart';
 import '../models/important_date_palette.dart';
+import '../models/recurrence_rule.dart';
 
 class AddEditImportantDateViewModel extends ChangeNotifier {
   final AddImportantDate _addImportantDate;
@@ -25,9 +26,15 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
   // --- Form state ---
   DateTime selectedDate;
   String selectedEmoji;
-  ImportantDateRecurrence recurrence;
   int backgroundColor;
   int borderColor;
+
+  // --- Répétition. La fréquence et la limite sont gardées même quand la
+  // --- répétition est coupée : le libellé grisé les montre, et elles
+  // --- reviennent telles quelles si on la réactive ---
+  bool repeats;
+  ImportantDateRecurrence recurrence;
+  int? occurrenceLimit;
 
   // --- Technical state ---
   bool isSaving = false;
@@ -46,11 +53,16 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
         selectedDate =
             _dayOf(dateToEdit?.date ?? initialDate ?? now ?? DateTime.now()),
         selectedEmoji = dateToEdit?.emoji ?? ImportantDatePalette.emojis.first,
-        recurrence = dateToEdit?.recurrence ?? ImportantDateRecurrence.none,
         backgroundColor = dateToEdit?.backgroundColor ??
             ImportantDateEntity.defaultBackgroundColor,
         borderColor =
-            dateToEdit?.borderColor ?? ImportantDateEntity.defaultBorderColor;
+            dateToEdit?.borderColor ?? ImportantDateEntity.defaultBorderColor,
+        repeats = dateToEdit?.repeats ?? false,
+        recurrence = (dateToEdit?.repeats ?? false)
+            ? dateToEdit!.recurrence
+            : ImportantDatePalette.recurrences.first,
+        occurrenceLimit =
+            (dateToEdit?.repeats ?? false) ? dateToEdit!.occurrenceLimit : null;
 
   // --- Ne garde que le jour : une date importante n'a pas d'heure ---
   static DateTime _dayOf(DateTime date) {
@@ -59,7 +71,6 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
 
   // --- Getters ---
   bool get isEditing => dateToEdit != null;
-  bool get repeats => recurrence != ImportantDateRecurrence.none;
 
   // --- La date telle que le formulaire la décrit en ce moment. Sert à
   // --- l'aperçu, puis à l'enregistrement ---
@@ -69,7 +80,8 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
       title: titleController.text.trim(),
       date: selectedDate,
       emoji: selectedEmoji,
-      recurrence: recurrence,
+      recurrence: repeats ? recurrence : ImportantDateRecurrence.none,
+      occurrenceLimit: repeats ? occurrenceLimit : null,
       backgroundColor: backgroundColor,
       borderColor: borderColor,
     );
@@ -86,17 +98,16 @@ class AddEditImportantDateViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Active ou coupe la répétition. Activée, elle part sur la première
-  // --- fréquence proposée : tous les ans ---
   void setRepeats(bool value) {
-    recurrence = value
-        ? ImportantDatePalette.recurrences.first
-        : ImportantDateRecurrence.none;
+    repeats = value;
     notifyListeners();
   }
 
-  void setRecurrence(ImportantDateRecurrence value) {
-    recurrence = value;
+  // --- Règle choisie dans la boîte de dialogue de répétition ---
+  void setRecurrenceRule(RecurrenceRule rule) {
+    if (rule.recurrence == ImportantDateRecurrence.none) return;
+    recurrence = rule.recurrence;
+    occurrenceLimit = rule.occurrenceLimit;
     notifyListeners();
   }
 

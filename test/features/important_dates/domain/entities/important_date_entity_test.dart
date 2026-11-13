@@ -249,6 +249,64 @@ void main() {
     });
   });
 
+  group('limite d\'occurrences', () {
+    ImportantDateEntity limited(
+      DateTime date,
+      ImportantDateRecurrence recurrence,
+      int limit,
+    ) {
+      return buildDate(date, recurrence).copyWith(occurrenceLimit: () => limit);
+    }
+
+    test('doit tomber les fois prévues puis s\'arrêter, chaque année', () {
+      final date = limited(DateTime(2024, 6, 1), ImportantDateRecurrence.yearly, 3);
+
+      expect(date.occursOn(DateTime(2024, 6, 1)), isTrue);
+      expect(date.occursOn(DateTime(2026, 6, 1)), isTrue);
+      expect(date.occursOn(DateTime(2027, 6, 1)), isFalse);
+    });
+
+    test('doit compter les mois pour une date mensuelle', () {
+      final date =
+          limited(DateTime(2026, 11, 5), ImportantDateRecurrence.monthly, 2);
+
+      expect(date.occursOn(DateTime(2026, 12, 5)), isTrue);
+      expect(date.occursOn(DateTime(2027, 1, 5)), isFalse);
+    });
+
+    test('doit compter les semaines pour une date hebdomadaire', () {
+      // --- Le 5 novembre 2026 est un jeudi ---
+      final date =
+          limited(DateTime(2026, 11, 5), ImportantDateRecurrence.weekly, 3);
+
+      expect(date.occursOn(DateTime(2026, 11, 19)), isTrue);
+      expect(date.occursOn(DateTime(2026, 11, 26)), isFalse);
+    });
+
+    test('doit renvoyer null comme prochaine fois une fois la limite atteinte',
+        () {
+      final date = limited(DateTime(2024, 6, 1), ImportantDateRecurrence.yearly, 2);
+
+      expect(date.nextOccurrence(DateTime(2024, 12, 1)), DateTime(2025, 6, 1));
+      expect(date.nextOccurrence(DateTime(2025, 7, 1)), isNull);
+    });
+
+    test('doit être ignorée pour une date ponctuelle', () {
+      final date = limited(DateTime(2026, 12, 28), ImportantDateRecurrence.none, 2);
+
+      expect(date.occursOn(DateTime(2026, 12, 28)), isTrue);
+    });
+
+    test('doit pouvoir être retirée avec copyWith', () {
+      final date = limited(DateTime(2024, 6, 1), ImportantDateRecurrence.yearly, 2);
+
+      final copy = date.copyWith(occurrenceLimit: () => null);
+
+      expect(copy.occurrenceLimit, isNull);
+      expect(copy.occursOn(DateTime(2030, 6, 1)), isTrue);
+    });
+  });
+
   group('copyWith', () {
     test('doit ne remplacer que les champs fournis', () {
       final date =

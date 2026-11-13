@@ -76,4 +76,27 @@ void main() {
       );
     });
   });
+
+  group('recurrenceSummary', () {
+    test('doit se limiter à la fréquence sans limite', () {
+      expect(
+        recurrenceSummary(ImportantDateRecurrence.yearly, null),
+        'Tous les ans',
+      );
+    });
+
+    test('doit ajouter le nombre de fois quand il y a une limite', () {
+      expect(
+        recurrenceSummary(ImportantDateRecurrence.monthly, 5),
+        'Tous les mois, 5 fois',
+      );
+    });
+
+    test('doit ignorer la limite d\'une date ponctuelle', () {
+      expect(
+        recurrenceSummary(ImportantDateRecurrence.none, 5),
+        'Une seule fois',
+      );
+    });
+  });
 }

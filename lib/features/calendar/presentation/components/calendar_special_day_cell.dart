@@ -1,23 +1,24 @@
 // ============================================================================
-// CALENDAR IMPORTANT DATE CELL
+// CALENDAR SPECIAL DAY CELL
 // ============================================================================
-// Case d'un jour qui porte une date importante, sans souvenir : le numéro
-// monte au-dessus, la case prend le fond, la bordure et l'emoji choisis.
+// Case d'un jour spécial sans souvenir (date importante, anniversaire,
+// mois-anniversaire) : le numéro monte au-dessus, la case prend le fond,
+// la bordure et l'emoji choisis.
 
 import 'package:flutter/material.dart';
-import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../important_dates/presentation/components/important_date_tile.dart';
+import '../../domain/entities/calendar_special_day.dart';
 import 'calendar_day_number_label.dart';
 
-class CalendarImportantDateCell extends StatelessWidget {
+class CalendarSpecialDayCell extends StatelessWidget {
   final int day;
-  final ImportantDateEntity date;
+  final CalendarSpecialDay specialDay;
   final VoidCallback onTap;
 
-  const CalendarImportantDateCell({
+  const CalendarSpecialDayCell({
     super.key,
     required this.day,
-    required this.date,
+    required this.specialDay,
     required this.onTap,
   });
 
@@ -36,9 +37,9 @@ class CalendarImportantDateCell extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 ImportantDateTile(
-                  emoji: date.emoji,
-                  backgroundColor: date.backgroundColor,
-                  borderColor: date.borderColor,
+                  emoji: specialDay.emoji,
+                  backgroundColor: specialDay.backgroundColor,
+                  borderColor: specialDay.borderColor,
                 ),
                 Material(
                   type: MaterialType.transparency,

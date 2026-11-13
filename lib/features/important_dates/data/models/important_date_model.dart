@@ -14,6 +14,7 @@ class ImportantDateModel extends ImportantDateEntity {
     required super.date,
     required super.emoji,
     required super.recurrence,
+    super.occurrenceLimit,
     super.backgroundColor,
     super.borderColor,
   });
@@ -27,6 +28,7 @@ class ImportantDateModel extends ImportantDateEntity {
       date: (data['date'] as Timestamp).toDate(),
       emoji: data['emoji'] ?? '',
       recurrence: _recurrenceFrom(data),
+      occurrenceLimit: data['occurrenceLimit'] as int?,
       backgroundColor: data['backgroundColor'] ??
           ImportantDateEntity.defaultBackgroundColor,
       borderColor:
@@ -42,6 +44,7 @@ class ImportantDateModel extends ImportantDateEntity {
       date: entity.date,
       emoji: entity.emoji,
       recurrence: entity.recurrence,
+      occurrenceLimit: entity.occurrenceLimit,
       backgroundColor: entity.backgroundColor,
       borderColor: entity.borderColor,
     );
@@ -55,6 +58,7 @@ class ImportantDateModel extends ImportantDateEntity {
       'date': Timestamp.fromDate(date),
       'emoji': emoji,
       'recurrence': recurrence.name,
+      'occurrenceLimit': occurrenceLimit,
       'backgroundColor': backgroundColor,
       'borderColor': borderColor,
     };

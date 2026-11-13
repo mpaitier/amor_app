@@ -14,6 +14,7 @@ import '../features/timeline/presentation/screens/event_detail_screen.dart';
 import '../features/timeline/presentation/screens/add_event_screen.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/important_dates/presentation/screens/add_important_date_screen.dart';
+import '../features/settings/presentation/screens/settings_screen.dart';
 import '../injection_container.dart';
 import 'app_routes.dart';
 
@@ -119,6 +120,14 @@ final GoRouter appRouter = GoRouter(
           ),
         );
       },
+    ),
+
+    // --- Settings route ---
+    GoRoute(
+      path: AppRoutes.settings,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: SettingsScreen(),
+      ),
     ),
   ],
 );

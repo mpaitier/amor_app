@@ -2,8 +2,8 @@
 // CALENDAR VIEWMODEL
 // ============================================================================
 // Détient l'état du calendrier : la plage de mois affichable, les souvenirs
-// rangés par jour, les dates importantes (tous deux en temps réel) et le
-// mois montré dans l'en-tête fixe.
+// rangés par jour, les dates importantes, les réglages d'anniversaire (le
+// tout en temps réel) et le mois montré dans l'en-tête fixe.
 // Ne connaît ni les pixels ni le défilement : la vue lui indique seulement
 // quel mois se trouve en haut de l'écran.
 
@@ -12,9 +12,13 @@ import 'package:flutter/foundation.dart';
 import '../../../important_dates/domain/entities/important_date_entity.dart';
 import '../../../important_dates/domain/usecases/delete_important_date.dart';
 import '../../../important_dates/domain/usecases/watch_important_dates.dart';
+import '../../../settings/domain/entities/couple_settings_entity.dart';
+import '../../../settings/domain/usecases/watch_couple_settings.dart';
 import '../../../timeline/domain/entities/timeline_event_entity.dart';
 import '../../../timeline/domain/usecases/watch_timeline_events.dart';
 import '../../domain/entities/calendar_month.dart';
+import '../../domain/entities/calendar_special_day.dart';
+import '../../domain/usecases/build_special_days.dart';
 import '../../domain/usecases/group_events_by_day.dart';
 
 class CalendarViewModel extends ChangeNotifier {
@@ -24,10 +28,13 @@ class CalendarViewModel extends ChangeNotifier {
   final WatchTimelineEvents _watchTimelineEvents;
   final WatchImportantDates _watchImportantDates;
   final DeleteImportantDate _deleteImportantDate;
+  final WatchCoupleSettings _watchCoupleSettings;
   final GroupEventsByDay _groupEventsByDay;
+  final BuildSpecialDays _buildSpecialDays;
 
   StreamSubscription<List<TimelineEventEntity>>? _eventsSubscription;
   StreamSubscription<List<ImportantDateEntity>>? _importantDatesSubscription;
+  StreamSubscription<CoupleSettingsEntity>? _settingsSubscription;
 
   // --- Repères fixes, calculés à l'ouverture de l'écran ---
   final DateTime today;
@@ -37,6 +44,7 @@ class CalendarViewModel extends ChangeNotifier {
   // --- State ---
   Map<DateTime, List<TimelineEventEntity>> _eventsByDay = const {};
   List<ImportantDateEntity> _importantDates = const [];
+  CoupleSettingsEntity? _settings;
   CalendarMonth _lastMonth;
   CalendarMonth _visibleMonth;
   String? _errorMessage;
@@ -45,13 +53,17 @@ class CalendarViewModel extends ChangeNotifier {
     required WatchTimelineEvents watchTimelineEvents,
     required WatchImportantDates watchImportantDates,
     required DeleteImportantDate deleteImportantDate,
+    required WatchCoupleSettings watchCoupleSettings,
     required GroupEventsByDay groupEventsByDay,
+    required BuildSpecialDays buildSpecialDays,
     DateTime? now,
   }) : this._(
           watchTimelineEvents,
           watchImportantDates,
           deleteImportantDate,
+          watchCoupleSettings,
           groupEventsByDay,
+          buildSpecialDays,
           now ?? DateTime.now(),
         );
 
@@ -59,7 +71,9 @@ class CalendarViewModel extends ChangeNotifier {
     this._watchTimelineEvents,
     this._watchImportantDates,
     this._deleteImportantDate,
+    this._watchCoupleSettings,
     this._groupEventsByDay,
+    this._buildSpecialDays,
     DateTime now,
   )   : today = DateTime(now.year, now.month, now.day),
         currentMonth = CalendarMonth.fromDate(now),
@@ -68,14 +82,15 @@ class CalendarViewModel extends ChangeNotifier {
         _visibleMonth = CalendarMonth.fromDate(now) {
     _listenToEvents();
     _listenToImportantDates();
+    _listenToSettings();
   }
 
   // --- Getters ---
   CalendarMonth get visibleMonth => _visibleMonth;
   String? get errorMessage => _errorMessage;
 
-  // --- Dernier mois du calendrier : le mois en cours, repoussé jusqu'à la
-  // --- date importante à venir la plus lointaine s'il y en a une ---
+  // --- Dernier mois du calendrier : le mois en cours, repoussé jusqu'au
+  // --- jour spécial à venir le plus lointain s'il y en a un ---
   CalendarMonth get lastMonth => _lastMonth;
 
   // --- Nombre de mois entre le plus ancien et le dernier, inclus ---
@@ -99,12 +114,14 @@ class CalendarViewModel extends ChangeNotifier {
     return _eventsByDay[DateTime(day.year, day.month, day.day)] ?? const [];
   }
 
-  // --- Dates importantes qui tombent un jour donné, répétitions comprises ---
-  List<ImportantDateEntity> importantDatesOn(DateTime day) {
-    return [
-      for (final date in _importantDates)
-        if (date.occursOn(day)) date,
-    ];
+  // --- Cases spéciales d'un jour donné : anniversaire, mois-anniversaire
+  // --- et dates importantes, répétitions comprises ---
+  List<CalendarSpecialDay> specialDaysOn(DateTime day) {
+    return _buildSpecialDays(
+      day: day,
+      importantDates: _importantDates,
+      settings: _settings,
+    );
   }
 
   // --- La vue signale quel mois touche le haut de l'écran ---
@@ -150,15 +167,38 @@ class CalendarViewModel extends ChangeNotifier {
     });
   }
 
-  // --- Mois de la prochaine occurrence la plus lointaine, sans jamais
+  // --- Abonnement aux réglages : l'anniversaire et les mois-anniversaires
+  // --- affichés en dépendent, et peuvent déplacer la fin du calendrier ---
+  void _listenToSettings() {
+    _settingsSubscription = _watchCoupleSettings().listen((settings) {
+      _settings = settings;
+      _lastMonth = _computeLastMonth();
+      notifyListeners();
+    }, onError: (Object error) {
+      _errorMessage = 'Impossible de charger les paramètres : $error';
+      notifyListeners();
+    });
+  }
+
+  // --- Mois du prochain jour spécial le plus lointain, sans jamais
   // --- descendre sous le mois en cours ---
   CalendarMonth _computeLastMonth() {
-    var last = currentMonth;
-    for (final date in _importantDates) {
-      final next = date.nextOccurrence(today);
-      if (next == null) continue;
+    final upcoming = <DateTime?>[
+      for (final date in _importantDates) date.nextOccurrence(today),
+    ];
 
-      final month = CalendarMonth.fromDate(next);
+    final settings = _settings;
+    if (settings != null && settings.showAnniversary) {
+      upcoming.add(settings.nextAnniversary(today));
+    }
+    if (settings != null && settings.showMonthAnniversaries) {
+      upcoming.add(settings.nextMonthAnniversary(today));
+    }
+
+    var last = currentMonth;
+    for (final day in upcoming) {
+      if (day == null) continue;
+      final month = CalendarMonth.fromDate(day);
       if (month.isAfter(last)) last = month;
     }
     return last;
@@ -174,6 +214,7 @@ class CalendarViewModel extends ChangeNotifier {
   void dispose() {
     _eventsSubscription?.cancel();
     _importantDatesSubscription?.cancel();
+    _settingsSubscription?.cancel();
     super.dispose();
   }
 }

@@ -19,6 +19,7 @@ void main() {
     date: tDay,
     emoji: '✈️',
     recurrence: ImportantDateRecurrence.yearly,
+    occurrenceLimit: 5,
     backgroundColor: 0xFFD9EAFF,
     borderColor: 0xFF2F6FDE,
   );
@@ -32,6 +33,7 @@ void main() {
       expect(model.date, tEntity.date);
       expect(model.emoji, tEntity.emoji);
       expect(model.recurrence, tEntity.recurrence);
+      expect(model.occurrenceLimit, 5);
       expect(model.backgroundColor, tEntity.backgroundColor);
       expect(model.borderColor, tEntity.borderColor);
     });
@@ -47,6 +49,7 @@ void main() {
       expect(map['date'], Timestamp.fromDate(tDay));
       expect(map['emoji'], '✈️');
       expect(map['recurrence'], 'yearly');
+      expect(map['occurrenceLimit'], 5);
       expect(map.containsKey('repeatsYearly'), isFalse);
       expect(map['backgroundColor'], 0xFFD9EAFF);
       expect(map['borderColor'], 0xFF2F6FDE);
@@ -68,6 +71,7 @@ void main() {
         'date': Timestamp.fromDate(tDay),
         'emoji': '🎄',
         'recurrence': 'monthly',
+        'occurrenceLimit': 12,
         'backgroundColor': 0xFFD9F2E0,
         'borderColor': 0xFF2E8B57,
       });
@@ -81,6 +85,7 @@ void main() {
       expect(model.date, tDay);
       expect(model.emoji, '🎄');
       expect(model.recurrence, ImportantDateRecurrence.monthly);
+      expect(model.occurrenceLimit, 12);
       expect(model.backgroundColor, 0xFFD9F2E0);
       expect(model.borderColor, 0xFF2E8B57);
     });
@@ -99,6 +104,7 @@ void main() {
       expect(model.title, '');
       expect(model.emoji, '');
       expect(model.recurrence, ImportantDateRecurrence.none);
+      expect(model.occurrenceLimit, isNull);
       expect(
         model.backgroundColor,
         ImportantDateEntity.defaultBackgroundColor,

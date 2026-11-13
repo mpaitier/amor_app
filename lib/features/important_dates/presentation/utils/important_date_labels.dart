@@ -48,3 +48,15 @@ String recurrenceLabel(ImportantDateRecurrence recurrence) {
       return 'Tous les ans';
   }
 }
+
+// --- Fréquence et limite : "Tous les ans", "Tous les mois, 5 fois"... ---
+String recurrenceSummary(
+  ImportantDateRecurrence recurrence,
+  int? occurrenceLimit,
+) {
+  final label = recurrenceLabel(recurrence);
+  if (recurrence == ImportantDateRecurrence.none || occurrenceLimit == null) {
+    return label;
+  }
+  return '$label, $occurrenceLimit fois';
+}

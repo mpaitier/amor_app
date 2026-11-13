@@ -21,6 +21,11 @@ class ImportantDateEntity {
 
   final String emoji;
   final ImportantDateRecurrence recurrence;
+
+  // --- Nombre de fois où la date revient, la première comprise. Null :
+  // --- sans fin. Ignoré pour une date ponctuelle ---
+  final int? occurrenceLimit;
+
   final int backgroundColor;
   final int borderColor;
 
@@ -30,19 +35,22 @@ class ImportantDateEntity {
     required this.date,
     required this.emoji,
     required this.recurrence,
+    this.occurrenceLimit,
     this.backgroundColor = defaultBackgroundColor,
     this.borderColor = defaultBorderColor,
   });
 
   bool get repeats => recurrence != ImportantDateRecurrence.none;
 
-  // --- Copy with modifications ---
+  // --- Copy with modifications. La limite se remplace toujours, pour
+  // --- pouvoir la remettre à null ---
   ImportantDateEntity copyWith({
     String? id,
     String? title,
     DateTime? date,
     String? emoji,
     ImportantDateRecurrence? recurrence,
+    int? Function()? occurrenceLimit,
     int? backgroundColor,
     int? borderColor,
   }) {
@@ -52,6 +60,8 @@ class ImportantDateEntity {
       date: date ?? this.date,
       emoji: emoji ?? this.emoji,
       recurrence: recurrence ?? this.recurrence,
+      occurrenceLimit:
+          occurrenceLimit != null ? occurrenceLimit() : this.occurrenceLimit,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       borderColor: borderColor ?? this.borderColor,
     );
@@ -60,13 +70,46 @@ class ImportantDateEntity {
   // --- Le jour de la date, sans heure ---
   DateTime get _firstDay => DateTime(date.year, date.month, date.day);
 
+  // --- Rang d'un jour d'occurrence : 0 pour la première fois, 1 pour la
+  // --- suivante... Suppose que le jour est bien une occurrence ---
+  int _occurrenceIndex(DateTime occurrence) {
+    final first = _firstDay;
+    switch (recurrence) {
+      case ImportantDateRecurrence.none:
+        return 0;
+      case ImportantDateRecurrence.weekly:
+        final days = DateTime.utc(
+          occurrence.year,
+          occurrence.month,
+          occurrence.day,
+        ).difference(DateTime.utc(first.year, first.month, first.day)).inDays;
+        return days ~/ 7;
+      case ImportantDateRecurrence.monthly:
+        return (occurrence.year - first.year) * 12 +
+            (occurrence.month - first.month);
+      case ImportantDateRecurrence.yearly:
+        return occurrence.year - first.year;
+    }
+  }
+
+  // --- L'occurrence fait-elle partie des fois prévues ? ---
+  bool _isWithinLimit(DateTime occurrence) {
+    final limit = occurrenceLimit;
+    if (limit == null || !repeats) return true;
+    return _occurrenceIndex(occurrence) < limit;
+  }
+
   // --- La date tombe-t-elle ce jour-là ? Une date répétée revient à partir
-  // --- de sa première fois, jamais avant ---
+  // --- de sa première fois, jamais avant, et s'arrête à sa limite ---
   bool occursOn(DateTime day) {
     final target = DateTime(day.year, day.month, day.day);
-    final first = _firstDay;
-    if (target.isBefore(first)) return false;
+    if (target.isBefore(_firstDay)) return false;
+    return _matches(target) && _isWithinLimit(target);
+  }
 
+  // --- Le jour tombe-t-il sur la fréquence, sans tenir compte de la limite ---
+  bool _matches(DateTime target) {
+    final first = _firstDay;
     switch (recurrence) {
       case ImportantDateRecurrence.none:
         return target == first;
@@ -92,8 +135,15 @@ class ImportantDateEntity {
   DateTime occurrenceInYear(int year) => occurrenceInMonth(year, date.month);
 
   // --- Prochaine fois où la date tombe, à partir de `from` inclus.
-  // --- Vaut null pour une date ponctuelle déjà passée ---
+  // --- Vaut null si elle ne reviendra plus ---
   DateTime? nextOccurrence(DateTime from) {
+    final candidate = _nextMatch(from);
+    if (candidate == null || !_isWithinLimit(candidate)) return null;
+    return candidate;
+  }
+
+  // --- Prochain jour sur la fréquence, sans tenir compte de la limite ---
+  DateTime? _nextMatch(DateTime from) {
     final fromDay = DateTime(from.year, from.month, from.day);
     final first = _firstDay;
     if (!first.isBefore(fromDay)) return first;

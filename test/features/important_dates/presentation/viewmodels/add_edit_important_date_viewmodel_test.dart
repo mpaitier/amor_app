@@ -10,6 +10,7 @@ import 'package:amor_app/features/important_dates/domain/repositories/important_
 import 'package:amor_app/features/important_dates/domain/usecases/add_important_date.dart';
 import 'package:amor_app/features/important_dates/domain/usecases/update_important_date.dart';
 import 'package:amor_app/features/important_dates/presentation/models/important_date_palette.dart';
+import 'package:amor_app/features/important_dates/presentation/models/recurrence_rule.dart';
 import 'package:amor_app/features/important_dates/presentation/viewmodels/add_edit_important_date_viewmodel.dart';
 
 class MockImportantDateRepository extends Mock
@@ -51,6 +52,7 @@ void main() {
     date: DateTime(2026, 12, 28),
     emoji: '🎂',
     recurrence: ImportantDateRecurrence.monthly,
+    occurrenceLimit: 10,
     backgroundColor: 0xFFE6D9FF,
     borderColor: 0xFF7B4FD6,
   );
@@ -66,7 +68,6 @@ void main() {
       expect(viewModel.selectedDate, DateTime(2026, 12, 28));
       expect(viewModel.today, DateTime(2026, 11, 13));
       expect(viewModel.selectedEmoji, ImportantDatePalette.emojis.first);
-      expect(viewModel.recurrence, ImportantDateRecurrence.none);
       expect(viewModel.repeats, isFalse);
       expect(
         viewModel.backgroundColor,
@@ -83,6 +84,7 @@ void main() {
       expect(viewModel.selectedDate, DateTime(2026, 12, 28));
       expect(viewModel.selectedEmoji, '🎂');
       expect(viewModel.recurrence, ImportantDateRecurrence.monthly);
+      expect(viewModel.occurrenceLimit, 10);
       expect(viewModel.repeats, isTrue);
       expect(viewModel.backgroundColor, 0xFFE6D9FF);
       expect(viewModel.borderColor, 0xFF7B4FD6);
@@ -117,32 +119,65 @@ void main() {
   });
 
   group('répétition', () {
-    test('doit partir sur tous les ans quand on l\'active', () {
+    test('doit être coupée en création, avec tous les ans en attente', () {
       final viewModel = buildViewModel();
 
-      viewModel.setRepeats(true);
-
+      expect(viewModel.repeats, isFalse);
       expect(viewModel.recurrence, ImportantDateRecurrence.yearly);
-      expect(viewModel.repeats, isTrue);
+      expect(viewModel.occurrenceLimit, isNull);
+      expect(viewModel.draft.recurrence, ImportantDateRecurrence.none);
     });
 
-    test('doit laisser choisir une autre fréquence', () {
+    test('doit appliquer tous les ans quand on l\'active', () {
+      final viewModel = buildViewModel();
+
+      viewModel.setRepeats(true);
+
+      expect(viewModel.draft.recurrence, ImportantDateRecurrence.yearly);
+    });
+
+    test('doit appliquer la règle choisie dans la boîte de dialogue', () {
       final viewModel = buildViewModel();
       viewModel.setRepeats(true);
 
-      viewModel.setRecurrence(ImportantDateRecurrence.monthly);
+      viewModel.setRecurrenceRule(
+        const RecurrenceRule(
+          recurrence: ImportantDateRecurrence.monthly,
+          occurrenceLimit: 6,
+        ),
+      );
 
-      expect(viewModel.recurrence, ImportantDateRecurrence.monthly);
+      expect(viewModel.draft.recurrence, ImportantDateRecurrence.monthly);
+      expect(viewModel.draft.occurrenceLimit, 6);
     });
 
-    test('doit revenir à une date ponctuelle quand on la coupe', () {
+    test('doit garder la règle quand on coupe puis réactive', () {
       final viewModel = buildViewModel();
-      viewModel.setRecurrence(ImportantDateRecurrence.weekly);
+      viewModel.setRepeats(true);
+      viewModel.setRecurrenceRule(
+        const RecurrenceRule(
+          recurrence: ImportantDateRecurrence.weekly,
+          occurrenceLimit: 4,
+        ),
+      );
 
       viewModel.setRepeats(false);
+      expect(viewModel.draft.recurrence, ImportantDateRecurrence.none);
+      expect(viewModel.draft.occurrenceLimit, isNull);
 
-      expect(viewModel.recurrence, ImportantDateRecurrence.none);
-      expect(viewModel.repeats, isFalse);
+      viewModel.setRepeats(true);
+      expect(viewModel.draft.recurrence, ImportantDateRecurrence.weekly);
+      expect(viewModel.draft.occurrenceLimit, 4);
+    });
+
+    test('doit ignorer une règle sans fréquence', () {
+      final viewModel = buildViewModel();
+
+      viewModel.setRecurrenceRule(
+        const RecurrenceRule(recurrence: ImportantDateRecurrence.none),
+      );
+
+      expect(viewModel.recurrence, ImportantDateRecurrence.yearly);
     });
 
     test('doit proposer tous les ans comme première fréquence', () {
@@ -195,7 +230,10 @@ void main() {
       final viewModel = buildViewModel(initialDate: DateTime(2026, 12, 28));
       viewModel.titleController.text = '  Départ à Lisbonne  ';
       viewModel.setEmoji('✈️');
-      viewModel.setRecurrence(ImportantDateRecurrence.weekly);
+      viewModel.setRepeats(true);
+      viewModel.setRecurrenceRule(
+        const RecurrenceRule(recurrence: ImportantDateRecurrence.weekly),
+      );
       viewModel.setBackgroundColor(0xFFD9EAFF);
       viewModel.setBorderColor(0xFF2F6FDE);
 

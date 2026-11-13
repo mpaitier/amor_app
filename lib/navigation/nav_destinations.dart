@@ -20,4 +20,10 @@ const List<NavDestination> navDestinations = [
     icon: Icons.calendar_month,
     routePath: AppRoutes.calendar,
   ),
+  NavDestination(
+    id: 'settings',
+    label: 'Paramètres',
+    icon: Icons.settings,
+    routePath: AppRoutes.settings,
+  ),
 ];
