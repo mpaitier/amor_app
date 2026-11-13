@@ -1,7 +1,7 @@
 // ============================================================================
 // ADD / EDIT IMPORTANT DATE SCREEN
 // ============================================================================
-// Formulaire d'une date importante. De haut en bas : le GIF, l'aperçu, le titre,
+// Formulaire d'une date importante. De haut en bas : l'aperçu, le titre,
 // l'emoji et le jour, la répétition, la bordure, le fond, puis les boutons
 // annuler et valider fixés en bas.
 
@@ -16,7 +16,6 @@ import '../../domain/entities/important_date_entity.dart';
 import '../components/important_date_color_row.dart';
 import '../components/important_date_emoji_date_row.dart';
 import '../components/important_date_form_actions.dart';
-import '../components/important_date_gif_field.dart';
 import '../components/important_date_preview.dart';
 import '../components/important_date_recurrence_field.dart';
 import '../components/important_date_title_field.dart';
@@ -36,8 +35,6 @@ class AddImportantDateScreen extends StatelessWidget {
           create: (_) => AddEditImportantDateViewModel(
             addImportantDate: sl.addImportantDate,
             updateImportantDate: sl.updateImportantDate,
-            getRandomGif: sl.getRandomGif,
-            getGifSearchTerm: sl.getGifSearchTerm,
             dateToEdit: dateToEdit,
           ),
         ),
@@ -100,8 +97,6 @@ class _AddImportantDateView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       children: [
-        const ImportantDateGifField(),
-        const SizedBox(height: 12),
         const ImportantDatePreview(),
         const SizedBox(height: 16),
         const ImportantDateTitleField(),
