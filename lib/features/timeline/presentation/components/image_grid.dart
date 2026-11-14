@@ -1,11 +1,13 @@
 // ============================================================================
 // IMAGE GRID
 // ============================================================================
-// Clickable grid of images for one event, with a zoom dialog.
+// Grille cliquable des images d'un souvenir. Un appui ouvre la visionneuse
+// sur l'image touchée.
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../domain/entities/timeline_event_entity.dart';
+import 'image_viewer_dialog.dart';
 
 class ImageGrid extends StatelessWidget {
   final TimelineEventEntity event;
@@ -25,25 +27,26 @@ class ImageGrid extends StatelessWidget {
         mainAxisSpacing: 4,
       ),
       itemCount: images.length,
-      itemBuilder: (context, index) => _buildImageTile(context, images[index]),
+      itemBuilder: (context, index) =>
+          _buildImageTile(context, images, index),
     );
   }
 
-  // --- Single grid tile, opens a zoom dialog on tap ---
-  Widget _buildImageTile(BuildContext context, String imageUrl) {
+  // --- Vignette de la grille, ouvre la visionneuse sur elle-même ---
+  Widget _buildImageTile(
+    BuildContext context,
+    List<String> images,
+    int index,
+  ) {
     return GestureDetector(
-      onTap: () => showDialog(
-        context: context,
-        builder: (_) => Dialog(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain),
-          ),
-        ),
+      onTap: () => ImageViewerDialog.show(
+        context,
+        imageUrls: images,
+        initialIndex: index,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover),
+        child: CachedNetworkImage(imageUrl: images[index], fit: BoxFit.cover),
       ),
     );
   }
