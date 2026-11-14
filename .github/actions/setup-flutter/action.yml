@@ -1,0 +1,83 @@
+name: Préparer Flutter
+description: >
+  Installe la version de Flutter du projet, crée les fichiers locaux absents
+  du dépôt (valeurs factices) et récupère les dépendances. Partagé par les
+  jobs d'analyse et de build.
+
+inputs:
+  flutter-version:
+    description: Version de Flutter, figée sur celle du poste de développement
+    required: false
+    # À relever en même temps que Flutter sur le poste (3.50 déprécie
+    # package:flutter/material.dart au profit de material_ui).
+    default: 3.47.5
+
+runs:
+  using: composite
+  steps:
+    - name: Installer Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        flutter-version: ${{ inputs.flutter-version }}
+        cache: true
+
+    # Ces fichiers restent hors du dépôt (.gitignore). L'analyse, les tests
+    # et les builds n'ont besoin que de leur présence : des valeurs factices
+    # suffisent, rien ne se connecte à Firebase en CI.
+    # - firebase_options.dart : importé par lib/main.dart
+    # - .env : déclaré comme asset dans pubspec.yaml
+    # - google-services.json : exigé par le plugin Gradle google-services
+    #   (le package doit correspondre à applicationId)
+    - name: Créer les fichiers locaux absents
+      shell: bash
+      run: |
+        if [ ! -f lib/firebase_options.dart ]; then
+          cat > lib/firebase_options.dart <<'EOF'
+        // Fichier factice créé par la CI.
+        import 'package:firebase_core/firebase_core.dart';
+
+        class DefaultFirebaseOptions {
+          static FirebaseOptions get currentPlatform => const FirebaseOptions(
+                apiKey: 'ci',
+                appId: '1:0:android:0',
+                messagingSenderId: '0',
+                projectId: 'ci',
+              );
+        }
+        EOF
+        fi
+
+        touch .env
+
+        if [ ! -f android/app/google-services.json ]; then
+          cat > android/app/google-services.json <<'EOF'
+        {
+          "project_info": {
+            "project_number": "0",
+            "project_id": "ci-placeholder",
+            "storage_bucket": "ci-placeholder.appspot.com"
+          },
+          "client": [
+            {
+              "client_info": {
+                "mobilesdk_app_id": "1:0:android:0000000000000000",
+                "android_client_info": { "package_name": "com.mpaitier.amor" }
+              },
+              "oauth_client": [],
+              "api_key": [{ "current_key": "ci-placeholder" }],
+              "services": { "appinvite_service": { "other_platform_oauth_client": [] } }
+            }
+          ],
+          "configuration_version": "1"
+        }
+        EOF
+        fi
+
+    - name: Version de Flutter
+      shell: bash
+      run: flutter --version
+
+    - name: Installer les dépendances
+      shell: bash
+      run: flutter pub get
