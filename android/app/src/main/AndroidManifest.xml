@@ -26,6 +26,22 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Liens d'invitation https://amor-app-9ee55.web.app/join/CODE.
+                 Android vérifie le domaine grâce au fichier
+                 .well-known/assetlinks.json servi par Firebase Hosting. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="amor-app-9ee55.web.app"
+                    android:pathPrefix="/join/"/>
+            </intent-filter>
+            <!-- Les liens ouverts sont transmis à GoRouter -->
+            <meta-data
+                android:name="flutter_deeplinking_enabled"
+                android:value="true"/>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

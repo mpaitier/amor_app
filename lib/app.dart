@@ -1,14 +1,15 @@
 // ============================================================================
 // ROOT APP WIDGET
 // ============================================================================
-// Crée le routeur une seule fois, branché sur la session de connexion
-// fournie par main.dart.
+// Crée le routeur une seule fois, branché sur la session (connexion et
+// relation) et sur le code d'invitation en attente, fournis par main.dart.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
+import 'features/couple/presentation/models/pending_invite.dart';
+import 'features/couple/presentation/viewmodels/couple_session_viewmodel.dart';
 import 'navigation/app_router.dart';
 
 class AmorApp extends StatefulWidget {
@@ -21,8 +22,10 @@ class AmorApp extends StatefulWidget {
 class _AmorAppState extends State<AmorApp> {
   // --- Un seul routeur pour toute la vie de l'app : le recréer ferait
   // --- perdre la pile de navigation ---
-  late final GoRouter _router =
-      createAppRouter(context.read<AuthSessionViewModel>());
+  late final GoRouter _router = createAppRouter(
+    session: context.read<CoupleSessionViewModel>(),
+    pendingInvite: context.read<PendingInvite>(),
+  );
 
   @override
   void dispose() {

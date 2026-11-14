@@ -13,6 +13,8 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
 import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
+import 'features/couple/presentation/models/pending_invite.dart';
+import 'features/couple/presentation/viewmodels/couple_session_viewmodel.dart';
 import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
 import 'features/navigation/presentation/viewmodels/floating_buttons_viewmodel.dart';
 
@@ -37,7 +39,7 @@ void main() async {
     // --- list screen and the event detail screen share the same instance.
     MultiProvider(
       providers: [
-        // --- Session de connexion, lue par le routeur dès le lancement ---
+        // --- Session de connexion ---
         ChangeNotifierProvider(
           lazy: false,
           create: (_) => AuthSessionViewModel(
@@ -45,6 +47,17 @@ void main() async {
             signOut: sl.signOut,
           ),
         ),
+        // --- Relation de la personne connectée, lue par le routeur dès le
+        // --- lancement ---
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (context) => CoupleSessionViewModel(
+            authSession: context.read<AuthSessionViewModel>(),
+            watchCurrentCouple: sl.watchCurrentCouple,
+          ),
+        ),
+        // --- Code reçu par un lien d'invitation, en attente de connexion ---
+        ChangeNotifierProvider(create: (_) => PendingInvite()),
         ChangeNotifierProvider(
           create: (_) => TimelineViewModel(
             watchTimelineEvents: sl.watchTimelineEvents,

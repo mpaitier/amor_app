@@ -1,0 +1,73 @@
+rules_version = '2';
+
+// ============================================================================
+// RÈGLES FIRESTORE
+// ============================================================================
+// Étape transitoire de l'issue #4 : les nouvelles collections (users,
+// couples, invites) sont déjà protégées. Les anciennes collections globales
+// restent ouvertes aux personnes connectées jusqu'à la migration des données
+// sous couples/{coupleId}. Les Cloud Functions passent outre ces règles.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(coupleData) {
+      return isSignedIn() && request.auth.uid in coupleData.members;
+    }
+
+    // --- Compte : chacun lit le sien. Écrit seulement par les fonctions ---
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // --- Relation : lisible par ses membres. Un membre ne peut modifier que
+    // --- son propre profil (surnom, couleur). Création et adhésion passent
+    // --- par les fonctions createCouple et joinCouple ---
+    match /couples/{coupleId} {
+      allow read: if isMember(resource.data);
+      allow update: if isMember(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profiles'])
+        && request.resource.data.profiles.diff(resource.data.profiles).affectedKeys()
+             .hasOnly([request.auth.uid])
+        && request.resource.data.profiles[request.auth.uid].keys().hasOnly(['nickname', 'color'])
+        && request.resource.data.profiles[request.auth.uid].nickname is string
+        && request.resource.data.profiles[request.auth.uid].nickname.size() > 0
+        && request.resource.data.profiles[request.auth.uid].nickname.size() <= 30
+        && request.resource.data.profiles[request.auth.uid].color is int;
+      allow create, delete: if false;
+    }
+
+    // --- Codes d'invitation : jamais lus depuis l'app ---
+    match /invites/{code} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------------------------------
+    // ANCIENNES COLLECTIONS GLOBALES (supprimées après la migration)
+    // ------------------------------------------------------------------------
+
+    match /timeline_events/{eventId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /important_dates/{dateId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /app_settings/{docId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Le jeton de l'appareil est enregistré au lancement, parfois avant
+    // --- que la session soit restaurée : reste ouvert jusqu'à l'étape des
+    // --- notifications, qui le rattachera au compte ---
+    match /device_tokens/{deviceId} {
+      allow read, write: if true;
+    }
+  }
+}

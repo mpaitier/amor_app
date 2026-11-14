@@ -11,6 +11,10 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String signIn = '/sign-in';
 
+  // --- Relation : création / adhésion, et lien d'invitation ---
+  static const String coupleSetup = '/couple-setup';
+  static const String joinWithCode = '/join/:code';
+
   // --- Timeline routes ---
   static const String addTimeline = '/add-timeline';
   static const String timelineDetail = '/timeline-detail/:id';

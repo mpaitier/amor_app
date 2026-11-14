@@ -16,6 +16,14 @@ const {
 initializeApp();
 
 // ============================================================================
+// RELATIONS (création, adhésion par code)
+// ============================================================================
+
+const { createCouple, joinCouple } = require("./couples");
+exports.createCouple = createCouple;
+exports.joinCouple = joinCouple;
+
+// ============================================================================
 // NOUVEAU SOUVENIR
 // ============================================================================
 // Prévient les autres appareils, s'ils ont gardé ce type de notification.

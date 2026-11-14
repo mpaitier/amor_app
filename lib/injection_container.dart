@@ -6,6 +6,7 @@
 // (service locator), read by screens/widgets when creating their ViewModels.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -21,6 +22,15 @@ import 'features/auth/domain/usecases/sign_in_with_email.dart';
 import 'features/auth/domain/usecases/register_with_email.dart';
 import 'features/auth/domain/usecases/send_password_reset.dart';
 import 'features/auth/domain/usecases/sign_out.dart';
+
+// --- Couple feature ---
+import 'features/couple/data/datasources/couple_remote_datasource.dart';
+import 'features/couple/data/repositories/couple_repository_impl.dart';
+import 'features/couple/domain/repositories/couple_repository.dart';
+import 'features/couple/domain/usecases/watch_current_couple.dart';
+import 'features/couple/domain/usecases/create_couple.dart';
+import 'features/couple/domain/usecases/join_couple.dart';
+import 'features/couple/domain/usecases/update_member_profile.dart';
 
 // --- Timeline feature ---
 import 'features/timeline/data/datasources/timeline_remote_datasource.dart';
@@ -104,6 +114,7 @@ class ServiceLocator {
   final http.Client _httpClient = http.Client();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
   // --- Auth: data source, repository, use cases ---
   late final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(
@@ -122,6 +133,19 @@ class ServiceLocator {
   late final SendPasswordReset sendPasswordReset =
       SendPasswordReset(authRepository);
   late final SignOut signOut = SignOut(authRepository);
+
+  // --- Couple: data source, repository, use cases ---
+  late final CoupleRemoteDataSource coupleRemoteDataSource =
+      CoupleRemoteDataSource(firestore: _firestore, functions: _functions);
+  late final CoupleRepository coupleRepository = CoupleRepositoryImpl(
+    remoteDataSource: coupleRemoteDataSource,
+  );
+  late final WatchCurrentCouple watchCurrentCouple =
+      WatchCurrentCouple(coupleRepository);
+  late final CreateCouple createCouple = CreateCouple(coupleRepository);
+  late final JoinCouple joinCouple = JoinCouple(coupleRepository);
+  late final UpdateMemberProfile updateMemberProfile =
+      UpdateMemberProfile(coupleRepository);
 
   // --- Timeline: data sources ---
   late final TimelineRemoteDataSource timelineRemoteDataSource =

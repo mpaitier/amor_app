@@ -46,3 +46,14 @@ class AuthException implements Exception {
   @override
   String toString() => 'AuthException($code)';
 }
+
+// --- Échec remonté par une Cloud Function ou par Firestore lors d'une
+// --- opération sur la relation. Porte le code brut ("not-found",
+// --- "already-exists"...), traduit plus haut par le repository ---
+class CoupleException implements Exception {
+  final String code;
+  const CoupleException(this.code);
+
+  @override
+  String toString() => 'CoupleException($code)';
+}

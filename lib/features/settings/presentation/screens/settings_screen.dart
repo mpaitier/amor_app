@@ -3,8 +3,9 @@
 // ============================================================================
 // Réglages partagés du couple : la date de début de l'histoire, puis
 // l'affichage de l'anniversaire et des mois-anniversaires dans le
-// calendrier. Chaque changement est enregistré aussitôt. Le compte
-// connecté et la déconnexion ferment la liste.
+// calendrier. Chaque changement est enregistré aussitôt. Viennent ensuite
+// la relation (membres, invitation), le profil de la personne connectée,
+// et enfin le compte avec la déconnexion.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
 import '../../../auth/presentation/components/account_card.dart';
+import '../../../couple/presentation/components/couple_overview_card.dart';
+import '../../../couple/presentation/components/member_profile_editor.dart';
+import '../../../couple/presentation/viewmodels/couple_session_viewmodel.dart';
+import '../../../couple/presentation/viewmodels/member_profile_viewmodel.dart';
 import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
 import '../../../notifications/presentation/components/notification_preferences_card.dart';
 import '../../../notifications/presentation/viewmodels/notification_preferences_viewmodel.dart';
@@ -31,6 +36,10 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // --- L'écran n'est accessible qu'avec une relation : me et coupleId
+    // --- sont donc connus ---
+    final session = context.read<CoupleSessionViewModel>();
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
@@ -48,6 +57,15 @@ class SettingsScreen extends StatelessWidget {
             removeRecentColor: sl.removeRecentColor,
           ),
         ),
+        // --- Surnom et couleur de la personne connectée ---
+        if (session.me != null && session.coupleId != null)
+          ChangeNotifierProvider(
+            create: (_) => MemberProfileViewModel(
+              updateMemberProfile: sl.updateMemberProfile,
+              coupleId: session.coupleId!,
+              member: session.me!,
+            ),
+          ),
         // --- Préférences de notifications, propres à ce téléphone ---
         ChangeNotifierProvider(
           create: (_) => NotificationPreferencesViewModel(
@@ -67,6 +85,7 @@ class _SettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<SettingsViewModel>();
+    final hasProfile = context.read<CoupleSessionViewModel>().me != null;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -81,7 +100,7 @@ class _SettingsView extends StatelessWidget {
                     ? const Center(
                         child: CircularProgressIndicator(color: amorPink),
                       )
-                    : _buildContent(viewModel),
+                    : _buildContent(viewModel, hasProfile: hasProfile),
               ),
             ],
           ),
@@ -103,7 +122,10 @@ class _SettingsView extends StatelessWidget {
     }
   }
 
-  Widget _buildContent(SettingsViewModel viewModel) {
+  Widget _buildContent(
+    SettingsViewModel viewModel, {
+    required bool hasProfile,
+  }) {
     final settings = viewModel.settings;
     final today = viewModel.today;
 
@@ -174,6 +196,18 @@ class _SettingsView extends StatelessWidget {
           title: 'GIF des souvenirs et des dates',
           child: GifSearchTermField(),
         ),
+        const SizedBox(height: 20),
+        const SettingsSection(
+          title: 'Notre relation',
+          child: CoupleOverviewCard(),
+        ),
+        if (hasProfile) ...[
+          const SizedBox(height: 20),
+          const SettingsSection(
+            title: 'Mon profil',
+            child: MemberProfileEditor(),
+          ),
+        ],
         const SizedBox(height: 20),
         const SettingsSection(
           title: 'Compte',
