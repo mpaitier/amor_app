@@ -3,6 +3,9 @@
 // ============================================================================
 // Vit à la racine de l'app. Suit en temps réel qui est connecté ; GoRouter
 // l'écoute pour envoyer vers l'écran de connexion ou vers le journal.
+// beforeSignOut s'exécute pendant que la session est encore ouverte (les
+// règles Firestore exigent d'être connecté), par exemple pour détacher le
+// téléphone du compte.
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -20,6 +23,7 @@ enum AuthStatus {
 class AuthSessionViewModel extends ChangeNotifier {
   final WatchAuthState _watchAuthState;
   final SignOut _signOut;
+  final Future<void> Function()? _beforeSignOut;
 
   StreamSubscription<AppUser?>? _subscription;
 
@@ -30,8 +34,10 @@ class AuthSessionViewModel extends ChangeNotifier {
   AuthSessionViewModel({
     required WatchAuthState watchAuthState,
     required SignOut signOut,
+    Future<void> Function()? beforeSignOut,
   })  : _watchAuthState = watchAuthState,
-        _signOut = signOut {
+        _signOut = signOut,
+        _beforeSignOut = beforeSignOut {
     _listen();
   }
 
@@ -57,8 +63,16 @@ class AuthSessionViewModel extends ChangeNotifier {
     );
   }
 
-  // --- La redirection suit d'elle-même, via le flux ---
-  Future<void> signOut() => _signOut();
+  // --- La redirection suit d'elle-même, via le flux. Un échec de l'action
+  // --- préalable n'empêche jamais de se déconnecter ---
+  Future<void> signOut() async {
+    try {
+      await _beforeSignOut?.call();
+    } catch (_) {
+      // --- On se déconnecte quand même ---
+    }
+    await _signOut();
+  }
 
   @override
   void dispose() {

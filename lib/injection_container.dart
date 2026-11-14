@@ -71,6 +71,7 @@ import 'features/notifications/data/datasources/local_notification_datasource.da
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
 import 'features/notifications/domain/usecases/register_device_token.dart';
+import 'features/notifications/domain/usecases/unregister_device_token.dart';
 import 'features/notifications/data/datasources/notification_preferences_remote_datasource.dart';
 import 'features/notifications/data/repositories/notification_preferences_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_preferences_repository.dart';
@@ -228,13 +229,18 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
 late final RegisterDeviceToken registerDeviceToken =
     RegisterDeviceToken(notificationRepository);
+late final UnregisterDeviceToken unregisterDeviceToken =
+    UnregisterDeviceToken(notificationRepository);
 
   // --- Préférences de notifications de ce téléphone ---
   late final NotificationPreferencesRepository
       notificationPreferencesRepository =
       NotificationPreferencesRepositoryImpl(
     remoteDataSource:
-        NotificationPreferencesRemoteDataSource(firestore: _firestore),
+        NotificationPreferencesRemoteDataSource(
+      firestore: _firestore,
+      currentUid: () => _auth.currentUser?.uid,
+    ),
     deviceIdentityDataSource: deviceIdentityDataSource,
   );
   late final WatchNotificationPreferences watchNotificationPreferences =

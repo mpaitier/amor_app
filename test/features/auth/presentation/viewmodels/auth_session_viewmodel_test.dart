@@ -89,4 +89,43 @@ void main() {
 
     verify(() => mockRepository.signOut()).called(1);
   });
+
+  group('beforeSignOut', () {
+    // --- Ces tests créent leur propre session : elle reçoit un flux à elle,
+    // --- le StreamController du setUp étant déjà écouté ---
+    setUp(() {
+      when(() => mockRepository.watchAuthState())
+          .thenAnswer((_) => const Stream<AppUser?>.empty());
+    });
+
+    test('s\'exécute avant la déconnexion', () async {
+      final calls = <String>[];
+      when(() => mockRepository.signOut()).thenAnswer((_) async {
+        calls.add('signOut');
+      });
+      final session = AuthSessionViewModel(
+        watchAuthState: WatchAuthState(mockRepository),
+        signOut: SignOut(mockRepository),
+        beforeSignOut: () async => calls.add('beforeSignOut'),
+      );
+
+      await session.signOut();
+
+      expect(calls, ['beforeSignOut', 'signOut']);
+      session.dispose();
+    });
+
+    test('un échec n\'empêche pas la déconnexion', () async {
+      final session = AuthSessionViewModel(
+        watchAuthState: WatchAuthState(mockRepository),
+        signOut: SignOut(mockRepository),
+        beforeSignOut: () async => throw Exception('hors ligne'),
+      );
+
+      await session.signOut();
+
+      verify(() => mockRepository.signOut()).called(1);
+      session.dispose();
+    });
+  });
 }

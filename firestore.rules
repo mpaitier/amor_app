@@ -3,11 +3,11 @@ rules_version = '2';
 // ============================================================================
 // RÈGLES FIRESTORE
 // ============================================================================
-// Étape transitoire de l'issue #4 : les données de chaque relation vivent
-// sous couples/{coupleId}/ et ne sont accessibles qu'à ses membres. Les
-// anciennes collections globales restent lisibles par les personnes
-// connectées le temps de vérifier la migration, puis seront supprimées.
-// Les Cloud Functions et le script de migration passent outre ces règles.
+// Les données de chaque relation vivent sous couples/{coupleId}/ et ne sont
+// accessibles qu'à ses membres. Chaque téléphone a son document
+// device_tokens/{deviceId}, rattaché au compte connecté par le champ uid.
+// Tout ce qui n'est pas listé ici est refusé. Les Cloud Functions passent
+// outre ces règles.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -67,31 +67,19 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ------------------------------------------------------------------------
-    // ANCIENNES COLLECTIONS GLOBALES (lecture seule, supprimées après la
-    // vérification de la migration)
-    // ------------------------------------------------------------------------
-
-    match /timeline_events/{eventId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    match /important_dates/{dateId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    match /app_settings/{docId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
-    // --- Le jeton de l'appareil est enregistré au lancement, parfois avant
-    // --- que la session soit restaurée : reste ouvert jusqu'à l'étape des
-    // --- notifications, qui le rattachera au compte ---
+    // --- Téléphone : jeton FCM, préférences de notifications et uid du
+    // --- compte connecté. Un téléphone peut changer de compte (on écrit son
+    // --- propre uid) ; à la déconnexion, son compte retire l'uid ---
     match /device_tokens/{deviceId} {
-      allow read, write: if true;
+      allow read: if isSignedIn()
+        && (resource == null || resource.data.get('uid', null) == request.auth.uid);
+      allow create, update: if isSignedIn()
+        && request.resource.data.get('uid', null) == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.get('uid', null) == request.auth.uid
+        && !('uid' in request.resource.data);
+      allow delete: if isSignedIn()
+        && resource.data.get('uid', null) == request.auth.uid;
     }
   }
 }

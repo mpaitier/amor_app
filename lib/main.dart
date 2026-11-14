@@ -43,6 +43,9 @@ void main() async {
           create: (_) => AuthSessionViewModel(
             watchAuthState: sl.watchAuthState,
             signOut: sl.signOut,
+            // --- Le téléphone cesse de recevoir les notifications de la
+            // --- relation une fois déconnecté ---
+            beforeSignOut: () => sl.unregisterDeviceToken(),
           ),
         ),
         // --- Relation de la personne connectée, lue par le routeur dès le

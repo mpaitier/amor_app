@@ -80,5 +80,20 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
+  Future<void> unregisterDeviceToken() async {
+    try {
+      final deviceId = await _deviceIdentityDataSource.getOrCreateDeviceId();
+      // --- Le jeton et les préférences restent : ils reservent si un
+      // --- compte se reconnecte sur ce téléphone ---
+      await _firestore.collection('device_tokens').doc(deviceId).update({
+        'uid': FieldValue.delete(),
+      });
+    } catch (_) {
+      // --- Document absent ou hors ligne : rien à détacher, la
+      // --- déconnexion continue ---
+    }
+  }
+
+  @override
   Future<String> getDeviceId() => _deviceIdentityDataSource.getOrCreateDeviceId();
 }
