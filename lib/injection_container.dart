@@ -6,8 +6,37 @@
 // (service locator), read by screens/widgets when creating their ViewModels.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
+
+import 'core/session/current_couple.dart';
+
+// --- Auth feature ---
+import 'features/auth/data/datasources/auth_remote_datasource.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/domain/usecases/watch_auth_state.dart';
+import 'features/auth/domain/usecases/sign_in_with_google.dart';
+import 'features/auth/domain/usecases/sign_in_with_email.dart';
+import 'features/auth/domain/usecases/register_with_email.dart';
+import 'features/auth/domain/usecases/send_password_reset.dart';
+import 'features/auth/domain/usecases/sign_out.dart';
+import 'features/auth/domain/usecases/delete_account.dart';
+
+// --- Couple feature ---
+import 'features/couple/data/datasources/couple_remote_datasource.dart';
+import 'features/couple/data/repositories/couple_repository_impl.dart';
+import 'features/couple/domain/repositories/couple_repository.dart';
+import 'features/couple/domain/usecases/watch_current_couple.dart';
+import 'features/couple/domain/usecases/create_couple.dart';
+import 'features/couple/domain/usecases/join_couple.dart';
+import 'features/couple/domain/usecases/update_member_profile.dart';
+import 'features/couple/domain/usecases/request_couple_end.dart';
+import 'features/couple/domain/usecases/respond_to_couple_end.dart';
+import 'features/couple/domain/usecases/cancel_couple_end.dart';
 
 // --- Timeline feature ---
 import 'features/timeline/data/datasources/timeline_remote_datasource.dart';
@@ -24,17 +53,6 @@ import 'features/timeline/domain/usecases/delete_timeline_event.dart';
 import 'features/timeline/domain/usecases/pick_images_from_gallery.dart';
 import 'features/timeline/domain/usecases/take_photo.dart';
 import 'features/timeline/domain/usecases/upload_images.dart';
-
-// --- Onboarding feature ---
-import 'features/onboarding/data/datasources/preferences_local_datasource.dart';
-import 'features/onboarding/data/datasources/motion_datasource.dart';
-import 'features/onboarding/data/repositories/preferences_repository_impl.dart';
-import 'features/onboarding/data/repositories/motion_repository_impl.dart';
-import 'features/onboarding/domain/repositories/preferences_repository.dart';
-import 'features/onboarding/domain/repositories/motion_repository.dart';
-import 'features/onboarding/domain/usecases/check_first_run.dart';
-import 'features/onboarding/domain/usecases/complete_onboarding.dart';
-import 'features/onboarding/domain/usecases/watch_shake_events.dart';
 
 // --- Place feature ---
 import 'features/place/data/datasources/place_remote_datasource.dart';
@@ -56,6 +74,8 @@ import 'features/notifications/domain/repositories/notification_repository.dart'
 import 'features/notifications/data/datasources/local_notification_datasource.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
+import 'features/notifications/domain/usecases/register_device_token.dart';
+import 'features/notifications/domain/usecases/unregister_device_token.dart';
 import 'features/notifications/data/datasources/notification_preferences_remote_datasource.dart';
 import 'features/notifications/data/repositories/notification_preferences_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_preferences_repository.dart';
@@ -100,14 +120,62 @@ class ServiceLocator {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final http.Client _httpClient = http.Client();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+
+  // --- Relation active, lue par les data sources rangées sous
+  // --- couples/{coupleId}/ ---
+  final CurrentCouple currentCouple = CurrentCouple();
+
+  // --- Auth: data source, repository, use cases ---
+  late final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(
+    auth: _auth,
+    googleSignIn: _googleSignIn,
+    functions: _functions,
+  );
+  late final AuthRepository authRepository = AuthRepositoryImpl(
+    remoteDataSource: authRemoteDataSource,
+  );
+  late final WatchAuthState watchAuthState = WatchAuthState(authRepository);
+  late final SignInWithGoogle signInWithGoogle =
+      SignInWithGoogle(authRepository);
+  late final SignInWithEmail signInWithEmail = SignInWithEmail(authRepository);
+  late final RegisterWithEmail registerWithEmail =
+      RegisterWithEmail(authRepository);
+  late final SendPasswordReset sendPasswordReset =
+      SendPasswordReset(authRepository);
+  late final SignOut signOut = SignOut(authRepository);
+  late final DeleteAccount deleteAccount = DeleteAccount(authRepository);
+
+  // --- Couple: data source, repository, use cases ---
+  late final CoupleRemoteDataSource coupleRemoteDataSource =
+      CoupleRemoteDataSource(firestore: _firestore, functions: _functions);
+  late final CoupleRepository coupleRepository = CoupleRepositoryImpl(
+    remoteDataSource: coupleRemoteDataSource,
+  );
+  late final WatchCurrentCouple watchCurrentCouple =
+      WatchCurrentCouple(coupleRepository);
+  late final CreateCouple createCouple = CreateCouple(coupleRepository);
+  late final JoinCouple joinCouple = JoinCouple(coupleRepository);
+  late final UpdateMemberProfile updateMemberProfile =
+      UpdateMemberProfile(coupleRepository);
+  late final RequestCoupleEnd requestCoupleEnd =
+      RequestCoupleEnd(coupleRepository);
+  late final RespondToCoupleEnd respondToCoupleEnd =
+      RespondToCoupleEnd(coupleRepository);
+  late final CancelCoupleEnd cancelCoupleEnd = CancelCoupleEnd(coupleRepository);
 
   // --- Timeline: data sources ---
   late final TimelineRemoteDataSource timelineRemoteDataSource =
-      TimelineRemoteDataSource(firestore: _firestore);
+      TimelineRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final ImageLocalDataSource imageLocalDataSource =
       ImageLocalDataSource();
   late final ImageRemoteDataSource imageRemoteDataSource =
-      ImageRemoteDataSource(storage: _storage);
+      ImageRemoteDataSource(storage: _storage, currentCouple: currentCouple);
 
   // --- Timeline: repositories ---
   late final TimelineRepository timelineRepository = TimelineRepositoryImpl(
@@ -131,26 +199,6 @@ class ServiceLocator {
       PickImagesFromGallery(imageRepository);
   late final TakePhoto takePhoto = TakePhoto(imageRepository);
   late final UploadImages uploadImages = UploadImages(imageRepository);
-
-  // --- Onboarding: data sources ---
-  late final PreferencesLocalDataSource preferencesLocalDataSource =
-      PreferencesLocalDataSource();
-  late final MotionDataSource motionDataSource = MotionDataSource();
-
-  // --- Onboarding: repositories ---
-  late final PreferencesRepository preferencesRepository =
-      PreferencesRepositoryImpl(localDataSource: preferencesLocalDataSource);
-  late final MotionRepository motionRepository = MotionRepositoryImpl(
-    dataSource: motionDataSource,
-  );
-
-  // --- Onboarding: use cases ---
-  late final CheckFirstRun checkFirstRunUseCase =
-      CheckFirstRun(preferencesRepository);
-  late final CompleteOnboarding completeOnboarding =
-      CompleteOnboarding(preferencesRepository);
-  late final WatchShakeEvents watchShakeEvents =
-      WatchShakeEvents(motionRepository);
 
   // --- Place: data source, repository, use case ---
   late final PlaceRemoteDataSource placeRemoteDataSource =
@@ -182,6 +230,7 @@ late final NotificationRepository notificationRepository =
   localDataSource: localNotificationDataSource,
   deviceIdentityDataSource: deviceIdentityDataSource,
   firestore: _firestore,
+  currentUid: () => _auth.currentUser?.uid,
 );
 
 late final InitializeNotifications initializeNotifications =
@@ -189,12 +238,20 @@ late final InitializeNotifications initializeNotifications =
 
 late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
+late final RegisterDeviceToken registerDeviceToken =
+    RegisterDeviceToken(notificationRepository);
+late final UnregisterDeviceToken unregisterDeviceToken =
+    UnregisterDeviceToken(notificationRepository);
+
   // --- Préférences de notifications de ce téléphone ---
   late final NotificationPreferencesRepository
       notificationPreferencesRepository =
       NotificationPreferencesRepositoryImpl(
     remoteDataSource:
-        NotificationPreferencesRemoteDataSource(firestore: _firestore),
+        NotificationPreferencesRemoteDataSource(
+      firestore: _firestore,
+      currentUid: () => _auth.currentUser?.uid,
+    ),
     deviceIdentityDataSource: deviceIdentityDataSource,
   );
   late final WatchNotificationPreferences watchNotificationPreferences =
@@ -208,7 +265,10 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Important dates: data source, repository, use cases ---
   late final ImportantDateRemoteDataSource importantDateRemoteDataSource =
-      ImportantDateRemoteDataSource(firestore: _firestore);
+      ImportantDateRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final ImportantDateRepository importantDateRepository =
       ImportantDateRepositoryImpl(
     remoteDataSource: importantDateRemoteDataSource,
@@ -224,7 +284,10 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Settings: data source, repository, use cases ---
   late final CoupleSettingsRemoteDataSource coupleSettingsRemoteDataSource =
-      CoupleSettingsRemoteDataSource(firestore: _firestore);
+      CoupleSettingsRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final CoupleSettingsRepository coupleSettingsRepository =
       CoupleSettingsRepositoryImpl(
     remoteDataSource: coupleSettingsRemoteDataSource,
@@ -247,9 +310,6 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       AddRecentColor(colorHistoryRepository);
   late final RemoveRecentColor removeRecentColor =
       RemoveRecentColor(colorHistoryRepository);
-
-  // --- Convenience passthrough used by the router's redirect logic ---
-  Future<bool> checkFirstRun() => checkFirstRunUseCase();
 }
 
 // --- Global accessor ---

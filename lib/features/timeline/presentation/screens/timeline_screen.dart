@@ -2,13 +2,15 @@
 // TIMELINE SCREEN
 // ============================================================================
 // Main screen listing all memories, with the upcoming anniversaries.
-// TimelineViewModel is provided once at the app root (see main.dart);
-// UpcomingSpecialDaysViewModel lives with this screen.
+// TimelineViewModel is provided per relationship (couple_scoped_providers);
+// UpcomingSpecialDaysViewModel lives with this screen. EndRequestPrompt
+// asks for an answer when an end request is waiting for this person.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../couple/presentation/components/end_request_prompt.dart';
 import '../../../navigation/presentation/components/floating_add_button.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
 import '../../../settings/domain/usecases/get_upcoming_special_days.dart';
@@ -44,6 +46,9 @@ class TimelineScreen extends StatelessWidget {
 
           // --- Menu de navigation flottant, bas-droite ---
           FloatingNavMenu(currentRoute: AppRoutes.mainMenu),
+
+          // --- Demande d'arrêt en attente de réponse (rien d'affiché) ---
+          EndRequestPrompt(),
         ],
       ),
     );

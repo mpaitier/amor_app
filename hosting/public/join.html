@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rejoindre une relation sur Amor</title>
+  <!--
+    Page affichée quand un lien d'invitation (/join/CODE) s'ouvre dans le
+    navigateur au lieu de l'app : app absente, ou lien non vérifié par
+    Android. Elle montre le code à saisir à la main.
+  -->
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #F1EBDF;
+      color: #703348;
+      font-family: Georgia, "Times New Roman", serif;
+      text-align: center;
+    }
+    main { max-width: 420px; padding: 32px 24px; }
+    h1 { font-size: 32px; margin: 0 0 16px; }
+    p { font-size: 17px; line-height: 1.5; }
+    .code {
+      display: inline-block;
+      margin: 12px 0 20px;
+      padding: 12px 24px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      font-family: "Courier New", monospace;
+      font-size: 34px;
+      font-weight: bold;
+      letter-spacing: 6px;
+    }
+    button {
+      border: none;
+      border-radius: 24px;
+      padding: 12px 24px;
+      background: #703348;
+      color: #FFFFFF;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>On t'invite sur Amor</h1>
+    <p id="intro">Ouvre l'app Amor, connecte-toi, puis choisis « Rejoindre avec un code » et saisis :</p>
+    <div class="code" id="code">······</div>
+    <div><button id="copy" type="button">Copier le code</button></div>
+  </main>
+  <script>
+    // --- Le code est la dernière partie du chemin : /join/K7PQ2A ---
+    var parts = window.location.pathname.split("/").filter(Boolean);
+    var code = (parts[1] || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    var codeElement = document.getElementById("code");
+    var copyButton = document.getElementById("copy");
+
+    if (code.length === 6) {
+      codeElement.textContent = code;
+      copyButton.addEventListener("click", function () {
+        navigator.clipboard.writeText(code).then(function () {
+          copyButton.textContent = "Code copié";
+        });
+      });
+    } else {
+      document.getElementById("intro").textContent =
+        "Ce lien d'invitation est incomplet. Demande à la personne qui t'invite de te renvoyer son code.";
+      codeElement.style.display = "none";
+      copyButton.style.display = "none";
+    }
+  </script>
+</body>
+</html>

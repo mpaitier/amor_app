@@ -49,7 +49,7 @@ void main() {
       title: 'Souvenir $id',
       date: date,
       place: 'Nantes',
-      who: 'Titi',
+      creatorUid: 'uid-titi',
       imageUrl: '',
       description: '',
     );

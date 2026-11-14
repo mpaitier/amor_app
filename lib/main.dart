@@ -12,7 +12,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
-import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
+import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
+import 'features/couple/presentation/models/pending_invite.dart';
+import 'features/couple/presentation/viewmodels/couple_session_viewmodel.dart';
 import 'features/navigation/presentation/viewmodels/floating_buttons_viewmodel.dart';
 
 void main() async {
@@ -31,17 +33,39 @@ void main() async {
   await sl.initializeNotifications();
 
   runApp(
-    // --- Global ViewModel injection ---
-    // --- TimelineViewModel lives at the app root so both the timeline
-    // --- list screen and the event detail screen share the same instance.
+    // --- Global ViewModel injection. Les ViewModels propres à une relation
+    // --- (journal) vivent dans CoupleScopedProviders, sous AmorApp ---
     MultiProvider(
       providers: [
+        // --- Session de connexion ---
         ChangeNotifierProvider(
-          create: (_) => TimelineViewModel(
-            watchTimelineEvents: sl.watchTimelineEvents,
-            deleteTimelineEvent: sl.deleteTimelineEvent,
+          lazy: false,
+          create: (_) => AuthSessionViewModel(
+            watchAuthState: sl.watchAuthState,
+            signOut: sl.signOut,
+            // --- Le téléphone cesse de recevoir les notifications de la
+            // --- relation une fois déconnecté ---
+            beforeSignOut: () => sl.unregisterDeviceToken(),
           ),
         ),
+        // --- Relation de la personne connectée, lue par le routeur dès le
+        // --- lancement ---
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (context) => CoupleSessionViewModel(
+            authSession: context.read<AuthSessionViewModel>(),
+            watchCurrentCouple: sl.watchCurrentCouple,
+            onCoupleChanged: (coupleId) {
+              // --- Les data sources rangent leurs données sous cette
+              // --- relation ---
+              sl.currentCouple.set(coupleId);
+              // --- Le jeton du téléphone est rattaché au compte connecté ---
+              if (coupleId != null) sl.registerDeviceToken();
+            },
+          ),
+        ),
+        // --- Code reçu par un lien d'invitation, en attente de connexion ---
+        ChangeNotifierProvider(create: (_) => PendingInvite()),
         // --- Position des boutons flottants, partagée par tous les écrans
         // --- et oubliée à la fermeture de l'app ---
         ChangeNotifierProvider(create: (_) => FloatingButtonsViewModel()),

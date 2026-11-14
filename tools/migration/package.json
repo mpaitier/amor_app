@@ -1,0 +1,14 @@
+{
+  "name": "amor-migration",
+  "description": "Migration des anciennes collections globales vers couples/{coupleId}",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.6.0"
+  }
+}

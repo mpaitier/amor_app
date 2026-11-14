@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "amor-app-9ee55",
-          "appId": "1:246484590448:android:c87854390b07916d8f79b5",
+          "appId": "1:246484590448:android:9700381f72584dda8f79b5",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -12,8 +12,8 @@
         "lib/firebase_options.dart": {
           "projectId": "amor-app-9ee55",
           "configurations": {
-            "android": "1:246484590448:android:c87854390b07916d8f79b5",
-            "ios": "1:246484590448:ios:dd67c87e25e9f2b98f79b5"
+            "android": "1:246484590448:android:9700381f72584dda8f79b5",
+            "ios": "1:246484590448:ios:93c0550190b2a8da8f79b5"
           }
         }
       }
@@ -32,5 +32,39 @@
         "*.local"
       ]
     }
-  ]
+  ],
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "hosting/public",
+    "ignore": [
+      "firebase.json",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/delete-account",
+        "destination": "/delete-account.html"
+      },
+      {
+        "source": "/join/**",
+        "destination": "/join.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/.well-known/assetlinks.json",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      }
+    ]
+  }
 }

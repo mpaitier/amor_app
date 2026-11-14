@@ -2,7 +2,8 @@
 // ADD / EDIT EVENT VIEWMODEL
 // ============================================================================
 // Owns the add-event form state and orchestrates image upload + save.
-// Images are uploaded ONLY when save() is called.
+// Images are uploaded ONLY when save() is called. L'auteur est la personne
+// connectée ; en modification, l'auteur d'origine est conservé.
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -26,13 +27,15 @@ class AddEditEventViewModel extends ChangeNotifier {
 
   final TimelineEventEntity? eventToEdit;
 
+  // --- uid de la personne connectée, auteur des nouveaux souvenirs ---
+  final String currentUid;
+
   // --- Text controllers (owned by the ViewModel, disposed with it) ---
   late final TextEditingController titleController;
   late final TextEditingController descriptionController;
 
   // --- Form state ---
   DateTime selectedDate = DateTime.now();
-  String selectedWho = 'Lulu';
   String currentPlace = '';
   List<ImageItem> imageItems = [];
 
@@ -63,6 +66,7 @@ class AddEditEventViewModel extends ChangeNotifier {
     required GetDeviceId getDeviceId,
     required GetRandomGif getRandomGif,
     required GetGifSearchTerm getGifSearchTerm,
+    required this.currentUid,
     this.eventToEdit,
   })  : _addTimelineEvent = addTimelineEvent,
         _updateTimelineEvent = updateTimelineEvent,
@@ -82,7 +86,6 @@ class AddEditEventViewModel extends ChangeNotifier {
     descriptionController =
         TextEditingController(text: eventToEdit?.description ?? '');
     selectedDate = eventToEdit?.date ?? DateTime.now();
-    selectedWho = eventToEdit?.who ?? 'Lulu';
     currentPlace = eventToEdit?.place ?? '';
     gifUrl = eventToEdit?.gifUrl ?? '';
 
@@ -100,11 +103,6 @@ class AddEditEventViewModel extends ChangeNotifier {
   // --- Field setters ---
   void setDate(DateTime date) {
     selectedDate = date;
-    notifyListeners();
-  }
-
-  void setWho(String who) {
-    selectedWho = who;
     notifyListeners();
   }
 
@@ -184,15 +182,16 @@ class AddEditEventViewModel extends ChangeNotifier {
       final finalImageUrls = updatedItems.map((i) => i.url).join('|');
 
       final deviceId = await _getDeviceId();
+      final originalCreator = eventToEdit?.creatorUid ?? '';
 
       final event = TimelineEventEntity(
         id: eventToEdit?.id ?? '',
         title: titleController.text.trim(),
         date: selectedDate,
         place: currentPlace,
-        who: selectedWho,
         imageUrl: finalImageUrls,
         description: descriptionController.text.trim(),
+        creatorUid: originalCreator.isNotEmpty ? originalCreator : currentUid,
         creatorDeviceId: deviceId,
         gifUrl: gifUrl,
       );
@@ -215,14 +214,15 @@ class AddEditEventViewModel extends ChangeNotifier {
     }
   }
 
-  // --- Build a clean Storage folder name from the event title ---
+  // --- Dossier Storage tiré du titre. Relatif à la relation : la data
+  // --- source le range sous couples/{coupleId}/ ---
   String _buildStorageFolder(String title) {
     final folderName = title
         .trim()
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9àâäéèêëîïôùûüç\s]'), '')
         .replaceAll(RegExp(r'\s+'), '_');
-    return 'amor_events/$folderName';
+    return 'events/$folderName';
   }
 
   @override

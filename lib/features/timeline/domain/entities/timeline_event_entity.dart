@@ -8,9 +8,14 @@ class TimelineEventEntity {
   final String title;
   final DateTime date;
   final String place;
-  final String who;
   final String imageUrl;
   final String description;
+
+  // --- uid de la personne qui a créé le souvenir. Son surnom et sa couleur
+  // --- viennent de son profil dans la relation ---
+  final String creatorUid;
+
+  // --- Téléphone d'origine : la notification ne lui est pas renvoyée ---
   final String creatorDeviceId;
 
   // --- GIF tiré au hasard à la création, vide pour les anciens souvenirs ---
@@ -21,9 +26,9 @@ class TimelineEventEntity {
     required this.title,
     required this.date,
     required this.place,
-    required this.who,
     required this.imageUrl,
     required this.description,
+    this.creatorUid = '',
     this.creatorDeviceId = '',
     this.gifUrl = '',
   });
@@ -34,9 +39,9 @@ class TimelineEventEntity {
     String? title,
     DateTime? date,
     String? place,
-    String? who,
     String? imageUrl,
     String? description,
+    String? creatorUid,
     String? creatorDeviceId,
     String? gifUrl,
   }) {
@@ -45,9 +50,9 @@ class TimelineEventEntity {
       title: title ?? this.title,
       date: date ?? this.date,
       place: place ?? this.place,
-      who: who ?? this.who,
       imageUrl: imageUrl ?? this.imageUrl,
       description: description ?? this.description,
+      creatorUid: creatorUid ?? this.creatorUid,
       creatorDeviceId: creatorDeviceId ?? this.creatorDeviceId,
       gifUrl: gifUrl ?? this.gifUrl,
     );

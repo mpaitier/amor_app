@@ -1,0 +1,85 @@
+rules_version = '2';
+
+// ============================================================================
+// RÈGLES FIRESTORE
+// ============================================================================
+// Les données de chaque relation vivent sous couples/{coupleId}/ et ne sont
+// accessibles qu'à ses membres. Chaque téléphone a son document
+// device_tokens/{deviceId}, rattaché au compte connecté par le champ uid.
+// Tout ce qui n'est pas listé ici est refusé. Les Cloud Functions passent
+// outre ces règles.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(coupleData) {
+      return isSignedIn() && request.auth.uid in coupleData.members;
+    }
+
+    // --- Pour les sous-collections : relit le document de la relation ---
+    function isCoupleMember(coupleId) {
+      return isSignedIn() && request.auth.uid in
+        get(/databases/$(database)/documents/couples/$(coupleId)).data.members;
+    }
+
+    // --- Compte : chacun lit le sien. Écrit seulement par les fonctions ---
+    match /users/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // --- Relation : lisible par ses membres. Un membre ne peut modifier que
+    // --- son propre profil (surnom, couleur). Création et adhésion passent
+    // --- par les fonctions createCouple et joinCouple ---
+    match /couples/{coupleId} {
+      allow read: if isMember(resource.data);
+      allow update: if isMember(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profiles'])
+        && request.resource.data.profiles.diff(resource.data.profiles).affectedKeys()
+             .hasOnly([request.auth.uid])
+        && request.resource.data.profiles[request.auth.uid].keys().hasOnly(['nickname', 'color'])
+        && request.resource.data.profiles[request.auth.uid].nickname is string
+        && request.resource.data.profiles[request.auth.uid].nickname.size() > 0
+        && request.resource.data.profiles[request.auth.uid].nickname.size() <= 30
+        && request.resource.data.profiles[request.auth.uid].color is int;
+      allow create, delete: if false;
+
+      // --- Données partagées de la relation ---
+      match /timeline_events/{eventId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+
+      match /important_dates/{dateId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+
+      match /settings/{docId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+    }
+
+    // --- Codes d'invitation : jamais lus depuis l'app ---
+    match /invites/{code} {
+      allow read, write: if false;
+    }
+
+    // --- Téléphone : jeton FCM, préférences de notifications et uid du
+    // --- compte connecté. Un téléphone peut changer de compte (on écrit son
+    // --- propre uid) ; à la déconnexion, son compte retire l'uid ---
+    match /device_tokens/{deviceId} {
+      allow read: if isSignedIn()
+        && (resource == null || resource.data.get('uid', null) == request.auth.uid);
+      allow create, update: if isSignedIn()
+        && request.resource.data.get('uid', null) == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.get('uid', null) == request.auth.uid
+        && !('uid' in request.resource.data);
+      allow delete: if isSignedIn()
+        && resource.data.get('uid', null) == request.auth.uid;
+    }
+  }
+}

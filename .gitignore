@@ -10,6 +10,8 @@ build/
 google-services.json
 GoogleService-Info.plist
 lib/firebase_options.dart
+# --- Cache de déploiement de la CLI Firebase (Hosting) ---
+.firebase/
 
 # <<--- IDE --->
 .idea/
@@ -44,3 +46,8 @@ lib/firebase_options.dart
 
 # <<--- Variables d'environnement --->
 .env
+
+# <<--- Migration des données (sauvegardes et clé de compte de service) --->
+tools/migration/node_modules/
+tools/migration/backups/
+*service-account*.json

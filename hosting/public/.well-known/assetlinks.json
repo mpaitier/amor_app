@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mpaitier.amor",
+      "sha256_cert_fingerprints": [
+        "91:F7:0C:8A:C8:F3:08:8F:F9:88:46:5D:1C:A2:16:6F:FB:28:1F:B6:53:C3:5E:5C:86:05:0F:1A:7D:90:AE:1B"
+      ]
+    }
+  }
+]

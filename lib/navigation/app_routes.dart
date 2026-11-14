@@ -7,10 +7,13 @@ class AppRoutes {
   // --- Main route ---
   static const String mainMenu = '/';
 
-  // --- Onboarding questionnaire routes (first launch) ---
-  static const String nameQuestion = '/name-question';
-  static const String yearQuestion = '/year-question';
-  static const String gift = '/gift';
+  // --- Entrée dans l'app : chargement et connexion ---
+  static const String splash = '/splash';
+  static const String signIn = '/sign-in';
+
+  // --- Relation : création / adhésion, et lien d'invitation ---
+  static const String coupleSetup = '/couple-setup';
+  static const String joinWithCode = '/join/:code';
 
   // --- Timeline routes ---
   static const String addTimeline = '/add-timeline';
