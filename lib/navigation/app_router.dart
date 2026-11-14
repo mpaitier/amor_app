@@ -6,30 +6,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/onboarding/presentation/screens/questionnaire_screen.dart';
-import '../features/onboarding/presentation/screens/year_screen.dart';
-import '../features/onboarding/presentation/screens/gift_screen.dart';
 import '../features/timeline/presentation/screens/timeline_screen.dart';
 import '../features/timeline/presentation/screens/event_detail_screen.dart';
 import '../features/timeline/presentation/screens/add_event_screen.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/important_dates/presentation/screens/add_important_date_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
-import '../injection_container.dart';
 import 'app_routes.dart';
 
 // --- GoRouter configuration ---
 final GoRouter appRouter = GoRouter(
   initialLocation: AppRoutes.mainMenu,
-
-  // --- Redirect on startup depending on first launch ---
-  redirect: (context, state) async {
-    if (state.matchedLocation == AppRoutes.mainMenu) {
-      final isFirstRun = await sl.checkFirstRun();
-      return isFirstRun ? AppRoutes.nameQuestion : null;
-    }
-    return null;
-  },
 
   routes: [
     // --- Main route: Timeline ---
@@ -37,30 +24,6 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.mainMenu,
       pageBuilder: (context, state) => const NoTransitionPage(
         child: TimelineScreen(),
-      ),
-    ),
-
-    // --- Questionnaire route: Name ---
-    GoRoute(
-      path: AppRoutes.nameQuestion,
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: QuestionnaireScreen(),
-      ),
-    ),
-
-    // --- Questionnaire route: Year ---
-    GoRoute(
-      path: AppRoutes.yearQuestion,
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: YearScreen(),
-      ),
-    ),
-
-    // --- Gift route ---
-    GoRoute(
-      path: AppRoutes.gift,
-      pageBuilder: (context, state) => const NoTransitionPage(
-        child: GiftScreen(),
       ),
     ),
 

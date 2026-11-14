@@ -30,9 +30,6 @@ dependencies:
   # <<--- Stockage local --->
   shared_preferences: ^2.2.3
 
-  # <<--- Capteurs (shake) --->
-  sensors_plus: ^5.0.0
-
   # <<--- Réseau --->
   http: ^1.2.1
 

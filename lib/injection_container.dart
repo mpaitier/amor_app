@@ -25,17 +25,6 @@ import 'features/timeline/domain/usecases/pick_images_from_gallery.dart';
 import 'features/timeline/domain/usecases/take_photo.dart';
 import 'features/timeline/domain/usecases/upload_images.dart';
 
-// --- Onboarding feature ---
-import 'features/onboarding/data/datasources/preferences_local_datasource.dart';
-import 'features/onboarding/data/datasources/motion_datasource.dart';
-import 'features/onboarding/data/repositories/preferences_repository_impl.dart';
-import 'features/onboarding/data/repositories/motion_repository_impl.dart';
-import 'features/onboarding/domain/repositories/preferences_repository.dart';
-import 'features/onboarding/domain/repositories/motion_repository.dart';
-import 'features/onboarding/domain/usecases/check_first_run.dart';
-import 'features/onboarding/domain/usecases/complete_onboarding.dart';
-import 'features/onboarding/domain/usecases/watch_shake_events.dart';
-
 // --- Place feature ---
 import 'features/place/data/datasources/place_remote_datasource.dart';
 import 'features/place/data/repositories/place_repository_impl.dart';
@@ -132,26 +121,6 @@ class ServiceLocator {
   late final TakePhoto takePhoto = TakePhoto(imageRepository);
   late final UploadImages uploadImages = UploadImages(imageRepository);
 
-  // --- Onboarding: data sources ---
-  late final PreferencesLocalDataSource preferencesLocalDataSource =
-      PreferencesLocalDataSource();
-  late final MotionDataSource motionDataSource = MotionDataSource();
-
-  // --- Onboarding: repositories ---
-  late final PreferencesRepository preferencesRepository =
-      PreferencesRepositoryImpl(localDataSource: preferencesLocalDataSource);
-  late final MotionRepository motionRepository = MotionRepositoryImpl(
-    dataSource: motionDataSource,
-  );
-
-  // --- Onboarding: use cases ---
-  late final CheckFirstRun checkFirstRunUseCase =
-      CheckFirstRun(preferencesRepository);
-  late final CompleteOnboarding completeOnboarding =
-      CompleteOnboarding(preferencesRepository);
-  late final WatchShakeEvents watchShakeEvents =
-      WatchShakeEvents(motionRepository);
-
   // --- Place: data source, repository, use case ---
   late final PlaceRemoteDataSource placeRemoteDataSource =
       PlaceRemoteDataSource(httpClient: _httpClient);
@@ -247,9 +216,6 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
       AddRecentColor(colorHistoryRepository);
   late final RemoveRecentColor removeRecentColor =
       RemoveRecentColor(colorHistoryRepository);
-
-  // --- Convenience passthrough used by the router's redirect logic ---
-  Future<bool> checkFirstRun() => checkFirstRunUseCase();
 }
 
 // --- Global accessor ---
