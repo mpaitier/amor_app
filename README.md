@@ -99,3 +99,7 @@ flutter test
 ## Crédits
 
 GIF fournis par [GIPHY](https://giphy.com). Recherche de lieux par [Geoapify](https://www.geoapify.com).
+
+## Licence
+
+Code distribué sous licence [MIT](LICENSE). Les clés d'API et la configuration Firebase ne font pas partie du dépôt : une copie du code doit utiliser son propre projet Firebase et ses propres clés GIPHY et Geoapify.
