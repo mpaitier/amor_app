@@ -3,7 +3,8 @@
 // ============================================================================
 // Réglages partagés du couple : la date de début de l'histoire, puis
 // l'affichage de l'anniversaire et des mois-anniversaires dans le
-// calendrier. Chaque changement est enregistré aussitôt.
+// calendrier. Chaque changement est enregistré aussitôt. Le compte
+// connecté et la déconnexion ferment la liste.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../auth/presentation/components/account_card.dart';
 import '../../../color_history/presentation/viewmodels/recent_colors_viewmodel.dart';
 import '../../../notifications/presentation/components/notification_preferences_card.dart';
 import '../../../notifications/presentation/viewmodels/notification_preferences_viewmodel.dart';
@@ -171,6 +173,11 @@ class _SettingsView extends StatelessWidget {
         const SettingsSection(
           title: 'GIF des souvenirs et des dates',
           child: GifSearchTermField(),
+        ),
+        const SizedBox(height: 20),
+        const SettingsSection(
+          title: 'Compte',
+          child: AccountCard(),
         ),
       ],
     );

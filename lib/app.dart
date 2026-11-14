@@ -1,13 +1,34 @@
 // ============================================================================
 // ROOT APP WIDGET
 // ============================================================================
+// Crée le routeur une seule fois, branché sur la session de connexion
+// fournie par main.dart.
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
 import 'navigation/app_router.dart';
 
-class AmorApp extends StatelessWidget {
+class AmorApp extends StatefulWidget {
   const AmorApp({super.key});
+
+  @override
+  State<AmorApp> createState() => _AmorAppState();
+}
+
+class _AmorAppState extends State<AmorApp> {
+  // --- Un seul routeur pour toute la vie de l'app : le recréer ferait
+  // --- perdre la pile de navigation ---
+  late final GoRouter _router =
+      createAppRouter(context.read<AuthSessionViewModel>());
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +43,7 @@ class AmorApp extends StatelessWidget {
       themeMode: ThemeMode.light,
 
       // --- Navigation ---
-      routerConfig: appRouter,
+      routerConfig: _router,
 
       // --- Builder: global background + SafeArea ---
       builder: (context, child) {

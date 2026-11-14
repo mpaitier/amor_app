@@ -7,6 +7,10 @@ class AppRoutes {
   // --- Main route ---
   static const String mainMenu = '/';
 
+  // --- Entrée dans l'app : chargement et connexion ---
+  static const String splash = '/splash';
+  static const String signIn = '/sign-in';
+
   // --- Timeline routes ---
   static const String addTimeline = '/add-timeline';
   static const String timelineDetail = '/timeline-detail/:id';

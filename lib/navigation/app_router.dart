@@ -1,11 +1,15 @@
 // ============================================================================
 // APP ROUTER
 // ============================================================================
-// GoRouter configuration for all app routes.
+// GoRouter configuration for all app routes. Le routeur écoute la session :
+// à chaque connexion ou déconnexion, le redirect est réévalué.
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/presentation/screens/sign_in_screen.dart';
+import '../features/auth/presentation/screens/splash_screen.dart';
+import '../features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
 import '../features/timeline/presentation/screens/timeline_screen.dart';
 import '../features/timeline/presentation/screens/event_detail_screen.dart';
 import '../features/timeline/presentation/screens/add_event_screen.dart';
@@ -13,12 +17,36 @@ import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/important_dates/presentation/screens/add_important_date_screen.dart';
 import '../features/settings/presentation/screens/settings_screen.dart';
 import 'app_routes.dart';
+import 'session_redirect.dart';
 
 // --- GoRouter configuration ---
-final GoRouter appRouter = GoRouter(
-  initialLocation: AppRoutes.mainMenu,
+GoRouter createAppRouter(AuthSessionViewModel session) => GoRouter(
+  initialLocation: AppRoutes.splash,
+  refreshListenable: session,
+
+  // --- Connexion requise partout, sauf sur les écrans d'entrée ---
+  redirect: (context, state) => resolveSessionRedirect(
+    status: session.status,
+    location: state.matchedLocation,
+  ),
 
   routes: [
+    // --- Chargement au lancement ---
+    GoRoute(
+      path: AppRoutes.splash,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: SplashScreen(),
+      ),
+    ),
+
+    // --- Connexion / création de compte ---
+    GoRoute(
+      path: AppRoutes.signIn,
+      pageBuilder: (context, state) => const NoTransitionPage(
+        child: SignInScreen(),
+      ),
+    ),
+
     // --- Main route: Timeline ---
     GoRoute(
       path: AppRoutes.mainMenu,

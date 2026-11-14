@@ -6,8 +6,21 @@
 // (service locator), read by screens/widgets when creating their ViewModels.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
+
+// --- Auth feature ---
+import 'features/auth/data/datasources/auth_remote_datasource.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/domain/usecases/watch_auth_state.dart';
+import 'features/auth/domain/usecases/sign_in_with_google.dart';
+import 'features/auth/domain/usecases/sign_in_with_email.dart';
+import 'features/auth/domain/usecases/register_with_email.dart';
+import 'features/auth/domain/usecases/send_password_reset.dart';
+import 'features/auth/domain/usecases/sign_out.dart';
 
 // --- Timeline feature ---
 import 'features/timeline/data/datasources/timeline_remote_datasource.dart';
@@ -89,6 +102,26 @@ class ServiceLocator {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final http.Client _httpClient = http.Client();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+
+  // --- Auth: data source, repository, use cases ---
+  late final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(
+    auth: _auth,
+    googleSignIn: _googleSignIn,
+  );
+  late final AuthRepository authRepository = AuthRepositoryImpl(
+    remoteDataSource: authRemoteDataSource,
+  );
+  late final WatchAuthState watchAuthState = WatchAuthState(authRepository);
+  late final SignInWithGoogle signInWithGoogle =
+      SignInWithGoogle(authRepository);
+  late final SignInWithEmail signInWithEmail = SignInWithEmail(authRepository);
+  late final RegisterWithEmail registerWithEmail =
+      RegisterWithEmail(authRepository);
+  late final SendPasswordReset sendPasswordReset =
+      SendPasswordReset(authRepository);
+  late final SignOut signOut = SignOut(authRepository);
 
   // --- Timeline: data sources ---
   late final TimelineRemoteDataSource timelineRemoteDataSource =

@@ -12,6 +12,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
+import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
 import 'features/timeline/presentation/viewmodels/timeline_viewmodel.dart';
 import 'features/navigation/presentation/viewmodels/floating_buttons_viewmodel.dart';
 
@@ -36,6 +37,14 @@ void main() async {
     // --- list screen and the event detail screen share the same instance.
     MultiProvider(
       providers: [
+        // --- Session de connexion, lue par le routeur dès le lancement ---
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (_) => AuthSessionViewModel(
+            watchAuthState: sl.watchAuthState,
+            signOut: sl.signOut,
+          ),
+        ),
         ChangeNotifierProvider(
           create: (_) => TimelineViewModel(
             watchTimelineEvents: sl.watchTimelineEvents,
