@@ -26,10 +26,15 @@ jobs:
       - name: Récupérer le code
         uses: actions/checkout@v7
 
+      # Version figée sur celle du poste de développement : la CI vérifie
+      # exactement ce qui a été testé en local. À relever en même temps que
+      # Flutter sur le poste (3.50 déprécie package:flutter/material.dart au
+      # profit de material_ui).
       - name: Installer Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: 3.47.5
           cache: true
 
       # Ces fichiers restent hors du dépôt (.gitignore). L'analyse et les
