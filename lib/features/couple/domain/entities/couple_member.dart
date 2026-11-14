@@ -5,6 +5,10 @@
 // choisis. La couleur est un entier ARGB, tel qu'il est enregistré.
 
 class CoupleMember {
+  // --- Couleur d'un membre qui n'en a pas choisi, ou qui a quitté la
+  // --- relation (rose foncé de l'app) ---
+  static const int defaultColor = 0xFF703348;
+
   final String uid;
   final String nickname;
   final int color;
