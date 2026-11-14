@@ -37,6 +37,11 @@ String? validateNickname(String nickname) {
   return null;
 }
 
+String? validateRelationshipStart(DateTime? date) {
+  if (date == null) return 'Indique le jour où votre histoire a commencé.';
+  return null;
+}
+
 String? validateInviteCode(String code) {
   if (code.trim().isEmpty) return 'Saisis le code reçu.';
   if (normalizeInviteCode(code) == null) {

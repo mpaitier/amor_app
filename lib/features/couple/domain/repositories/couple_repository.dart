@@ -11,10 +11,12 @@ abstract class CoupleRepository {
   // --- temps réel les arrivées, départs et changements de profil ---
   Stream<CoupleEntity?> watchCurrentCouple(String uid);
 
-  // --- Renvoie l'id de la relation créée ---
+  // --- Renvoie l'id de la relation créée. La date de début est
+  // --- enregistrée dans les réglages de la relation ---
   Future<String> createCouple({
     required String nickname,
     required int color,
+    required DateTime relationshipStart,
   });
 
   // --- Renvoie l'id de la relation rejointe ---

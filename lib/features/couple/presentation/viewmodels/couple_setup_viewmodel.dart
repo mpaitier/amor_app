@@ -2,7 +2,8 @@
 // COUPLE SETUP VIEWMODEL
 // ============================================================================
 // Écran affiché à une personne connectée qui n'a pas encore de relation :
-// en créer une, ou en rejoindre une avec un code. Ne navigue jamais : une
+// en créer une (avec le jour où l'histoire a commencé), ou en rejoindre une
+// avec un code. Ne navigue jamais : une
 // fois la relation enregistrée, CoupleSessionViewModel fait changer
 // d'écran.
 
@@ -28,6 +29,7 @@ class CoupleSetupViewModel extends ChangeNotifier {
   // --- State ---
   late CoupleSetupMode _mode;
   int _selectedColor = MemberColorPalette.defaultColor;
+  DateTime? _relationshipStart;
   bool _isBusy = false;
   String? _errorMessage;
   bool _isDisposed = false;
@@ -49,6 +51,7 @@ class CoupleSetupViewModel extends ChangeNotifier {
   CoupleSetupMode get mode => _mode;
   bool get isJoining => _mode == CoupleSetupMode.join;
   int get selectedColor => _selectedColor;
+  DateTime? get relationshipStart => _relationshipStart;
   bool get isBusy => _isBusy;
   String? get errorMessage => _errorMessage;
 
@@ -65,10 +68,18 @@ class CoupleSetupViewModel extends ChangeNotifier {
     _notify();
   }
 
+  void setRelationshipStart(DateTime date) {
+    if (_isBusy) return;
+    _relationshipStart = DateTime(date.year, date.month, date.day);
+    _notify();
+  }
+
   Future<void> submit() async {
     final nickname = nicknameController.text;
     final validationError = validateNickname(nickname) ??
-        (isJoining ? validateInviteCode(codeController.text) : null);
+        (isJoining
+            ? validateInviteCode(codeController.text)
+            : validateRelationshipStart(_relationshipStart));
     if (validationError != null) {
       _errorMessage = validationError;
       _notify();
@@ -87,7 +98,11 @@ class CoupleSetupViewModel extends ChangeNotifier {
           color: _selectedColor,
         );
       } else {
-        await _createCouple(nickname: nickname, color: _selectedColor);
+        await _createCouple(
+          nickname: nickname,
+          color: _selectedColor,
+          relationshipStart: _relationshipStart!,
+        );
       }
       _pendingInvite.clear();
     } on CoupleFailure catch (failure) {

@@ -10,6 +10,8 @@ const {
   generateInviteCode,
   normalizeInviteCode,
   validateProfile,
+  parseDayString,
+  dayToNoonUtc,
 } = require("./couples_logic");
 
 test("generateInviteCode : longueur fixe, caractères de l'alphabet", () => {
@@ -66,4 +68,29 @@ test("validateProfile : refuse une couleur invalide", () => {
   assert.equal(validateProfile({ nickname: "Lulu", color: 1.5 }), null);
   assert.equal(validateProfile({ nickname: "Lulu" }), null);
   assert.equal(validateProfile(null), null);
+});
+
+test("parseDayString : lit une date AAAA-MM-JJ", () => {
+  assert.deepEqual(parseDayString("2023-12-12"), { y: 2023, m: 12, d: 12 });
+});
+
+test("parseDayString : refuse une date mal formée ou inexistante", () => {
+  assert.equal(parseDayString("12/12/2023"), null);
+  assert.equal(parseDayString("2023-02-31"), null);
+  assert.equal(parseDayString("2023-13-01"), null);
+  assert.equal(parseDayString(20231212), null);
+  assert.equal(parseDayString(undefined), null);
+});
+
+test("parseDayString : refuse une date après aujourd'hui", () => {
+  const today = { y: 2026, m: 11, d: 14 };
+  assert.deepEqual(parseDayString("2026-11-14", today), { y: 2026, m: 11, d: 14 });
+  assert.equal(parseDayString("2026-11-15", today), null);
+});
+
+test("dayToNoonUtc : midi UTC du jour donné", () => {
+  assert.equal(
+    dayToNoonUtc({ y: 2023, m: 12, d: 12 }).toISOString(),
+    "2023-12-12T12:00:00.000Z",
+  );
 });

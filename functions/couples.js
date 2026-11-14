@@ -9,16 +9,20 @@
 // - users/{uid}            { coupleId, updatedAt }
 // - couples/{coupleId}     { members, profiles, inviteCode, createdBy,
 //                            createdAt, lastActivityAt }
+// - couples/{coupleId}/settings/general { relationshipStart } à la création
 // - invites/{inviteCode}   { coupleId, createdAt }
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { randomInt } = require("node:crypto");
 const {
   generateInviteCode,
   normalizeInviteCode,
   validateProfile,
+  parseDayString,
+  dayToNoonUtc,
 } = require("./couples_logic");
+const { parisParts } = require("./special_days");
 
 // --- Nombre d'essais pour tomber sur un code libre. Avec 31^6 codes
 // --- possibles, un seul suffit en pratique ---
@@ -60,9 +64,21 @@ async function findFreeInviteCode(tx, db) {
 // CRÉER UNE RELATION
 // ============================================================================
 
+// --- Date de début de la relation : un jour passé ou aujourd'hui (heure
+// --- de Paris) ---
+function requireRelationshipStart(data) {
+  const now = parisParts(new Date());
+  const day = parseDayString(data && data.relationshipStart, now);
+  if (!day) {
+    throw new HttpsError("invalid-argument", "Date de début invalide.");
+  }
+  return Timestamp.fromDate(dayToNoonUtc(day));
+}
+
 exports.createCouple = onCall(async (request) => {
   const uid = requireUid(request);
   const profile = requireProfile(request.data);
+  const relationshipStart = requireRelationshipStart(request.data);
 
   const db = getFirestore();
   const userRef = db.collection("users").doc(uid);
@@ -81,6 +97,7 @@ exports.createCouple = onCall(async (request) => {
       createdAt: FieldValue.serverTimestamp(),
       lastActivityAt: FieldValue.serverTimestamp(),
     });
+    tx.set(coupleRef.collection("settings").doc("general"), { relationshipStart });
     tx.set(db.collection("invites").doc(inviteCode), {
       coupleId: coupleRef.id,
       createdAt: FieldValue.serverTimestamp(),

@@ -23,9 +23,17 @@ class CoupleRepositoryImpl implements CoupleRepository {
   }
 
   @override
-  Future<String> createCouple({required String nickname, required int color}) {
+  Future<String> createCouple({
+    required String nickname,
+    required int color,
+    required DateTime relationshipStart,
+  }) {
     return _guard(
-      () => _remoteDataSource.createCouple(nickname: nickname, color: color),
+      () => _remoteDataSource.createCouple(
+        nickname: nickname,
+        color: color,
+        relationshipStart: relationshipStart,
+      ),
     );
   }
 

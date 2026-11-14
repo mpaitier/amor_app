@@ -42,7 +42,33 @@ function validateProfile(data) {
   return { nickname, color };
 }
 
+// --- "2023-12-12" -> { y, m, d }. null si la date est mal formée,
+// --- n'existe pas (31 février) ou tombe après le jour donné ---
+function parseDayString(value, today) {
+  if (typeof value !== "string") return null;
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) {
+    return null;
+  }
+  if (today && Date.UTC(y, m - 1, d) > Date.UTC(today.y, today.m - 1, today.d)) return null;
+  return { y, m, d };
+}
+
+// --- Jour -> Date JS à midi UTC : ce moment tombe le même jour du
+// --- calendrier dans tous les fuseaux de UTC-11 à UTC+11, donc l'app le
+// --- relit sur le bon jour où que soit le téléphone ---
+function dayToNoonUtc(day) {
+  return new Date(Date.UTC(day.y, day.m - 1, day.d, 12));
+}
+
 module.exports = {
+  parseDayString,
+  dayToNoonUtc,
   INVITE_ALPHABET,
   INVITE_LENGTH,
   NICKNAME_MAX_LENGTH,

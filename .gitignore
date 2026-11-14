@@ -10,6 +10,8 @@ build/
 google-services.json
 GoogleService-Info.plist
 lib/firebase_options.dart
+# --- Cache de déploiement de la CLI Firebase (Hosting) ---
+.firebase/
 
 # <<--- IDE --->
 .idea/

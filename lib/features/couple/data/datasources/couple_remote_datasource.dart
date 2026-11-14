@@ -47,15 +47,27 @@ class CoupleRemoteDataSource {
     });
   }
 
+  // --- La date part en "AAAA-MM-JJ" : seul le jour compte, et la
+  // --- fonction le range à midi UTC pour qu'aucun fuseau ne le décale ---
   Future<String> createCouple({
     required String nickname,
     required int color,
+    required DateTime relationshipStart,
   }) async {
     final data = await _call('createCouple', {
       'nickname': nickname,
       'color': color,
+      'relationshipStart': dayString(relationshipStart),
     });
     return data['coupleId'] as String;
+  }
+
+  // --- 2023-12-12 ---
+  static String dayString(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '$year-$month-$day';
   }
 
   Future<String> joinCouple({

@@ -1,9 +1,9 @@
 // ============================================================================
 // COUPLE SETUP CARD
 // ============================================================================
-// Carte blanche de l'écran de création : mode, surnom, couleur, code (en
-// mode "Rejoindre") et bouton de validation. Branchée sur le
-// CoupleSetupViewModel.
+// Carte blanche de l'écran de création : mode, code (en mode "Rejoindre"),
+// date de début (en mode "Créer"), surnom, couleur et bouton de
+// validation. Branchée sur le CoupleSetupViewModel.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,11 +13,31 @@ import '../../../auth/presentation/components/auth_submit_button.dart';
 import '../../../auth/presentation/components/auth_text_field.dart';
 import '../viewmodels/couple_setup_viewmodel.dart';
 import 'couple_setup_mode_switch.dart';
+import 'couple_start_date_field.dart';
 import 'invite_code_input.dart';
 import 'member_color_picker.dart';
 
 class CoupleSetupCard extends StatelessWidget {
   const CoupleSetupCard({super.key});
+
+  // --- Plus loin que ça, ce n'est sans doute pas une date voulue ---
+  static const int _yearsBack = 80;
+
+  Future<void> _pickStartDate(
+    BuildContext context,
+    CoupleSetupViewModel viewModel,
+  ) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: viewModel.relationshipStart ?? today,
+      firstDate: DateTime(today.year - _yearsBack),
+      lastDate: today,
+      helpText: 'Votre histoire a commencé le',
+    );
+    if (picked != null) viewModel.setRelationshipStart(picked);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +69,21 @@ class CoupleSetupCard extends StatelessWidget {
               InviteCodeInput(
                 controller: viewModel.codeController,
                 enabled: isEnabled,
+              ),
+              const SizedBox(height: 12),
+            ] else ...[
+              const Text(
+                'Votre histoire a commencé le',
+                style: TextStyle(
+                  color: amorDarkRose,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              CoupleStartDateField(
+                date: viewModel.relationshipStart,
+                enabled: isEnabled,
+                onTap: () => _pickStartDate(context, viewModel),
               ),
               const SizedBox(height: 12),
             ],
