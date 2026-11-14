@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Le workflow ne fait que lire le code.
+permissions:
+  contents: read
+
+# Un nouveau push sur une PR annule l'exécution précédente.
+# Sur main, chaque exécution va au bout.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  flutter:
+    name: App Flutter
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Installer Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # Ces fichiers restent hors du dépôt (.gitignore). L'analyse et les
+      # tests n'ont besoin que de leur présence : des valeurs factices
+      # suffisent, aucun test ne se connecte à Firebase.
+      - name: Créer les fichiers locaux absents
+        run: |
+          if [ ! -f lib/firebase_options.dart ]; then
+            cat > lib/firebase_options.dart <<'EOF'
+          // Fichier factice créé par la CI.
+          import 'package:firebase_core/firebase_core.dart';
+
+          class DefaultFirebaseOptions {
+            static FirebaseOptions get currentPlatform => const FirebaseOptions(
+                  apiKey: 'ci',
+                  appId: '1:0:android:0',
+                  messagingSenderId: '0',
+                  projectId: 'ci',
+                );
+          }
+          EOF
+          fi
+          touch .env
+
+      - name: Installer les dépendances
+        run: flutter pub get
+
+      - name: Analyse
+        run: flutter analyze
+
+      - name: Tests et couverture
+        run: flutter test --coverage
+
+      # Même si les tests échouent, pour pouvoir lire le rapport.
+      - name: Publier le rapport de couverture
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  node:
+    name: Cloud Functions et outils
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      # Même version que le runtime des fonctions (engines dans
+      # functions/package.json).
+      - name: Installer Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Installer les dépendances des fonctions
+        working-directory: functions
+        run: npm ci
+
+      - name: Tests des fonctions
+        working-directory: functions
+        run: npm test
+
+      # Le script de migration n'existe que depuis l'issue #4.
+      - name: Tests du script de migration
+        if: ${{ hashFiles('tools/migration/package-lock.json') != '' }}
+        working-directory: tools/migration
+        run: |
+          npm ci
+          npm test
