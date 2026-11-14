@@ -23,6 +23,10 @@ void main() {
     );
   }
 
+  setUpAll(() {
+    registerFallbackValue(DateTime(2000));
+  });
+
   setUp(() {
     mockDataSource = MockCoupleRemoteDataSource();
     repository = CoupleRepositoryImpl(remoteDataSource: mockDataSource);
@@ -37,11 +41,18 @@ void main() {
   });
 
   test('createCouple renvoie l\'id de la relation', () async {
-    when(() => mockDataSource.createCouple(nickname: 'Titi', color: 1))
-        .thenAnswer((_) async => 'couple-1');
+    when(() => mockDataSource.createCouple(
+          nickname: 'Titi',
+          color: 1,
+          relationshipStart: DateTime(2023, 12, 12),
+        )).thenAnswer((_) async => 'couple-1');
 
     expect(
-      await repository.createCouple(nickname: 'Titi', color: 1),
+      await repository.createCouple(
+        nickname: 'Titi',
+        color: 1,
+        relationshipStart: DateTime(2023, 12, 12),
+      ),
       'couple-1',
     );
   });
@@ -50,10 +61,15 @@ void main() {
     when(() => mockDataSource.createCouple(
           nickname: any(named: 'nickname'),
           color: any(named: 'color'),
+          relationshipStart: any(named: 'relationshipStart'),
         )).thenThrow(const CoupleException('already-exists'));
 
     expect(
-      () => repository.createCouple(nickname: 'Titi', color: 1),
+      () => repository.createCouple(
+        nickname: 'Titi',
+        color: 1,
+        relationshipStart: DateTime(2023, 12, 12),
+      ),
       failureWith(CoupleFailureReason.alreadyInCouple),
     );
   });
@@ -88,5 +104,9 @@ void main() {
       ),
       failureWith(CoupleFailureReason.unknown),
     );
+  });
+
+  test('dayString formate la date en AAAA-MM-JJ', () {
+    expect(CoupleRemoteDataSource.dayString(DateTime(2023, 2, 5)), '2023-02-05');
   });
 }

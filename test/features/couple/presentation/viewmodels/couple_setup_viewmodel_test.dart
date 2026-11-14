@@ -32,6 +32,7 @@ void main() {
     when(() => mockRepository.createCouple(
           nickname: any(named: 'nickname'),
           color: any(named: 'color'),
+          relationshipStart: any(named: 'relationshipStart'),
         )).thenAnswer((_) async => 'couple-1');
   }
 
@@ -42,6 +43,10 @@ void main() {
           color: any(named: 'color'),
         )).thenAnswer((_) async => 'couple-1');
   }
+
+  setUpAll(() {
+    registerFallbackValue(DateTime(2000));
+  });
 
   setUp(() {
     mockRepository = MockCoupleRepository();
@@ -87,21 +92,49 @@ void main() {
       verifyNever(() => mockRepository.createCouple(
             nickname: any(named: 'nickname'),
             color: any(named: 'color'),
+            relationshipStart: any(named: 'relationshipStart'),
           ));
       viewModel.dispose();
     });
 
-    test('crée la relation avec le surnom et la couleur choisis', () async {
+    test('demande la date de début avant tout appel', () async {
+      final viewModel = buildViewModel();
+      viewModel.nicknameController.text = 'Titi';
+
+      await viewModel.submit();
+
+      expect(viewModel.errorMessage, validateRelationshipStart(null));
+      verifyNever(() => mockRepository.createCouple(
+            nickname: any(named: 'nickname'),
+            color: any(named: 'color'),
+            relationshipStart: any(named: 'relationshipStart'),
+          ));
+      viewModel.dispose();
+    });
+
+    test('setRelationshipStart ne garde que le jour', () {
+      final viewModel = buildViewModel();
+
+      viewModel.setRelationshipStart(DateTime(2023, 12, 12, 21, 30));
+
+      expect(viewModel.relationshipStart, DateTime(2023, 12, 12));
+      viewModel.dispose();
+    });
+
+    test('crée la relation avec le surnom, la couleur et la date choisis',
+        () async {
       stubCreate();
       final viewModel = buildViewModel();
       viewModel.nicknameController.text = 'Titi';
       viewModel.selectColor(0xFFE0A800);
+      viewModel.setRelationshipStart(DateTime(2023, 12, 12));
 
       await viewModel.submit();
 
       verify(() => mockRepository.createCouple(
             nickname: 'Titi',
             color: 0xFFE0A800,
+            relationshipStart: DateTime(2023, 12, 12),
           )).called(1);
       expect(viewModel.errorMessage, isNull);
       expect(viewModel.isBusy, isFalse);
@@ -112,10 +145,12 @@ void main() {
       when(() => mockRepository.createCouple(
                 nickname: any(named: 'nickname'),
                 color: any(named: 'color'),
+                relationshipStart: any(named: 'relationshipStart'),
               ))
           .thenThrow(const CoupleFailure(CoupleFailureReason.alreadyInCouple));
       final viewModel = buildViewModel();
       viewModel.nicknameController.text = 'Titi';
+      viewModel.setRelationshipStart(DateTime(2023, 12, 12));
 
       await viewModel.submit();
 

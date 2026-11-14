@@ -23,6 +23,10 @@ void main() {
     );
   }
 
+  setUpAll(() {
+    registerFallbackValue(DateTime(2000));
+  });
+
   setUp(() {
     mockRepository = MockCoupleRepository();
   });
@@ -40,28 +44,56 @@ void main() {
       when(() => mockRepository.createCouple(
             nickname: any(named: 'nickname'),
             color: any(named: 'color'),
+            relationshipStart: any(named: 'relationshipStart'),
           )).thenAnswer((_) async => 'couple-1');
 
       final id = await CreateCouple(mockRepository)(
         nickname: '  Titi ',
         color: 0xFF7B4FD6,
+        relationshipStart: DateTime(2023, 12, 12),
       );
 
       expect(id, 'couple-1');
       verify(() => mockRepository.createCouple(
             nickname: 'Titi',
             color: 0xFF7B4FD6,
+            relationshipStart: DateTime(2023, 12, 12),
+          )).called(1);
+    });
+
+    test('ne garde que le jour de la date de début', () async {
+      when(() => mockRepository.createCouple(
+            nickname: any(named: 'nickname'),
+            color: any(named: 'color'),
+            relationshipStart: any(named: 'relationshipStart'),
+          )).thenAnswer((_) async => 'couple-1');
+
+      await CreateCouple(mockRepository)(
+        nickname: 'Titi',
+        color: 1,
+        relationshipStart: DateTime(2023, 12, 12, 18, 45),
+      );
+
+      verify(() => mockRepository.createCouple(
+            nickname: 'Titi',
+            color: 1,
+            relationshipStart: DateTime(2023, 12, 12),
           )).called(1);
     });
 
     test('refuse un surnom vide sans appel réseau', () {
       expect(
-        () => CreateCouple(mockRepository)(nickname: '  ', color: 1),
+        () => CreateCouple(mockRepository)(
+          nickname: '  ',
+          color: 1,
+          relationshipStart: DateTime(2023, 12, 12),
+        ),
         failureWith(CoupleFailureReason.invalidProfile),
       );
       verifyNever(() => mockRepository.createCouple(
             nickname: any(named: 'nickname'),
             color: any(named: 'color'),
+            relationshipStart: any(named: 'relationshipStart'),
           ));
     });
   });
