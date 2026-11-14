@@ -2,13 +2,21 @@
 
 Amor n'est pas sur l'App Store. L'app iOS est publiée dans les [releases GitHub](https://github.com/mpaitier/amor_app/releases) sous forme de fichier `.ipa` non signé. iOS n'installe que des apps signées : c'est donc toi qui la signes, gratuitement, avec ton identifiant Apple, au moyen d'AltStore.
 
+## En bref
+
+Pour qui a l'habitude : l'`.ipa` est construit par `flutter build ios --release --no-codesign`, sans signature, profil ni entitlements (ni `aps-environment`, ni domaines associés). N'importe quel outil de sideload le signe avec un identifiant Apple gratuit : AltStore, SideStore, Sideloadly. Identifiant de l'app : `com.mpaitier.amor`, iOS 13 minimum.
+
+Le fichier est produit par le workflow [`release.yml`](../.github/workflows/release.yml) sur le runner macOS de GitHub, à partir du commit tagué. Le journal de chaque build est public dans l'onglet [Actions](https://github.com/mpaitier/amor_app/actions/workflows/release.yml), ce qui permet de vérifier d'où vient le fichier.
+
+## Pas à pas
+
 Il te faut :
 - un iPhone sous iOS 13 ou plus récent ;
 - un PC Windows ou un Mac, sur le même Wi-Fi que l'iPhone ;
 - un identifiant Apple (le tien, ou un second créé pour l'occasion) ;
 - un câble pour la première installation.
 
-## Première installation
+### Première installation
 
 1. **Sur le PC Windows**, installe iTunes et iCloud depuis le site d'Apple (pas les versions du Microsoft Store), puis AltServer depuis [altstore.io](https://altstore.io). Sur Mac, AltServer suffit.
 2. Branche l'iPhone, accepte « Faire confiance à cet ordinateur », puis active la synchronisation en Wi-Fi dans iTunes (ou dans le Finder sur Mac). C'est elle qui permettra le renouvellement automatique.
@@ -19,13 +27,13 @@ Il te faut :
 5. Toujours sur l'iPhone, ouvre la page des releases dans Safari et télécharge le fichier `amor-x.y.z.ipa` de la dernière version. Il arrive dans l'app Fichiers.
 6. Ouvre AltStore, onglet **My Apps**, touche **+** et choisis le fichier `.ipa`. Amor apparaît sur l'écran d'accueil.
 
-## Les 7 jours
+### Les 7 jours
 
 Une app signée avec un identifiant Apple gratuit expire au bout de 7 jours. Tant qu'AltServer tourne sur le PC et que l'iPhone est sur le même Wi-Fi, AltStore la renouvelle tout seul en arrière-plan. Garde simplement le PC allumé de temps en temps, avec AltServer lancé.
 
 Si l'app a expiré, elle ne s'ouvre plus, mais rien n'est perdu : ouvre AltStore avec le PC allumé et touche **Refresh All**. Ne supprime pas l'app pour la réinstaller, tu perdrais ta session.
 
-## Mettre à jour
+### Mettre à jour
 
 Télécharge le nouveau `.ipa` dans les releases et installe-le comme la première fois (**My Apps** → **+**). Il remplace l'ancienne version et garde ta session.
 
