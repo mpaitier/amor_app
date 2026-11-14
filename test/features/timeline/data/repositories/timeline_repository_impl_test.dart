@@ -36,7 +36,7 @@ void main() {
     title: 'Anniversaire',
     date: DateTime(2024, 3, 10),
     place: 'Lyon',
-    who: 'Titi',
+    creatorUid: 'uid-titi',
     imageUrl: 'url1',
     description: 'Super soirée',
   );
@@ -79,7 +79,7 @@ void main() {
         verify(() => mockDataSource.updateEvent(captureAny())).captured.single
             as TimelineEventModel;
     expect(captured.id, tEntity.id);
-    expect(captured.who, tEntity.who);
+    expect(captured.creatorUid, tEntity.creatorUid);
   });
 
   test('deleteEvent doit déléguer directement l\'id à la source distante',

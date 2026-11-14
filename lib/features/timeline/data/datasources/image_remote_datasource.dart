@@ -1,7 +1,8 @@
 // ============================================================================
 // IMAGE REMOTE DATA SOURCE
 // ============================================================================
-// Compression + upload to Firebase Storage.
+// Compression + upload to Firebase Storage. Le dossier reçu est relatif à
+// la relation : les images sont rangées sous couples/{coupleId}/{folder}/.
 
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,13 +10,18 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/session/current_couple.dart';
 
 class ImageRemoteDataSource {
   final FirebaseStorage _storage;
+  final CurrentCouple _currentCouple;
   static const int _compressionQuality = 40;
 
-  const ImageRemoteDataSource({required FirebaseStorage storage})
-      : _storage = storage;
+  const ImageRemoteDataSource({
+    required FirebaseStorage storage,
+    required CurrentCouple currentCouple,
+  })  : _storage = storage,
+        _currentCouple = currentCouple;
 
   // --- Upload a single image after compression ---
   Future<String?> uploadImage({
@@ -28,7 +34,8 @@ class ImageRemoteDataSource {
 
       final fileName =
           '${DateTime.now().millisecondsSinceEpoch}_${path.basename(imageFile.path)}';
-      final ref = _storage.ref().child('$folder/$fileName');
+      final ref =
+          _storage.ref().child(_currentCouple.path('$folder/$fileName'));
 
       final uploadTask = await ref.putFile(
         File(compressedFile.path),

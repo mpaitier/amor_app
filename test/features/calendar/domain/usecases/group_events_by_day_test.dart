@@ -15,7 +15,7 @@ void main() {
       title: 'Souvenir $id',
       date: date,
       place: 'Nantes',
-      who: 'Lulu',
+      creatorUid: 'uid-lulu',
       imageUrl: '',
       description: '',
     );

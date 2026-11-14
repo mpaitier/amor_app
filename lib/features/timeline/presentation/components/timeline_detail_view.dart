@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../gif/presentation/components/gif_view.dart';
 import '../../domain/entities/timeline_event_entity.dart';
+import 'event_author_badge.dart';
 import 'image_grid.dart';
 
 class TimelineDetailView extends StatelessWidget {
@@ -47,10 +48,7 @@ class TimelineDetailView extends StatelessWidget {
                   color: Colors.black87,
                 ),
                 const SizedBox(height: 8),
-                _buildInfoBox(
-                  'Créé par ${event.who}',
-                  color: const Color(0xFF616161),
-                ),
+                EventAuthorBadge(creatorUid: event.creatorUid),
                 const SizedBox(height: 16),
                 ImageGrid(event: event),
               ],

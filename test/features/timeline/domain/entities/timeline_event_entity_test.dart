@@ -14,7 +14,7 @@ void main() {
       title: 'Titre',
       date: DateTime(2024, 1, 1),
       place: 'Paris',
-      who: 'Lulu',
+      creatorUid: 'uid-lulu',
       imageUrl: imageUrl,
       description: 'desc',
     );

@@ -21,7 +21,7 @@ void main() {
     title: 'Weekend à Rome',
     date: tDate,
     place: 'Rome',
-    who: 'Lulu',
+    creatorUid: 'uid-lulu',
     imageUrl: 'url1|url2',
     description: 'Trop bien',
     gifUrl: 'https://media.giphy.com/hedgehog.gif',
@@ -35,7 +35,7 @@ void main() {
       expect(model.title, tEntity.title);
       expect(model.date, tEntity.date);
       expect(model.place, tEntity.place);
-      expect(model.who, tEntity.who);
+      expect(model.creatorUid, tEntity.creatorUid);
       expect(model.imageUrl, tEntity.imageUrl);
       expect(model.description, tEntity.description);
       expect(model.gifUrl, tEntity.gifUrl);
@@ -51,7 +51,7 @@ void main() {
       expect(map['title'], 'Weekend à Rome');
       expect(map['date'], Timestamp.fromDate(tDate));
       expect(map['place'], 'Rome');
-      expect(map['who'], 'Lulu');
+      expect(map['creatorUid'], 'uid-lulu');
       expect(map['imageUrl'], 'url1|url2');
       expect(map['description'], 'Trop bien');
       expect(map['gifUrl'], 'https://media.giphy.com/hedgehog.gif');
@@ -72,7 +72,7 @@ void main() {
         'title': 'Randonnée',
         'date': Timestamp.fromDate(tDate),
         'place': 'Chamonix',
-        'who': 'Titi',
+        'creatorUid': 'uid-titi',
         'imageUrl': 'url_a',
         'description': 'Super vue',
       });
@@ -87,7 +87,7 @@ void main() {
       expect(model.title, 'Randonnée');
       expect(model.date, tDate);
       expect(model.place, 'Chamonix');
-      expect(model.who, 'Titi');
+      expect(model.creatorUid, 'uid-titi');
       expect(model.imageUrl, 'url_a');
       expect(model.description, 'Super vue');
     });
@@ -107,7 +107,7 @@ void main() {
 
       expect(model.title, '');
       expect(model.place, '');
-      expect(model.who, '');
+      expect(model.creatorUid, '');
       expect(model.imageUrl, '');
       expect(model.description, '');
       expect(model.gifUrl, '');

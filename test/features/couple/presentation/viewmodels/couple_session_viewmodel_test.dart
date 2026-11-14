@@ -30,6 +30,7 @@ void main() {
   late Map<String, StreamController<CoupleEntity?>> coupleControllers;
   late AuthSessionViewModel authSession;
   late CoupleSessionViewModel viewModel;
+  late List<String?> publishedIds;
 
   Future<void> flush() => Future<void>.delayed(Duration.zero);
 
@@ -45,6 +46,7 @@ void main() {
   );
 
   setUp(() {
+    publishedIds = [];
     mockAuthRepository = MockAuthRepository();
     mockCoupleRepository = MockCoupleRepository();
     authController = StreamController<AppUser?>();
@@ -68,15 +70,19 @@ void main() {
     viewModel = CoupleSessionViewModel(
       authSession: authSession,
       watchCurrentCouple: WatchCurrentCouple(mockCoupleRepository),
+      onCoupleChanged: publishedIds.add,
     );
   });
 
-  tearDown(() async {
+  // --- close() n'est pas attendu : sur un StreamController que personne
+  // --- n'a jamais écouté (la relation de Lulu dans la plupart des tests),
+  // --- le Future renvoyé ne se termine jamais et bloquait le tearDown ---
+  tearDown(() {
     viewModel.dispose();
     authSession.dispose();
-    await authController.close();
+    authController.close();
     for (final controller in coupleControllers.values) {
-      await controller.close();
+      controller.close();
     }
   });
 
@@ -175,5 +181,55 @@ void main() {
     await viewModel.signOut();
 
     verify(() => mockAuthRepository.signOut()).called(1);
+  });
+
+  group('onCoupleChanged', () {
+    test('publie la relation dès qu\'elle est connue', () async {
+      authController.add(titi);
+      await flush();
+      coupleControllers['uid-titi']!.add(couple);
+      await flush();
+
+      expect(publishedIds, ['couple-1']);
+    });
+
+    test('publie null à la déconnexion', () async {
+      authController.add(titi);
+      await flush();
+      coupleControllers['uid-titi']!.add(couple);
+      await flush();
+      authController.add(null);
+      await flush();
+
+      expect(publishedIds, ['couple-1', null]);
+    });
+
+    test('ne republie pas la même relation à chaque mise à jour', () async {
+      authController.add(titi);
+      await flush();
+      coupleControllers['uid-titi']!.add(couple);
+      await flush();
+      coupleControllers['uid-titi']!.add(couple);
+      await flush();
+
+      expect(publishedIds, ['couple-1']);
+    });
+
+    test('la relation est publiée avant que les auditeurs soient prévenus',
+        () async {
+      String? idSeenByListener;
+      final seenIds = <String?>[];
+      viewModel.addListener(() {
+        idSeenByListener = publishedIds.isEmpty ? null : publishedIds.last;
+        seenIds.add(idSeenByListener);
+      });
+
+      authController.add(titi);
+      await flush();
+      coupleControllers['uid-titi']!.add(couple);
+      await flush();
+
+      expect(seenIds.last, 'couple-1');
+    });
   });
 }

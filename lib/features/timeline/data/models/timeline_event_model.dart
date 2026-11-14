@@ -12,9 +12,9 @@ class TimelineEventModel extends TimelineEventEntity {
     required super.title,
     required super.date,
     required super.place,
-    required super.who,
     required super.imageUrl,
     required super.description,
+    super.creatorUid,
     super.creatorDeviceId,
     super.gifUrl,
   });
@@ -27,9 +27,9 @@ class TimelineEventModel extends TimelineEventEntity {
       title: data['title'] ?? '',
       date: (data['date'] as Timestamp).toDate(),
       place: data['place'] ?? '',
-      who: data['who'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
       description: data['description'] ?? '',
+      creatorUid: data['creatorUid'] ?? '',
       creatorDeviceId: data['creatorDeviceId'] ?? '',
       gifUrl: data['gifUrl'] ?? '',
     );
@@ -42,9 +42,9 @@ class TimelineEventModel extends TimelineEventEntity {
       title: entity.title,
       date: entity.date,
       place: entity.place,
-      who: entity.who,
       imageUrl: entity.imageUrl,
       description: entity.description,
+      creatorUid: entity.creatorUid,
       creatorDeviceId: entity.creatorDeviceId,
       gifUrl: entity.gifUrl,
     );
@@ -56,9 +56,9 @@ class TimelineEventModel extends TimelineEventEntity {
       'title': title,
       'date': Timestamp.fromDate(date),
       'place': place,
-      'who': who,
       'imageUrl': imageUrl,
       'description': description,
+      'creatorUid': creatorUid,
       'creatorDeviceId': creatorDeviceId,
       'gifUrl': gifUrl,
     };

@@ -3,7 +3,9 @@
 // ============================================================================
 // Vit à la racine de l'app. Part de la session de connexion et suit la
 // relation de la personne connectée. GoRouter l'écoute pour choisir entre
-// connexion, création de relation et journal.
+// connexion, création de relation et journal. onCoupleChanged prévient
+// main.dart du changement de relation active, avant les auditeurs, pour que
+// les data sources visent la bonne relation quand les écrans s'ouvrent.
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -25,6 +27,7 @@ enum SessionStatus {
 class CoupleSessionViewModel extends ChangeNotifier {
   final AuthSessionViewModel _authSession;
   final WatchCurrentCouple _watchCurrentCouple;
+  final void Function(String? coupleId)? _onCoupleChanged;
 
   StreamSubscription<CoupleEntity?>? _coupleSubscription;
 
@@ -32,12 +35,15 @@ class CoupleSessionViewModel extends ChangeNotifier {
   String? _watchedUid;
   CoupleEntity? _couple;
   bool _isCoupleLoaded = false;
+  String? _publishedCoupleId;
 
   CoupleSessionViewModel({
     required AuthSessionViewModel authSession,
     required WatchCurrentCouple watchCurrentCouple,
+    void Function(String? coupleId)? onCoupleChanged,
   })  : _authSession = authSession,
-        _watchCurrentCouple = watchCurrentCouple {
+        _watchCurrentCouple = watchCurrentCouple,
+        _onCoupleChanged = onCoupleChanged {
     _authSession.addListener(_onAuthChanged);
     _onAuthChanged();
   }
@@ -87,16 +93,26 @@ class CoupleSessionViewModel extends ChangeNotifier {
           (couple) {
             _couple = couple;
             _isCoupleLoaded = true;
-            notifyListeners();
+            _notify();
           },
           // --- Lecture refusée (relation quittée) : plus de relation ---
           onError: (Object _) {
             _couple = null;
             _isCoupleLoaded = true;
-            notifyListeners();
+            _notify();
           },
         );
       }
+    }
+    _notify();
+  }
+
+  // --- Publie d'abord la relation active, puis prévient les auditeurs ---
+  void _notify() {
+    final coupleId = this.coupleId;
+    if (coupleId != _publishedCoupleId) {
+      _publishedCoupleId = coupleId;
+      _onCoupleChanged?.call(coupleId);
     }
     notifyListeners();
   }

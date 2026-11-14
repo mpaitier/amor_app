@@ -3,10 +3,11 @@ rules_version = '2';
 // ============================================================================
 // RÈGLES FIRESTORE
 // ============================================================================
-// Étape transitoire de l'issue #4 : les nouvelles collections (users,
-// couples, invites) sont déjà protégées. Les anciennes collections globales
-// restent ouvertes aux personnes connectées jusqu'à la migration des données
-// sous couples/{coupleId}. Les Cloud Functions passent outre ces règles.
+// Étape transitoire de l'issue #4 : les données de chaque relation vivent
+// sous couples/{coupleId}/ et ne sont accessibles qu'à ses membres. Les
+// anciennes collections globales restent lisibles par les personnes
+// connectées le temps de vérifier la migration, puis seront supprimées.
+// Les Cloud Functions et le script de migration passent outre ces règles.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -17,6 +18,12 @@ service cloud.firestore {
 
     function isMember(coupleData) {
       return isSignedIn() && request.auth.uid in coupleData.members;
+    }
+
+    // --- Pour les sous-collections : relit le document de la relation ---
+    function isCoupleMember(coupleId) {
+      return isSignedIn() && request.auth.uid in
+        get(/databases/$(database)/documents/couples/$(coupleId)).data.members;
     }
 
     // --- Compte : chacun lit le sien. Écrit seulement par les fonctions ---
@@ -40,6 +47,19 @@ service cloud.firestore {
         && request.resource.data.profiles[request.auth.uid].nickname.size() <= 30
         && request.resource.data.profiles[request.auth.uid].color is int;
       allow create, delete: if false;
+
+      // --- Données partagées de la relation ---
+      match /timeline_events/{eventId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+
+      match /important_dates/{dateId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+
+      match /settings/{docId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
     }
 
     // --- Codes d'invitation : jamais lus depuis l'app ---
@@ -48,19 +68,23 @@ service cloud.firestore {
     }
 
     // ------------------------------------------------------------------------
-    // ANCIENNES COLLECTIONS GLOBALES (supprimées après la migration)
+    // ANCIENNES COLLECTIONS GLOBALES (lecture seule, supprimées après la
+    // vérification de la migration)
     // ------------------------------------------------------------------------
 
     match /timeline_events/{eventId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     match /important_dates/{dateId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     match /app_settings/{docId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn();
+      allow write: if false;
     }
 
     // --- Le jeton de l'appareil est enregistré au lancement, parfois avant

@@ -2,22 +2,28 @@
 // COUPLE SETTINGS REMOTE DATA SOURCE
 // ============================================================================
 // Les réglages tiennent dans un seul document Firestore, partagé par les
-// deux téléphones : app_settings/couple.
+// membres de la relation : couples/{coupleId}/settings/general.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/session/current_couple.dart';
 import '../models/couple_settings_model.dart';
 
 class CoupleSettingsRemoteDataSource {
   final FirebaseFirestore _firestore;
-  static const String _collection = 'app_settings';
-  static const String _document = 'couple';
+  final CurrentCouple _currentCouple;
+  static const String _collection = 'settings';
+  static const String _document = 'general';
 
-  const CoupleSettingsRemoteDataSource({required FirebaseFirestore firestore})
-      : _firestore = firestore;
+  const CoupleSettingsRemoteDataSource({
+    required FirebaseFirestore firestore,
+    required CurrentCouple currentCouple,
+  })  : _firestore = firestore,
+        _currentCouple = currentCouple;
 
+  // --- Document de la relation active, résolu à chaque appel ---
   DocumentReference<Map<String, dynamic>> get _reference =>
-      _firestore.collection(_collection).doc(_document);
+      _firestore.collection(_currentCouple.path(_collection)).doc(_document);
 
   // --- Flux temps réel du document ---
   Stream<CoupleSettingsModel> watchSettings() {

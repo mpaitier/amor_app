@@ -19,7 +19,7 @@ void main() {
     title: 'Notre premier voyage',
     date: DateTime(2024, 6, 15),
     place: 'Paris',
-    who: 'Lulu',
+    creatorUid: 'uid-lulu',
     imageUrl: '',
     description: 'Un super souvenir',
   );

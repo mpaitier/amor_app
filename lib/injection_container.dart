@@ -12,6 +12,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'core/session/current_couple.dart';
+
 // --- Auth feature ---
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
@@ -68,6 +70,7 @@ import 'features/notifications/domain/repositories/notification_repository.dart'
 import 'features/notifications/data/datasources/local_notification_datasource.dart';
 import 'features/notifications/domain/usecases/initialize_notifications.dart';
 import 'features/notifications/domain/usecases/get_device_id.dart';
+import 'features/notifications/domain/usecases/register_device_token.dart';
 import 'features/notifications/data/datasources/notification_preferences_remote_datasource.dart';
 import 'features/notifications/data/repositories/notification_preferences_repository_impl.dart';
 import 'features/notifications/domain/repositories/notification_preferences_repository.dart';
@@ -116,6 +119,10 @@ class ServiceLocator {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
 
+  // --- Relation active, lue par les data sources rangées sous
+  // --- couples/{coupleId}/ ---
+  final CurrentCouple currentCouple = CurrentCouple();
+
   // --- Auth: data source, repository, use cases ---
   late final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(
     auth: _auth,
@@ -149,11 +156,14 @@ class ServiceLocator {
 
   // --- Timeline: data sources ---
   late final TimelineRemoteDataSource timelineRemoteDataSource =
-      TimelineRemoteDataSource(firestore: _firestore);
+      TimelineRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final ImageLocalDataSource imageLocalDataSource =
       ImageLocalDataSource();
   late final ImageRemoteDataSource imageRemoteDataSource =
-      ImageRemoteDataSource(storage: _storage);
+      ImageRemoteDataSource(storage: _storage, currentCouple: currentCouple);
 
   // --- Timeline: repositories ---
   late final TimelineRepository timelineRepository = TimelineRepositoryImpl(
@@ -208,12 +218,16 @@ late final NotificationRepository notificationRepository =
   localDataSource: localNotificationDataSource,
   deviceIdentityDataSource: deviceIdentityDataSource,
   firestore: _firestore,
+  currentUid: () => _auth.currentUser?.uid,
 );
 
 late final InitializeNotifications initializeNotifications =
     InitializeNotifications(notificationRepository);
 
 late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
+
+late final RegisterDeviceToken registerDeviceToken =
+    RegisterDeviceToken(notificationRepository);
 
   // --- Préférences de notifications de ce téléphone ---
   late final NotificationPreferencesRepository
@@ -234,7 +248,10 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Important dates: data source, repository, use cases ---
   late final ImportantDateRemoteDataSource importantDateRemoteDataSource =
-      ImportantDateRemoteDataSource(firestore: _firestore);
+      ImportantDateRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final ImportantDateRepository importantDateRepository =
       ImportantDateRepositoryImpl(
     remoteDataSource: importantDateRemoteDataSource,
@@ -250,7 +267,10 @@ late final GetDeviceId getDeviceId = GetDeviceId(notificationRepository);
 
   // --- Settings: data source, repository, use cases ---
   late final CoupleSettingsRemoteDataSource coupleSettingsRemoteDataSource =
-      CoupleSettingsRemoteDataSource(firestore: _firestore);
+      CoupleSettingsRemoteDataSource(
+    firestore: _firestore,
+    currentCouple: currentCouple,
+  );
   late final CoupleSettingsRepository coupleSettingsRepository =
       CoupleSettingsRepositoryImpl(
     remoteDataSource: coupleSettingsRemoteDataSource,

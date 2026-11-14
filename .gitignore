@@ -44,3 +44,8 @@ lib/firebase_options.dart
 
 # <<--- Variables d'environnement --->
 .env
+
+# <<--- Migration des données (sauvegardes et clé de compte de service) --->
+tools/migration/node_modules/
+tools/migration/backups/
+*service-account*.json

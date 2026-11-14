@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'couple_scoped_providers.dart';
 import 'features/couple/presentation/models/pending_invite.dart';
 import 'features/couple/presentation/viewmodels/couple_session_viewmodel.dart';
 import 'navigation/app_router.dart';
@@ -60,9 +61,12 @@ class _AmorAppState extends State<AmorApp> {
               ),
             ),
 
-            // --- App content on top ---
+            // --- App content on top, with the ViewModels of the active
+            // --- relationship available to every screen ---
             SafeArea(
-              child: child ?? const SizedBox.shrink(),
+              child: CoupleScopedProviders(
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ],
         );

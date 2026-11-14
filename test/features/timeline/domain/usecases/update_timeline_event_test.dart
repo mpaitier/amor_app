@@ -19,7 +19,7 @@ void main() {
     title: 'Anniversaire',
     date: DateTime(2024, 3, 10),
     place: 'Lyon',
-    who: 'Titi',
+    creatorUid: 'uid-titi',
     imageUrl: 'url1',
     description: 'Super soirée',
   );

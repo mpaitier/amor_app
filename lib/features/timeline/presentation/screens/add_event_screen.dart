@@ -2,7 +2,8 @@
 // ADD / EDIT EVENT SCREEN
 // ============================================================================
 // Images are uploaded ONLY when "Save" is pressed.
-// Images are stored under: amor_events/{event_title}/
+// Images are stored under: couples/{coupleId}/events/{event_title}/
+// L'auteur du souvenir est la personne connectée : plus de sélecteur.
 //
 // NOTE: depends on the "gif" feature (via EventGifField) and on
 // PlaceAutocompleteField (via EventDatePlaceCard) from the "place" feature.
@@ -13,12 +14,12 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../couple/presentation/viewmodels/couple_session_viewmodel.dart';
 import '../../domain/entities/timeline_event_entity.dart';
 import '../viewmodels/add_edit_event_viewmodel.dart';
 import '../components/event_gif_field.dart';
 import '../components/event_title_field.dart';
 import '../components/event_date_place_card.dart';
-import '../components/event_who_selector.dart';
 import '../components/event_description_field.dart';
 import '../components/event_images_section.dart';
 import '../components/event_save_loading_overlay.dart';
@@ -31,7 +32,7 @@ class AddEventScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AddEditEventViewModel(
+      create: (context) => AddEditEventViewModel(
         addTimelineEvent: sl.addTimelineEvent,
         updateTimelineEvent: sl.updateTimelineEvent,
         pickImagesFromGallery: sl.pickImagesFromGallery,
@@ -41,6 +42,7 @@ class AddEventScreen extends StatelessWidget {
         getDeviceId: sl.getDeviceId,
         getRandomGif: sl.getRandomGif,
         getGifSearchTerm: sl.getGifSearchTerm,
+        currentUid: context.read<CoupleSessionViewModel>().user?.uid ?? '',
       ),
       child: const _AddEventView(),
     );
@@ -111,8 +113,6 @@ class _AddEventView extends StatelessWidget {
         EventTitleField(),
         SizedBox(height: 12),
         EventDatePlaceCard(),
-        SizedBox(height: 12),
-        EventWhoSelector(),
         SizedBox(height: 12),
         EventDescriptionField(),
         SizedBox(height: 12),
