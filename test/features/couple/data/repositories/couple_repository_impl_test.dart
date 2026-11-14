@@ -109,4 +109,31 @@ void main() {
   test('dayString formate la date en AAAA-MM-JJ', () {
     expect(CoupleRemoteDataSource.dayString(DateTime(2023, 2, 5)), '2023-02-05');
   });
+
+  test('respondToEnd renvoie si la relation a été supprimée', () async {
+    when(() => mockDataSource.respondToEnd(accept: true))
+        .thenAnswer((_) async => true);
+
+    expect(await repository.respondToEnd(accept: true), isTrue);
+  });
+
+  test('cancelEnd traduit un refus de la fonction', () {
+    when(() => mockDataSource.cancelEnd())
+        .thenThrow(const CoupleException('permission-denied'));
+
+    expect(
+      () => repository.cancelEnd(),
+      failureWith(CoupleFailureReason.unknown),
+    );
+  });
+
+  test('requestEnd traduit une coupure réseau', () {
+    when(() => mockDataSource.requestEnd())
+        .thenThrow(const CoupleException('unavailable'));
+
+    expect(
+      () => repository.requestEnd(),
+      failureWith(CoupleFailureReason.network),
+    );
+  });
 }

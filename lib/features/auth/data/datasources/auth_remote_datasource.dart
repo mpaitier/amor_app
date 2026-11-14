@@ -1,9 +1,11 @@
 // ============================================================================
 // AUTH REMOTE DATA SOURCE
 // ============================================================================
-// Seul endroit qui parle à Firebase Auth et à Google Sign-In. Chaque échec
-// ressort en AuthException portant le code brut.
+// Seul endroit qui parle à Firebase Auth et à Google Sign-In, plus la Cloud
+// Function deleteAccount. Chaque échec ressort en AuthException portant le
+// code brut.
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -14,12 +16,15 @@ import '../models/app_user_model.dart';
 class AuthRemoteDataSource {
   final FirebaseAuth _auth;
   final GoogleSignIn _googleSignIn;
+  final FirebaseFunctions _functions;
 
   const AuthRemoteDataSource({
     required FirebaseAuth auth,
     required GoogleSignIn googleSignIn,
+    required FirebaseFunctions functions,
   })  : _auth = auth,
-        _googleSignIn = googleSignIn;
+        _googleSignIn = googleSignIn,
+        _functions = functions;
 
   // --- Flux de connexion : émet l'état courant dès l'abonnement ---
   Stream<AppUserModel?> watchAuthState() {
@@ -70,6 +75,18 @@ class AuthRemoteDataSource {
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.code);
     }
+  }
+
+  // --- La fonction efface le compte, son profil, ses téléphones et, s'il
+  // --- était le dernier membre, toute la relation. La session locale, qui
+  // --- ne correspond plus à rien, est ensuite fermée ---
+  Future<void> deleteAccount() async {
+    try {
+      await _functions.httpsCallable('deleteAccount').call();
+    } on FirebaseFunctionsException catch (e) {
+      throw AuthException(e.code == 'unavailable' ? 'network-request-failed' : e.code);
+    }
+    await signOut();
   }
 
   // --- Déconnexion Google aussi : sans elle, le prochain "Continuer avec

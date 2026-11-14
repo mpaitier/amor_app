@@ -56,6 +56,11 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() => _remoteDataSource.signOut();
 
+  @override
+  Future<void> deleteAccount() {
+    return _guard(() => _remoteDataSource.deleteAccount());
+  }
+
   // --- Traduction des erreurs de la data source ---
   Future<T> _guard<T>(Future<T> Function() action) async {
     try {

@@ -6,6 +6,7 @@
 // map "profiles" indexée par uid.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/couple_end_request.dart';
 import '../../domain/entities/couple_entity.dart';
 import '../../domain/entities/couple_member.dart';
 
@@ -17,6 +18,7 @@ class CoupleModel extends CoupleEntity {
     required super.id,
     required super.members,
     required super.inviteCode,
+    super.endRequest,
   });
 
   factory CoupleModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -34,7 +36,27 @@ class CoupleModel extends CoupleEntity {
       members: [
         for (final uid in memberIds) _memberFrom(uid, profiles[uid]),
       ],
+      endRequest: _endRequestFrom(data['endRequest']),
     );
+  }
+
+  // --- Map "endRequest" écrite par les fonctions. null sans demande ---
+  static CoupleEndRequest? _endRequestFrom(Object? raw) {
+    if (raw is! Map) return null;
+    final data = Map<String, dynamic>.from(raw);
+    final requestedBy = data['requestedBy'];
+    if (requestedBy is! String) return null;
+    final requestedAt = data['requestedAt'];
+    return CoupleEndRequest(
+      requestedBy: requestedBy,
+      requestedAt: requestedAt is Timestamp ? requestedAt.toDate() : null,
+      acceptedBy: _stringList(data['acceptedBy']),
+      declinedBy: _stringList(data['declinedBy']),
+    );
+  }
+
+  static List<String> _stringList(Object? raw) {
+    return raw is List ? raw.whereType<String>().toList() : const [];
   }
 
   static CoupleMember _memberFrom(String uid, Object? rawProfile) {

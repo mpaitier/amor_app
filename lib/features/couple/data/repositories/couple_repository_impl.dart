@@ -53,6 +53,17 @@ class CoupleRepositoryImpl implements CoupleRepository {
   }
 
   @override
+  Future<bool> requestEnd() => _guard(() => _remoteDataSource.requestEnd());
+
+  @override
+  Future<bool> respondToEnd({required bool accept}) {
+    return _guard(() => _remoteDataSource.respondToEnd(accept: accept));
+  }
+
+  @override
+  Future<void> cancelEnd() => _guard(() => _remoteDataSource.cancelEnd());
+
+  @override
   Future<void> updateMemberProfile({
     required String coupleId,
     required String uid,

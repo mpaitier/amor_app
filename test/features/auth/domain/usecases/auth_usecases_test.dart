@@ -14,6 +14,7 @@ import 'package:amor_app/features/auth/domain/usecases/sign_in_with_email.dart';
 import 'package:amor_app/features/auth/domain/usecases/sign_in_with_google.dart';
 import 'package:amor_app/features/auth/domain/usecases/sign_out.dart';
 import 'package:amor_app/features/auth/domain/usecases/watch_auth_state.dart';
+import 'package:amor_app/features/auth/domain/usecases/delete_account.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -114,6 +115,16 @@ void main() {
       await SignOut(mockRepository)();
 
       verify(() => mockRepository.signOut()).called(1);
+    });
+  });
+
+  group('DeleteAccount', () {
+    test('doit déléguer au repository', () async {
+      when(() => mockRepository.deleteAccount()).thenAnswer((_) async {});
+
+      await DeleteAccount(mockRepository)();
+
+      verify(() => mockRepository.deleteAccount()).called(1);
     });
   });
 }

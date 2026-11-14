@@ -110,4 +110,14 @@ void main() {
 
     verify(() => mockDataSource.signOut()).called(1);
   });
+
+  test('deleteAccount doit traduire une coupure réseau', () {
+    when(() => mockDataSource.deleteAccount())
+        .thenThrow(const AuthException('network-request-failed'));
+
+    expect(
+      () => repository.deleteAccount(),
+      failureWith(AuthFailureReason.network),
+    );
+  });
 }

@@ -27,4 +27,7 @@ abstract class AuthRepository {
   Future<void> sendPasswordReset(String email);
 
   Future<void> signOut();
+
+  // --- Suppression définitive du compte, puis déconnexion ---
+  Future<void> deleteAccount();
 }

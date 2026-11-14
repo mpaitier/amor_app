@@ -47,6 +47,10 @@
     ],
     "rewrites": [
       {
+        "source": "/delete-account",
+        "destination": "/delete-account.html"
+      },
+      {
         "source": "/join/**",
         "destination": "/join.html"
       }

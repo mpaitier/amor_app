@@ -24,6 +24,7 @@ import 'features/auth/domain/usecases/sign_in_with_email.dart';
 import 'features/auth/domain/usecases/register_with_email.dart';
 import 'features/auth/domain/usecases/send_password_reset.dart';
 import 'features/auth/domain/usecases/sign_out.dart';
+import 'features/auth/domain/usecases/delete_account.dart';
 
 // --- Couple feature ---
 import 'features/couple/data/datasources/couple_remote_datasource.dart';
@@ -33,6 +34,9 @@ import 'features/couple/domain/usecases/watch_current_couple.dart';
 import 'features/couple/domain/usecases/create_couple.dart';
 import 'features/couple/domain/usecases/join_couple.dart';
 import 'features/couple/domain/usecases/update_member_profile.dart';
+import 'features/couple/domain/usecases/request_couple_end.dart';
+import 'features/couple/domain/usecases/respond_to_couple_end.dart';
+import 'features/couple/domain/usecases/cancel_couple_end.dart';
 
 // --- Timeline feature ---
 import 'features/timeline/data/datasources/timeline_remote_datasource.dart';
@@ -128,6 +132,7 @@ class ServiceLocator {
   late final AuthRemoteDataSource authRemoteDataSource = AuthRemoteDataSource(
     auth: _auth,
     googleSignIn: _googleSignIn,
+    functions: _functions,
   );
   late final AuthRepository authRepository = AuthRepositoryImpl(
     remoteDataSource: authRemoteDataSource,
@@ -141,6 +146,7 @@ class ServiceLocator {
   late final SendPasswordReset sendPasswordReset =
       SendPasswordReset(authRepository);
   late final SignOut signOut = SignOut(authRepository);
+  late final DeleteAccount deleteAccount = DeleteAccount(authRepository);
 
   // --- Couple: data source, repository, use cases ---
   late final CoupleRemoteDataSource coupleRemoteDataSource =
@@ -154,6 +160,11 @@ class ServiceLocator {
   late final JoinCouple joinCouple = JoinCouple(coupleRepository);
   late final UpdateMemberProfile updateMemberProfile =
       UpdateMemberProfile(coupleRepository);
+  late final RequestCoupleEnd requestCoupleEnd =
+      RequestCoupleEnd(coupleRepository);
+  late final RespondToCoupleEnd respondToCoupleEnd =
+      RespondToCoupleEnd(coupleRepository);
+  late final CancelCoupleEnd cancelCoupleEnd = CancelCoupleEnd(coupleRepository);
 
   // --- Timeline: data sources ---
   late final TimelineRemoteDataSource timelineRemoteDataSource =

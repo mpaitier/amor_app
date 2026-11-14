@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supprimer mon compte Amor</title>
+  <!--
+    Page de suppression de compte demandée par Google Play, pour les
+    personnes qui n'ont plus l'app. La configuration Firebase et le SDK sont
+    servis par Firebase Hosting (URL réservées /__/firebase/...) : aucune clé
+    n'est écrite dans ce fichier. Il faut qu'une app Web soit enregistrée
+    dans le projet Firebase.
+  -->
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      background: #F1EBDF;
+      color: #3B2A2F;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    main { max-width: 460px; width: 100%; padding: 32px 20px; }
+    h1 { color: #703348; font-size: 30px; margin: 0 0 16px; text-align: center; }
+    p, li { font-size: 16px; line-height: 1.5; }
+    .card {
+      background: #FFFFFF;
+      border-radius: 18px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    label { display: block; font-size: 14px; margin: 12px 0 4px; }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      border: 1px solid #857376;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 1px solid #703348;
+      background: #FFFFFF;
+      color: #703348;
+    }
+    button.primary { background: #703348; color: #FFFFFF; }
+    button.danger { background: #BA1A1A; border-color: #BA1A1A; color: #FFFFFF; }
+    button.link {
+      border: none;
+      background: none;
+      padding: 6px;
+      margin-top: 4px;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+    button:disabled { opacity: 0.5; cursor: default; }
+    .divider { text-align: center; color: #857376; margin: 16px 0 0; }
+    .message { margin-top: 14px; padding: 10px 12px; border-radius: 10px; display: none; }
+    .message.error { display: block; background: #FFDAD6; color: #410002; }
+    .message.info { display: block; background: #DFF3E4; color: #1E5631; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supprimer mon compte Amor</h1>
+
+    <p>La suppression est définitive. Elle efface :</p>
+    <ul>
+      <li>ton compte de connexion et ton profil (surnom, couleur) ;</li>
+      <li>les réglages de notification de tes téléphones.</li>
+    </ul>
+    <p>
+      Les souvenirs que tu as créés restent visibles pour les autres membres de
+      ta relation, signés « ancien membre ». Si tu étais seul dans ta relation,
+      elle est supprimée avec tous ses souvenirs, ses dates et ses photos.
+    </p>
+    <p>
+      Tu peux aussi supprimer ton compte depuis l'app : Paramètres → Compte →
+      Supprimer mon compte.
+    </p>
+
+    <!-- --- Étape 1 : connexion --- -->
+    <section class="card" id="sign-in">
+      <p>Connecte-toi avec le compte à supprimer.</p>
+      <button type="button" id="google">Continuer avec Google</button>
+      <p class="divider">ou</p>
+      <label for="email">Adresse e-mail</label>
+      <input id="email" type="email" autocomplete="email">
+      <label for="password">Mot de passe</label>
+      <input id="password" type="password" autocomplete="current-password">
+      <button type="button" class="primary" id="email-sign-in">Se connecter</button>
+      <button type="button" class="link" id="reset">Mot de passe oublié ?</button>
+    </section>
+
+    <!-- --- Étape 2 : suppression --- -->
+    <section class="card hidden" id="delete">
+      <p>Connecté avec <strong id="account"></strong>.</p>
+      <button type="button" class="danger" id="delete-button">
+        Supprimer définitivement mon compte
+      </button>
+      <button type="button" class="link" id="sign-out">Utiliser un autre compte</button>
+    </section>
+
+    <!-- --- Étape 3 : terminé --- -->
+    <section class="card hidden" id="done">
+      <p>Ton compte a bien été supprimé. Tu peux fermer cette page.</p>
+    </section>
+
+    <div class="message" id="message"></div>
+  </main>
+
+  <!-- --- Le Hosting sert la version 8 du SDK sur ses URL réservées --- -->
+  <script src="/__/firebase/8.10.1/firebase-app.js"></script>
+  <script src="/__/firebase/8.10.1/firebase-auth.js"></script>
+  <script src="/__/firebase/8.10.1/firebase-functions.js"></script>
+  <script src="/__/firebase/init.js"></script>
+  <script>
+    var auth = firebase.auth();
+    auth.languageCode = "fr";
+    var deleteAccount = firebase.functions().httpsCallable("deleteAccount");
+
+    var sections = {
+      signIn: document.getElementById("sign-in"),
+      delete: document.getElementById("delete"),
+      done: document.getElementById("done"),
+    };
+    var messageBox = document.getElementById("message");
+    var isDeleted = false;
+
+    function show(name) {
+      Object.keys(sections).forEach(function (key) {
+        sections[key].classList.toggle("hidden", key !== name);
+      });
+    }
+
+    function setMessage(text, isError) {
+      messageBox.textContent = text || "";
+      messageBox.className = "message" + (text ? (isError ? " error" : " info") : "");
+    }
+
+    function setBusy(isBusy) {
+      document.querySelectorAll("button").forEach(function (button) {
+        button.disabled = isBusy;
+      });
+    }
+
+    // --- Mêmes messages que dans l'app ---
+    function errorMessage(error) {
+      var code = (error && error.code) || "";
+      if (code.indexOf("invalid-credential") >= 0 || code.indexOf("wrong-password") >= 0 ||
+          code.indexOf("user-not-found") >= 0) {
+        return "E-mail ou mot de passe incorrect.";
+      }
+      if (code.indexOf("invalid-email") >= 0) return "Cette adresse e-mail n'a pas l'air valide.";
+      if (code.indexOf("too-many-requests") >= 0) return "Trop de tentatives. Réessaie dans quelques minutes.";
+      if (code.indexOf("network") >= 0 || code.indexOf("unavailable") >= 0) return "Pas de connexion internet.";
+      if (code.indexOf("popup-closed") >= 0 || code.indexOf("cancelled-popup") >= 0) return "";
+      return "Une erreur est survenue. Réessaie.";
+    }
+
+    async function run(action) {
+      setMessage("");
+      setBusy(true);
+      try {
+        await action();
+      } catch (error) {
+        setMessage(errorMessage(error), true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    auth.onAuthStateChanged(function (user) {
+      if (isDeleted) return show("done");
+      if (user) {
+        document.getElementById("account").textContent = user.email || "ce compte";
+        show("delete");
+      } else {
+        show("signIn");
+      }
+    });
+
+    document.getElementById("google").addEventListener("click", function () {
+      run(function () {
+        return auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      });
+    });
+
+    document.getElementById("email-sign-in").addEventListener("click", function () {
+      var email = document.getElementById("email").value.trim();
+      var password = document.getElementById("password").value;
+      if (!email || !password) return setMessage("Indique ton adresse e-mail et ton mot de passe.", true);
+      run(function () {
+        return auth.signInWithEmailAndPassword(email, password);
+      });
+    });
+
+    document.getElementById("reset").addEventListener("click", function () {
+      var email = document.getElementById("email").value.trim();
+      if (!email) return setMessage("Indique d'abord ton adresse e-mail.", true);
+      run(async function () {
+        await auth.sendPasswordResetEmail(email);
+        setMessage("Un e-mail pour choisir un nouveau mot de passe vient de partir vers " + email + ".", false);
+      });
+    });
+
+    document.getElementById("sign-out").addEventListener("click", function () {
+      run(function () {
+        return auth.signOut();
+      });
+    });
+
+    document.getElementById("delete-button").addEventListener("click", function () {
+      var confirmed = window.confirm(
+        "Supprimer définitivement ton compte Amor ? Cette action ne peut pas être annulée."
+      );
+      if (!confirmed) return;
+      run(async function () {
+        await deleteAccount();
+        isDeleted = true;
+        await auth.signOut();
+        show("done");
+      });
+    });
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:amor_app/features/couple/data/models/couple_model.dart';
 import 'package:amor_app/features/couple/domain/entities/couple_member.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
   late FakeFirebaseFirestore firestore;
@@ -56,5 +57,34 @@ void main() {
 
     expect(model.members, isEmpty);
     expect(model.inviteCode, '');
+  });
+
+  test('lit la demande d\'arrêt', () async {
+    final model = await modelFrom({
+      'members': ['uid-titi', 'uid-lulu'],
+      'inviteCode': 'K7PQ2A',
+      'endRequest': {
+        'requestedBy': 'uid-titi',
+        'requestedAt': Timestamp.fromDate(DateTime(2026, 11, 14)),
+        'acceptedBy': ['uid-titi'],
+        'declinedBy': ['uid-lulu'],
+        'reminderSentAt': null,
+      },
+    });
+
+    final request = model.endRequest!;
+    expect(request.requestedBy, 'uid-titi');
+    expect(request.requestedAt, DateTime(2026, 11, 14));
+    expect(request.acceptedBy, ['uid-titi']);
+    expect(request.declinedBy, ['uid-lulu']);
+  });
+
+  test('sans demande d\'arrêt, endRequest vaut null', () async {
+    final model = await modelFrom({
+      'members': ['uid-titi'],
+      'inviteCode': 'K7PQ2A',
+    });
+
+    expect(model.endRequest, isNull);
   });
 }

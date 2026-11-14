@@ -12,12 +12,8 @@ const {
   specialDayLines,
   reminderTitle,
 } = require("./special_days");
-const {
-  chunk,
-  memberNickname,
-  isOtherMembersDevice,
-  uniqueUids,
-} = require("./recipients");
+const { memberNickname, isOtherMembersDevice, uniqueUids } = require("./recipients");
+const { devicesOfUids } = require("./messaging");
 
 initializeApp();
 
@@ -30,25 +26,29 @@ exports.createCouple = createCouple;
 exports.joinCouple = joinCouple;
 
 // ============================================================================
+// CYCLE DE VIE (suppression de compte, fin de relation, inactivité)
+// ============================================================================
+
+const lifecycle = require("./couple_lifecycle");
+exports.deleteAccount = lifecycle.deleteAccount;
+exports.requestCoupleEnd = lifecycle.requestCoupleEnd;
+exports.respondCoupleEnd = lifecycle.respondCoupleEnd;
+exports.cancelCoupleEnd = lifecycle.cancelCoupleEnd;
+exports.remindCoupleEnd = lifecycle.remindCoupleEnd;
+exports.cleanupInactiveCouples = lifecycle.cleanupInactiveCouples;
+
+// ============================================================================
 // OUTILS COMMUNS
 // ============================================================================
 
-// --- Appareils rattachés aux comptes donnés (device_tokens.uid) ---
-async function devicesOfUids(db, uids) {
-  const devices = [];
-  for (const ids of chunk(uids, 30)) {
-    const snapshot = await db.collection("device_tokens").where("uid", "in", ids).get();
-    for (const doc of snapshot.docs) devices.push({ id: doc.id, ...doc.data() });
-  }
-  return devices;
-}
-
 // --- Date de dernière activité de la relation : sert à supprimer les
-// --- relations restées un an sans nouveau souvenir ni nouvelle date ---
+// --- relations restées un an sans nouveau souvenir ni nouvelle date. Les
+// --- avertissements déjà envoyés sont oubliés : le compte repart à zéro ---
 async function markCoupleActivity(db, coupleId) {
   try {
     await db.collection("couples").doc(coupleId).update({
       lastActivityAt: FieldValue.serverTimestamp(),
+      inactivityWarnings: FieldValue.delete(),
     });
   } catch (error) {
     // --- Relation supprimée entre-temps : rien à mettre à jour ---

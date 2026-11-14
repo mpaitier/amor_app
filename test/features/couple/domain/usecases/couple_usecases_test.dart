@@ -11,6 +11,9 @@ import 'package:amor_app/features/couple/domain/usecases/create_couple.dart';
 import 'package:amor_app/features/couple/domain/usecases/join_couple.dart';
 import 'package:amor_app/features/couple/domain/usecases/update_member_profile.dart';
 import 'package:amor_app/features/couple/domain/usecases/watch_current_couple.dart';
+import 'package:amor_app/features/couple/domain/usecases/request_couple_end.dart';
+import 'package:amor_app/features/couple/domain/usecases/respond_to_couple_end.dart';
+import 'package:amor_app/features/couple/domain/usecases/cancel_couple_end.dart';
 
 class MockCoupleRepository extends Mock implements CoupleRepository {}
 
@@ -176,6 +179,31 @@ void main() {
         ),
         failureWith(CoupleFailureReason.invalidProfile),
       );
+    });
+  });
+
+  group('fin de relation', () {
+    test('RequestCoupleEnd relaie le repository', () async {
+      when(() => mockRepository.requestEnd()).thenAnswer((_) async => false);
+
+      expect(await RequestCoupleEnd(mockRepository)(), isFalse);
+      verify(() => mockRepository.requestEnd()).called(1);
+    });
+
+    test('RespondToCoupleEnd transmet la réponse', () async {
+      when(() => mockRepository.respondToEnd(accept: any(named: 'accept')))
+          .thenAnswer((_) async => true);
+
+      expect(await RespondToCoupleEnd(mockRepository)(accept: true), isTrue);
+      verify(() => mockRepository.respondToEnd(accept: true)).called(1);
+    });
+
+    test('CancelCoupleEnd relaie le repository', () async {
+      when(() => mockRepository.cancelEnd()).thenAnswer((_) async {});
+
+      await CancelCoupleEnd(mockRepository)();
+
+      verify(() => mockRepository.cancelEnd()).called(1);
     });
   });
 }

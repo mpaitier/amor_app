@@ -26,6 +26,12 @@ abstract class CoupleRepository {
     required int color,
   });
 
+  // --- Fin de relation d'un commun accord. requestEnd et respondToEnd
+  // --- renvoient true si la relation vient d'être supprimée ---
+  Future<bool> requestEnd();
+  Future<bool> respondToEnd({required bool accept});
+  Future<void> cancelEnd();
+
   Future<void> updateMemberProfile({
     required String coupleId,
     required String uid,

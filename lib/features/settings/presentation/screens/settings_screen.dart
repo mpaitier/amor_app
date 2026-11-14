@@ -5,7 +5,8 @@
 // l'affichage de l'anniversaire et des mois-anniversaires dans le
 // calendrier. Chaque changement est enregistré aussitôt. Viennent ensuite
 // la relation (membres, invitation), le profil de la personne connectée,
-// et enfin le compte avec la déconnexion.
+// l'arrêt de la relation, et enfin le compte (déconnexion, règle
+// d'inactivité, suppression).
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
 import '../../../auth/presentation/components/account_card.dart';
+import '../../../auth/presentation/viewmodels/account_viewmodel.dart';
+import '../../../couple/presentation/components/end_relationship_card.dart';
+import '../../../couple/presentation/viewmodels/couple_end_viewmodel.dart';
 import '../../../couple/presentation/components/couple_overview_card.dart';
 import '../../../couple/presentation/components/member_profile_editor.dart';
 import '../../../couple/presentation/viewmodels/couple_session_viewmodel.dart';
@@ -72,6 +76,18 @@ class SettingsScreen extends StatelessWidget {
             watchPreferences: sl.watchNotificationPreferences,
             savePreferences: sl.saveNotificationPreferences,
           ),
+        ),
+        // --- Demande d'arrêt de la relation ---
+        ChangeNotifierProvider(
+          create: (_) => CoupleEndViewModel(
+            requestCoupleEnd: sl.requestCoupleEnd,
+            respondToCoupleEnd: sl.respondToCoupleEnd,
+            cancelCoupleEnd: sl.cancelCoupleEnd,
+          ),
+        ),
+        // --- Suppression du compte ---
+        ChangeNotifierProvider(
+          create: (_) => AccountViewModel(deleteAccount: sl.deleteAccount),
         ),
       ],
       child: const _SettingsView(),
@@ -208,6 +224,11 @@ class _SettingsView extends StatelessWidget {
             child: MemberProfileEditor(),
           ),
         ],
+        const SizedBox(height: 20),
+        const SettingsSection(
+          title: 'Arrêter la relation',
+          child: EndRelationshipCard(),
+        ),
         const SizedBox(height: 20),
         const SettingsSection(
           title: 'Compte',

@@ -83,6 +83,23 @@ class CoupleRemoteDataSource {
     return data['coupleId'] as String;
   }
 
+  // --- Fin de relation : tout passe par les fonctions, qui vérifient que
+  // --- la personne est membre et suppriment la relation quand tout le
+  // --- monde a accepté ---
+  Future<bool> requestEnd() async {
+    final data = await _call('requestCoupleEnd', const {});
+    return data['deleted'] == true;
+  }
+
+  Future<bool> respondToEnd({required bool accept}) async {
+    final data = await _call('respondCoupleEnd', {'accept': accept});
+    return data['deleted'] == true;
+  }
+
+  Future<void> cancelEnd() async {
+    await _call('cancelCoupleEnd', const {});
+  }
+
   // --- Les règles Firestore n'autorisent un membre qu'à modifier son
   // --- propre profil ---
   Future<void> updateMemberProfile({
