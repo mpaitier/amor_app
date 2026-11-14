@@ -2,6 +2,10 @@
 # Construit l'AAB (Play Store) et l'APK (installation directe) signés avec
 # la clé d'envoi, puis crée la release GitHub avec les deux fichiers et des
 # notes générées à partir des PR fusionnées depuis le tag précédent.
+# Un second job ajoute ensuite l'app iOS (.ipa) à la release. Elle n'est
+# pas signée : sans compte Apple Developer, chacun la signe avec son propre
+# identifiant Apple au moment de l'installer (AltStore ou Sideloadly, voir
+# docs/installation-ios.md).
 #
 # Secrets attendus (Settings > Secrets and variables > Actions) :
 # - ANDROID_KEYSTORE_BASE64      clé d'envoi (.jks) encodée en base64
@@ -9,7 +13,8 @@
 # - ANDROID_KEY_ALIAS            alias de la clé (upload)
 # - ANDROID_KEY_PASSWORD         mot de passe de la clé
 # - GOOGLE_SERVICES_JSON_BASE64  android/app/google-services.json en base64
-# - FIREBASE_OPTIONS_DART_BASE64 lib/firebase_options.dart en base64
+# - FIREBASE_OPTIONS_DART_BASE64 lib/firebase_options.dart en base64 (doit
+#                                contenir les options iOS)
 # - DOTENV_BASE64                .env en base64
 name: Release
 
@@ -118,6 +123,58 @@ jobs:
           case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
           gh release create "$GITHUB_REF_NAME" dist/* \
             --title "Amor $GITHUB_REF_NAME" \
+            --notes "Installation sur iPhone : voir [docs/installation-ios.md](https://github.com/${{ github.repository }}/blob/main/docs/installation-ios.md). L'app iOS (.ipa) est ajoutée quelques minutes après la création de la release." \
             --generate-notes \
             --verify-tag \
             $prerelease
+
+  ios:
+    name: App iOS non signée
+    # La release doit exister pour y ajouter le fichier.
+    needs: release
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      # Pas de clé de signature ici : seuls la configuration Firebase et le
+      # .env sont nécessaires. Le reste de la config iOS (identifiant client
+      # Google) est dans ios/Runner/Info.plist, sans secret.
+      - name: Écrire la configuration depuis les secrets
+        env:
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+          DOTENV_BASE64: ${{ secrets.DOTENV_BASE64 }}
+        run: |
+          echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          echo "$DOTENV_BASE64" | base64 --decode > .env
+
+          # Sans options iOS, l'app s'arrêterait au démarrage sur iPhone.
+          if ! grep -q "static const FirebaseOptions ios" lib/firebase_options.dart; then
+            echo "::error::lib/firebase_options.dart n'a pas d'options iOS : relancer flutterfire configure avec iOS, puis mettre à jour le secret FIREBASE_OPTIONS_DART_BASE64"
+            exit 1
+          fi
+
+      - name: Préparer Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # --no-codesign : l'outil d'installation (AltStore, Sideloadly) signe
+      # l'app avec l'identifiant Apple de la personne qui l'installe.
+      - name: App iOS release
+        run: flutter build ios --release --no-codesign
+
+      # Un .ipa est une archive zip contenant Payload/Runner.app.
+      - name: Créer le fichier .ipa
+        id: ipa
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist/Payload
+          cp -R build/ios/iphoneos/Runner.app dist/Payload/
+          (cd dist && zip -qry "amor-$version.ipa" Payload)
+          echo "path=dist/amor-$version.ipa" >> "$GITHUB_OUTPUT"
+
+      - name: Ajouter le .ipa à la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" "${{ steps.ipa.outputs.path }}" --clobber
