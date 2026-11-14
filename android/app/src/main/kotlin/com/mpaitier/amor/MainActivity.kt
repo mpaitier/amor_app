@@ -1,4 +1,4 @@
-package com.example.amor.amor_app
+package com.mpaitier.amor
 
 import io.flutter.embedding.android.FlutterActivity
 
