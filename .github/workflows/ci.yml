@@ -1,3 +1,7 @@
+# Analyse, tests, puis builds Android et iOS, à chaque push sur main et sur
+# chaque pull request. Aucun secret nécessaire : les builds ne sont pas
+# signés (APK signé avec la clé de debug, iOS sans signature) et servent
+# seulement à vérifier que l'app compile sur chaque plateforme.
 name: CI
 
 on:
@@ -17,8 +21,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  flutter:
-    name: App Flutter
+  analyze-and-test:
+    name: Analyse et tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -26,42 +30,11 @@ jobs:
       - name: Récupérer le code
         uses: actions/checkout@v7
 
-      # Version figée sur celle du poste de développement : la CI vérifie
-      # exactement ce qui a été testé en local. À relever en même temps que
-      # Flutter sur le poste (3.50 déprécie package:flutter/material.dart au
-      # profit de material_ui).
-      - name: Installer Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          flutter-version: 3.47.5
-          cache: true
+      - name: Préparer Flutter
+        uses: ./.github/actions/setup-flutter
 
-      # Ces fichiers restent hors du dépôt (.gitignore). L'analyse et les
-      # tests n'ont besoin que de leur présence : des valeurs factices
-      # suffisent, aucun test ne se connecte à Firebase.
-      - name: Créer les fichiers locaux absents
-        run: |
-          if [ ! -f lib/firebase_options.dart ]; then
-            cat > lib/firebase_options.dart <<'EOF'
-          // Fichier factice créé par la CI.
-          import 'package:firebase_core/firebase_core.dart';
-
-          class DefaultFirebaseOptions {
-            static FirebaseOptions get currentPlatform => const FirebaseOptions(
-                  apiKey: 'ci',
-                  appId: '1:0:android:0',
-                  messagingSenderId: '0',
-                  projectId: 'ci',
-                );
-          }
-          EOF
-          fi
-          touch .env
-
-      - name: Installer les dépendances
-        run: flutter pub get
-
+      # Les remarques de niveau info font aussi échouer l'analyse, pour
+      # garder un projet à zéro avertissement.
       - name: Analyse
         run: flutter analyze
 
@@ -104,10 +77,54 @@ jobs:
         working-directory: functions
         run: npm test
 
-      # Le script de migration n'existe que depuis l'issue #4.
       - name: Tests du script de migration
         if: ${{ hashFiles('tools/migration/package-lock.json') != '' }}
         working-directory: tools/migration
         run: |
           npm ci
           npm test
+
+  build-android:
+    name: Build Android
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      # Le plugin Android Gradle 8.11 demande Java 17 au minimum.
+      - name: Installer Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Préparer Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # Sans configuration de signature release, l'APK est signé avec la
+      # clé de debug (voir android/app/build.gradle.kts) : il n'est pas
+      # publiable, mais la compilation complète est vérifiée.
+      - name: APK release
+        run: flutter build apk --release
+
+  build-ios:
+    name: Build iOS (sans signature)
+    needs: analyze-and-test
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Préparer Flutter
+        uses: ./.github/actions/setup-flutter
+
+      # --no-codesign : aucun certificat Apple nécessaire. Le résultat ne
+      # s'installe pas sur un iPhone, il prouve seulement que le projet iOS
+      # compile (dépendances natives, version minimale d'iOS, Firebase).
+      - name: App iOS release
+        run: flutter build ios --release --no-codesign
