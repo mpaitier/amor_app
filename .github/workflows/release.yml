@@ -1,0 +1,123 @@
+# Publication d'une version, déclenchée par un tag v* (v1.0.0, v1.1.0-beta.1).
+# Construit l'AAB (Play Store) et l'APK (installation directe) signés avec
+# la clé d'envoi, puis crée la release GitHub avec les deux fichiers et des
+# notes générées à partir des PR fusionnées depuis le tag précédent.
+#
+# Secrets attendus (Settings > Secrets and variables > Actions) :
+# - ANDROID_KEYSTORE_BASE64      clé d'envoi (.jks) encodée en base64
+# - ANDROID_KEYSTORE_PASSWORD    mot de passe du keystore
+# - ANDROID_KEY_ALIAS            alias de la clé (upload)
+# - ANDROID_KEY_PASSWORD         mot de passe de la clé
+# - GOOGLE_SERVICES_JSON_BASE64  android/app/google-services.json en base64
+# - FIREBASE_OPTIONS_DART_BASE64 lib/firebase_options.dart en base64
+# - DOTENV_BASE64                .env en base64
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+# Création de la release : écriture sur le dépôt.
+permissions:
+  contents: write
+
+# Une release va toujours au bout.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build signé et release GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      # v1.2.0 doit correspondre à "version: 1.2.0+N" dans pubspec.yaml :
+      # c'est elle qui donne versionName et versionCode à l'app.
+      - name: Vérifier la version
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(grep -E '^version:' pubspec.yaml | sed -E 's/^version:[[:space:]]*//; s/\+.*$//')"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à la version $version de pubspec.yaml"
+            exit 1
+          fi
+          echo "name=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Écrire la configuration depuis les secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+          DOTENV_BASE64: ${{ secrets.DOTENV_BASE64 }}
+        run: |
+          missing=0
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS \
+                      ANDROID_KEY_PASSWORD GOOGLE_SERVICES_JSON_BASE64 \
+                      FIREBASE_OPTIONS_DART_BASE64 DOTENV_BASE64; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret manquant : $name"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > android/app/google-services.json
+          echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          echo "$DOTENV_BASE64" | base64 --decode > .env
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+
+          # storeFile est relatif au module android/app.
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
+
+      - name: Installer Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Les fichiers de configuration existent déjà : l'action ne crée
+      # aucun fichier factice.
+      - name: Préparer Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Tests
+        run: flutter test
+
+      - name: AAB signé (Play Store)
+        run: flutter build appbundle --release
+
+      - name: APK signé (installation directe)
+        run: flutter build apk --release
+
+      - name: Rassembler les fichiers
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/bundle/release/app-release.aab "dist/amor-${{ steps.version.outputs.name }}.aab"
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/amor-${{ steps.version.outputs.name }}.apk"
+
+      # Un tag avec un tiret (v1.1.0-beta.1) donne une préversion.
+      - name: Créer la release GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "Amor $GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag \
+            $prerelease

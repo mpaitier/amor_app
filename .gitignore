@@ -24,6 +24,10 @@ lib/firebase_options.dart
 **/android/.gradle
 **/android/captures/
 **/android/local.properties
+# --- Signature release : jamais dans le dépôt ---
+**/android/key.properties
+*.jks
+*.keystore
 **/android/GeneratedPluginRegistrant.java
 
 # <<--- iOS --->
