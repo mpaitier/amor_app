@@ -2,7 +2,8 @@
 // SETTINGS CALENDAR TAB
 // ============================================================================
 // Onglet "Calendrier" : anniversaire et mois-anniversaires (affichage,
-// style, aperçu), puis le terme de recherche des GIF. Branché sur le
+// GIF tiré ou collé par lien, style, aperçu), puis le terme de recherche
+// des GIF. Branché sur le
 // SettingsViewModel.
 
 import 'package:flutter/material.dart';
@@ -45,6 +46,7 @@ class SettingsCalendarTab extends StatelessWidget {
                 ),
                 isGifLoading: viewModel.isAnniversaryGifLoading,
                 onRefreshGif: viewModel.drawAnniversaryGif,
+                onGifLinkSubmitted: viewModel.setAnniversaryGifFromLink,
               ),
               const Divider(height: 28),
               SpecialDaySettingCard(
@@ -63,6 +65,7 @@ class SettingsCalendarTab extends StatelessWidget {
                 ),
                 isGifLoading: viewModel.isMonthAnniversaryGifLoading,
                 onRefreshGif: viewModel.drawMonthAnniversaryGif,
+                onGifLinkSubmitted: viewModel.setMonthAnniversaryGifFromLink,
               ),
             ],
           ),
