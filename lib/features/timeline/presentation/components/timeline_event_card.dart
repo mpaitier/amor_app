@@ -1,11 +1,13 @@
 // ============================================================================
 // TIMELINE EVENT CARD
 // ============================================================================
-// Card shown in the events list: cropped image, title, description.
+// Card shown in the events list: cropped image, title, author in their
+// color, description.
 
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/cropped_image.dart';
 import '../../domain/entities/timeline_event_entity.dart';
+import 'event_card_author.dart';
 
 class TimelineEventCard extends StatelessWidget {
   final TimelineEventEntity event;
@@ -36,7 +38,8 @@ class TimelineEventCard extends StatelessWidget {
           CroppedImage(url: firstImage, imageCount: images.length),
           const SizedBox(height: 8),
           _buildTitle(),
-          const SizedBox(height: 8),
+          EventCardAuthor(creatorUid: event.creatorUid),
+          const SizedBox(height: 4),
           _buildDescription(),
           const SizedBox(height: 10),
         ],

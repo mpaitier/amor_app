@@ -12,7 +12,7 @@ import '../../domain/entities/couple_member.dart';
 
 class CoupleModel extends CoupleEntity {
   // --- Couleur d'un membre dont le profil manque encore ---
-  static const int fallbackColor = 0xFF703348;
+  static const int fallbackColor = CoupleMember.defaultColor;
 
   const CoupleModel({
     required super.id,
