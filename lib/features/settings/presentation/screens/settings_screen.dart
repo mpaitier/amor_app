@@ -48,6 +48,7 @@ class SettingsScreen extends StatelessWidget {
             watchCoupleSettings: sl.watchCoupleSettings,
             saveCoupleSettings: sl.saveCoupleSettings,
             getRandomGif: sl.getRandomGif,
+            parseGiphyLink: sl.parseGiphyLink,
           ),
         ),
         // --- Couleurs libres récentes, lues par les rangées de couleurs ---

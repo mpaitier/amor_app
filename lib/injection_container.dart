@@ -65,6 +65,7 @@ import 'features/gif/data/datasources/gif_remote_datasource.dart';
 import 'features/gif/data/repositories/gif_repository_impl.dart';
 import 'features/gif/domain/repositories/gif_repository.dart';
 import 'features/gif/domain/usecases/get_random_gif.dart';
+import 'features/gif/domain/usecases/parse_giphy_link.dart';
 
 // --- Notifications feature ---
 import 'features/notifications/data/datasources/device_identity_datasource.dart';
@@ -215,6 +216,7 @@ class ServiceLocator {
     remoteDataSource: gifRemoteDataSource,
   );
   late final GetRandomGif getRandomGif = GetRandomGif(gifRepository);
+  final ParseGiphyLink parseGiphyLink = const ParseGiphyLink();
 
   // --- Notifications: data sources, repository, use case ---
 late final DeviceIdentityDataSource deviceIdentityDataSource =

@@ -3,12 +3,17 @@
 // ============================================================================
 // Détient les réglages du couple, suivis en temps réel, et enregistre
 // chaque changement aussitôt fait : l'écran n'a pas de bouton "Enregistrer".
+// Le GIF d'un jour spécial vient d'un tirage au hasard ou d'un lien GIPHY
+// collé par l'utilisateur.
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/couple_settings_entity.dart';
 import '../../domain/entities/special_day_style.dart';
+import '../../../gif/domain/entities/giphy_link_result.dart';
 import '../../../gif/domain/usecases/get_random_gif.dart';
+import '../../../gif/domain/usecases/parse_giphy_link.dart';
+import '../../../gif/presentation/utils/giphy_link_messages.dart';
 import '../../domain/usecases/save_couple_settings.dart';
 import '../../domain/usecases/watch_couple_settings.dart';
 
@@ -16,6 +21,7 @@ class SettingsViewModel extends ChangeNotifier {
   final WatchCoupleSettings _watchCoupleSettings;
   final SaveCoupleSettings _saveCoupleSettings;
   final GetRandomGif _getRandomGif;
+  final ParseGiphyLink _parseGiphyLink;
 
   StreamSubscription<CoupleSettingsEntity>? _subscription;
 
@@ -33,10 +39,12 @@ class SettingsViewModel extends ChangeNotifier {
     required WatchCoupleSettings watchCoupleSettings,
     required SaveCoupleSettings saveCoupleSettings,
     required GetRandomGif getRandomGif,
+    required ParseGiphyLink parseGiphyLink,
     DateTime? now,
   })  : _watchCoupleSettings = watchCoupleSettings,
         _saveCoupleSettings = saveCoupleSettings,
         _getRandomGif = getRandomGif,
+        _parseGiphyLink = parseGiphyLink,
         today = _dayOf(now ?? DateTime.now()) {
     _listenToSettings();
   }
@@ -132,6 +140,44 @@ class SettingsViewModel extends ChangeNotifier {
 
   Future<void> setMonthAnniversaryStyle(SpecialDayStyle style) {
     return _update(settings.copyWith(monthAnniversaryStyle: style));
+  }
+
+  // --- GIF de l'anniversaire choisi par lien. Renvoie null si le lien est
+  // --- accepté, sinon le message à afficher sous le champ ---
+  String? setAnniversaryGifFromLink(String link) {
+    return _applyGifLink(
+      link,
+      (gifUrl) => settings.copyWith(
+        anniversaryStyle: settings.anniversaryStyle.copyWith(gifUrl: gifUrl),
+      ),
+    );
+  }
+
+  // --- GIF des mois-anniversaires choisi par lien ---
+  String? setMonthAnniversaryGifFromLink(String link) {
+    return _applyGifLink(
+      link,
+      (gifUrl) => settings.copyWith(
+        monthAnniversaryStyle:
+            settings.monthAnniversaryStyle.copyWith(gifUrl: gifUrl),
+      ),
+    );
+  }
+
+  // --- Le GIF est affiché tout de suite ; l'enregistrement n'est pas
+  // --- attendu, pour ne pas bloquer le champ sans réseau (une erreur
+  // --- d'écriture arrive par errorMessage) ---
+  String? _applyGifLink(
+    String link,
+    CoupleSettingsEntity Function(String gifUrl) withGif,
+  ) {
+    switch (_parseGiphyLink(link)) {
+      case GiphyLinkRejected(:final reason):
+        return giphyLinkErrorMessage(reason);
+      case GiphyLinkAccepted(:final gifUrl):
+        unawaited(_update(withGif(gifUrl)));
+        return null;
+    }
   }
 
   // --- Un terme vide reprend celui d'origine ; un terme inchangé n'est

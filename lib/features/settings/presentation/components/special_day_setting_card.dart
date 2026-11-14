@@ -3,11 +3,13 @@
 // ============================================================================
 // Réglage d'un jour spécial (anniversaire ou mois-anniversaire) : un
 // interrupteur pour l'afficher dans le calendrier, puis, s'il est activé,
-// son GIF, l'aperçu du prochain et le choix de son style. Composant "bête".
+// son GIF (tiré au hasard ou collé par lien GIPHY), l'aperçu du prochain et
+// le choix de son style. Composant "bête".
 
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../gif/presentation/components/gif_view.dart';
+import '../../../gif/presentation/components/giphy_link_field.dart';
 import '../../../important_dates/presentation/components/important_date_banner.dart';
 import '../../domain/entities/special_day_style.dart';
 import 'special_day_style_editor.dart';
@@ -24,6 +26,9 @@ class SpecialDaySettingCard extends StatelessWidget {
   final bool isGifLoading;
   final VoidCallback onRefreshGif;
 
+  // --- Renvoie null si le lien est accepté, sinon le message d'erreur ---
+  final String? Function(String link) onGifLinkSubmitted;
+
   const SpecialDaySettingCard({
     super.key,
     required this.label,
@@ -36,6 +41,7 @@ class SpecialDaySettingCard extends StatelessWidget {
     required this.previewCountdown,
     required this.isGifLoading,
     required this.onRefreshGif,
+    required this.onGifLinkSubmitted,
   });
 
   @override
@@ -83,6 +89,8 @@ class SpecialDaySettingCard extends StatelessWidget {
                         isLoading: isGifLoading,
                         onRefresh: onRefreshGif,
                       ),
+                      const SizedBox(height: 12),
+                      GiphyLinkField(onSubmit: onGifLinkSubmitted),
                       const SizedBox(height: 12),
                       ImportantDateBanner(
                         emoji: style.emoji,

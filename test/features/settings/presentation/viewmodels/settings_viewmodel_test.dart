@@ -15,6 +15,7 @@ import 'package:amor_app/features/settings/domain/usecases/watch_couple_settings
 import 'package:amor_app/features/settings/presentation/viewmodels/settings_viewmodel.dart';
 import 'package:amor_app/features/gif/domain/repositories/gif_repository.dart';
 import 'package:amor_app/features/gif/domain/usecases/get_random_gif.dart';
+import 'package:amor_app/features/gif/domain/usecases/parse_giphy_link.dart';
 
 class MockCoupleSettingsRepository extends Mock
     implements CoupleSettingsRepository {}
@@ -53,6 +54,7 @@ void main() {
       watchCoupleSettings: WatchCoupleSettings(mockRepository),
       saveCoupleSettings: SaveCoupleSettings(mockRepository),
       getRandomGif: GetRandomGif(mockGifRepository),
+      parseGiphyLink: const ParseGiphyLink(),
       now: DateTime(2026, 11, 13, 13, 23),
     );
   });
@@ -145,6 +147,57 @@ void main() {
     await viewModel.drawAnniversaryGif();
 
     expect(viewModel.isAnniversaryGifLoading, isFalse);
+    verifyNever(() => mockRepository.saveSettings(any()));
+  });
+
+  test('doit enregistrer le GIF de l\'anniversaire collé par lien', () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    final error = viewModel.setAnniversaryGifFromLink(
+      'https://giphy.com/gifs/happy-anniversary-l0MYt5jPR6QX5pnqM',
+    );
+
+    expect(error, isNull);
+    expect(
+      lastSaved().anniversaryStyle.gifUrl,
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+    );
+    verifyNever(() => mockGifRepository.getRandomGifUrl(any()));
+  });
+
+  test('doit enregistrer le GIF des mois-anniversaires collé par lien',
+      () async {
+    settingsController.add(tSettings);
+    await flushStream();
+
+    final error = viewModel.setMonthAnniversaryGifFromLink(
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+    );
+
+    expect(error, isNull);
+    expect(
+      lastSaved().monthAnniversaryStyle.gifUrl,
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+    );
+  });
+
+  test('doit refuser un lien qui n\'est pas GIPHY, sans rien enregistrer',
+      () async {
+    settingsController.add(
+      tSettings.copyWith(
+        anniversaryStyle: CoupleSettingsEntity.defaultAnniversaryStyle
+            .copyWith(gifUrl: 'https://gif/existant'),
+      ),
+    );
+    await flushStream();
+
+    final error = viewModel.setAnniversaryGifFromLink(
+      'https://tenor.com/view/love-gif-123456',
+    );
+
+    expect(error, 'Seuls les liens GIPHY sont acceptés');
+    expect(viewModel.settings.anniversaryStyle.gifUrl, 'https://gif/existant');
     verifyNever(() => mockRepository.saveSettings(any()));
   });
 
