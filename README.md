@@ -95,7 +95,11 @@ flutter test
 
 ## Versions
 
-`v1.0.0` sera la première version publiée sur le Play Store. Ensuite, une fonctionnalité fait monter la version mineure (`v1.1.0`) et un correctif la version de patch (`v1.0.1`). Le tag doit correspondre à la version de `pubspec.yaml`, et un tag avec un tiret (`v1.0.0-beta.1`) donne une préversion.
+Amor est distribuée par les releases GitHub. `v1.0.0` sera la première version stable. Ensuite, une fonctionnalité fait monter la version mineure (`v1.1.0`) et un correctif la version de patch (`v1.0.1`).
+
+Le tag doit correspondre à la version de `pubspec.yaml`, dont le numéro après le `+` augmente à chaque release (il sert de `versionCode` sur Android, qui refuse d'installer un numéro plus petit par-dessus). Un tag avec un tiret (`v1.0.0-beta.2`) donne une préversion, proposée par la fenêtre de mise à jour seulement à ceux qui ont déjà une préversion.
+
+La publication sur le Play Store est en suspens : un compte personnel doit d'abord faire un test fermé avec 12 testeurs pendant 14 jours.
 
 ## Crédits
 
