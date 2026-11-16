@@ -4,14 +4,17 @@
 // Mention "Powered by GIPHY" exigée par les conditions de l'API GIPHY
 // partout où un de ses GIF est affiché. Posée en bas à droite du GIF par
 // GifView.
-// Le logo officiel se télécharge sur le site développeurs de GIPHY ; placé
-// dans assets/images/powered_by_giphy.png, il est affiché tel quel. En son
-// absence, une pastille de texte prend sa place. Composant "bête".
+// Pastille sombre (le fond du logo) : "Powered by", puis le logo GIPHY de
+// assets/images/powered_by_giphy.png. Si l'image manque, le mot GIPHY en
+// gras le remplace. Composant "bête".
 
 import 'package:flutter/material.dart';
 
 class PoweredByGiphy extends StatelessWidget {
   static const String logoAsset = 'assets/images/powered_by_giphy.png';
+
+  // --- Fond du logo officiel, pour que la pastille et l'image se fondent ---
+  static const Color _background = Color(0xFF121119);
 
   final double height;
 
@@ -19,42 +22,41 @@ class PoweredByGiphy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = TextStyle(
+      color: Colors.white,
+      fontSize: height * 0.55,
+      height: 1,
+      decoration: TextDecoration.none,
+    );
+
     return Semantics(
       label: 'Powered by GIPHY',
-      child: Image.asset(
-        logoAsset,
+      excludeSemantics: true,
+      child: Container(
         height: height,
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => _buildTextMark(),
-      ),
-    );
-  }
-
-  // --- Pastille noire, texte blanc : lisible sur n'importe quel GIF ---
-  Widget _buildTextMark() {
-    return Container(
-      height: height,
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text.rich(
-        const TextSpan(
+        padding: const EdgeInsets.only(left: 5),
+        decoration: BoxDecoration(
+          color: _background,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            TextSpan(text: 'Powered by '),
-            TextSpan(
-              text: 'GIPHY',
-              style: TextStyle(fontWeight: FontWeight.w900),
+            Text('Powered by', style: textStyle),
+            // --- Le logo a ses propres marges sombres sur les côtés ---
+            Image.asset(
+              logoAsset,
+              height: height,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  'GIPHY',
+                  style: textStyle.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
             ),
           ],
-        ),
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: height * 0.6,
-          height: 1,
-          decoration: TextDecoration.none,
         ),
       ),
     );
