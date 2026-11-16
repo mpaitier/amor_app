@@ -51,6 +51,10 @@
         "destination": "/delete-account.html"
       },
       {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
         "source": "/join/**",
         "destination": "/join.html"
       }
