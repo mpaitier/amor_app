@@ -20,6 +20,7 @@ Les versions publiées sont dans les [releases](https://github.com/mpaitier/amor
 - Anniversaire de la relation et mois-anniversaires dans le calendrier, avec un GIF tiré au hasard ou choisi par lien GIPHY.
 - Comptes Google ou e-mail. Une relation peut réunir deux personnes ou plus, qui rejoignent par lien ou par code d'invitation. Chacun choisit son surnom et sa couleur, qui identifient l'auteur de chaque souvenir.
 - Notifications push (Android) pour les nouveaux souvenirs et les jours spéciaux, réglables par appareil.
+- Fenêtre à l'ouverture quand une nouvelle version est publiée dans les releases GitHub, avec le lien de téléchargement de l'APK ou de l'`.ipa`.
 - Fin de relation d'un commun accord, suppression du compte dans l'app ou sur [la page web](https://amor-app-9ee55.web.app/delete-account), et suppression automatique après un an sans activité.
 
 ## Stack
@@ -99,6 +100,10 @@ flutter test
 ## Crédits
 
 GIF fournis par [GIPHY](https://giphy.com). Recherche de lieux par [Geoapify](https://www.geoapify.com).
+
+## Confidentialité
+
+La [politique de confidentialité](https://amor-app-9ee55.web.app/privacy) décrit les données enregistrées, les services tiers et la suppression du compte. Sa source est `hosting/public/privacy.html` ; elle est aussi accessible dans l'app, dans Paramètres → Compte.
 
 ## Licence
 

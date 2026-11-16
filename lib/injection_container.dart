@@ -6,13 +6,22 @@
 // (service locator), read by screens/widgets when creating their ViewModels.
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:http/http.dart' as http;
 
+import 'core/constants/app_links.dart';
 import 'core/session/current_couple.dart';
+
+// --- App update feature ---
+import 'features/app_update/data/datasources/app_version_local_datasource.dart';
+import 'features/app_update/data/datasources/github_release_remote_datasource.dart';
+import 'features/app_update/data/repositories/app_update_repository_impl.dart';
+import 'features/app_update/domain/repositories/app_update_repository.dart';
+import 'features/app_update/domain/usecases/check_for_update.dart';
 
 // --- Auth feature ---
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
@@ -217,6 +226,21 @@ class ServiceLocator {
   );
   late final GetRandomGif getRandomGif = GetRandomGif(gifRepository);
   final ParseGiphyLink parseGiphyLink = const ParseGiphyLink();
+
+  // --- Mise à jour : version installée, releases GitHub, use case. Le
+  // --- fichier proposé dépend de la plateforme ---
+  late final AppUpdateRepository appUpdateRepository = AppUpdateRepositoryImpl(
+    localDataSource: const AppVersionLocalDataSource(),
+    remoteDataSource: GithubReleaseRemoteDataSource(
+      httpClient: _httpClient,
+      repository: githubRepository,
+    ),
+    downloadExtension:
+        defaultTargetPlatform == TargetPlatform.iOS ? '.ipa' : '.apk',
+  );
+  late final CheckForUpdate checkForUpdate = CheckForUpdate(
+    appUpdateRepository,
+  );
 
   // --- Notifications: data sources, repository, use case ---
 late final DeviceIdentityDataSource deviceIdentityDataSource =

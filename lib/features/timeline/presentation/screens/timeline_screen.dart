@@ -4,12 +4,14 @@
 // Main screen listing all memories, with the upcoming anniversaries.
 // TimelineViewModel is provided per relationship (couple_scoped_providers);
 // UpcomingSpecialDaysViewModel lives with this screen. EndRequestPrompt
-// asks for an answer when an end request is waiting for this person.
+// asks for an answer when an end request is waiting for this person;
+// AppUpdatePrompt offers a newer version published on GitHub.
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../injection_container.dart';
 import '../../../../navigation/app_routes.dart';
+import '../../../app_update/presentation/components/app_update_prompt.dart';
 import '../../../couple/presentation/components/end_request_prompt.dart';
 import '../../../navigation/presentation/components/floating_add_button.dart';
 import '../../../navigation/presentation/components/floating_nav_menu.dart';
@@ -49,6 +51,9 @@ class TimelineScreen extends StatelessWidget {
 
           // --- Demande d'arrêt en attente de réponse (rien d'affiché) ---
           EndRequestPrompt(),
+
+          // --- Nouvelle version disponible (rien d'affiché) ---
+          AppUpdatePrompt(),
         ],
       ),
     );
