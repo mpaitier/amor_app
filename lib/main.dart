@@ -12,6 +12,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'injection_container.dart';
+import 'features/app_update/presentation/viewmodels/app_update_viewmodel.dart';
 import 'features/auth/presentation/viewmodels/auth_session_viewmodel.dart';
 import 'features/couple/presentation/models/pending_invite.dart';
 import 'features/couple/presentation/viewmodels/couple_session_viewmodel.dart';
@@ -69,6 +70,12 @@ void main() async {
         // --- Position des boutons flottants, partagée par tous les écrans
         // --- et oubliée à la fermeture de l'app ---
         ChangeNotifierProvider(create: (_) => FloatingButtonsViewModel()),
+        // --- Nouvelle version sur GitHub, cherchée une fois au lancement ---
+        ChangeNotifierProvider(
+          lazy: false,
+          create: (_) =>
+              AppUpdateViewModel(checkForUpdate: sl.checkForUpdate)..check(),
+        ),
       ],
       child: const AmorApp(),
     ),
