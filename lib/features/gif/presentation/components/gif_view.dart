@@ -3,13 +3,16 @@
 // ============================================================================
 // Affiche un GIF, centré. Un tap copie son lien. Un bouton optionnel, à sa
 // droite, en tire un autre ; une place vide de même largeur à gauche garde
-// le GIF au centre. Composant "bête" : reçoit l'adresse, l'état de
-// chargement et le callback de changement.
+// le GIF au centre. Une fois le GIF affiché, la mention "Powered by GIPHY"
+// est posée dans son coin, comme l'exigent les conditions de l'API.
+// Composant "bête" : reçoit l'adresse, l'état de chargement et le callback
+// de changement.
 
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'powered_by_giphy.dart';
 
 class GifView extends StatefulWidget {
   final String gifUrl;
@@ -104,9 +107,12 @@ class _GifViewState extends State<GifView> {
               fit: BoxFit.cover,
               // --- Un GIF pèse vite plusieurs Mo. Tant que sa première image
               // --- n'est pas à l'écran (attente de la réponse, téléchargement,
-              // --- décodage), on montre qu'il arrive ---
+              // --- décodage), on montre qu'il arrive. Ensuite, la mention
+              // --- GIPHY accompagne l'image ---
               frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                if (wasSynchronouslyLoaded || frame != null) return child;
+                if (wasSynchronouslyLoaded || frame != null) {
+                  return _withAttribution(child);
+                }
                 return _buildSpinner();
               },
               errorBuilder: (_, __, ___) =>
@@ -116,6 +122,20 @@ class _GifViewState extends State<GifView> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- "Powered by GIPHY" en bas à droite du GIF ---
+  Widget _withAttribution(Widget gif) {
+    return Stack(
+      children: [
+        gif,
+        const Positioned(
+          right: 4,
+          bottom: 4,
+          child: IgnorePointer(child: PoweredByGiphy()),
+        ),
+      ],
     );
   }
 
