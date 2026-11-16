@@ -100,6 +100,10 @@ flutter test
 
 GIF fournis par [GIPHY](https://giphy.com). Recherche de lieux par [Geoapify](https://www.geoapify.com).
 
+## Confidentialité
+
+La [politique de confidentialité](https://amor-app-9ee55.web.app/privacy) décrit les données enregistrées, les services tiers et la suppression du compte. Sa source est `hosting/public/privacy.html` ; elle est aussi accessible dans l'app, dans Paramètres → Compte.
+
 ## Licence
 
 Code distribué sous licence [MIT](LICENSE). Les clés d'API et la configuration Firebase ne font pas partie du dépôt : une copie du code doit utiliser son propre projet Firebase et ses propres clés GIPHY et Geoapify.

@@ -1,12 +1,14 @@
 // ============================================================================
 // SETTINGS ACCOUNT TAB
 // ============================================================================
-// Onglet "Compte" : surnom et couleur de la personne connectée, puis le
-// compte (déconnexion, règle d'inactivité, suppression).
+// Onglet "Compte" : surnom et couleur de la personne connectée, le compte
+// (déconnexion, règle d'inactivité, suppression), puis la politique de
+// confidentialité.
 
 import 'package:flutter/material.dart';
 import '../../../auth/presentation/components/account_card.dart';
 import '../../../couple/presentation/components/member_profile_editor.dart';
+import 'privacy_policy_tile.dart';
 import 'settings_section.dart';
 import 'settings_tab_page.dart';
 
@@ -28,6 +30,10 @@ class SettingsAccountTab extends StatelessWidget {
         const SettingsSection(
           title: 'Compte',
           child: AccountCard(),
+        ),
+        const SettingsSection(
+          title: 'Confidentialité',
+          child: PrivacyPolicyTile(),
         ),
       ],
     );
